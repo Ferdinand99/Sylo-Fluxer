@@ -5,7 +5,8 @@
 // type. Each `game` choice encodes `<adapter>:<title>`; the shared
 // runStatsLookup() helper only ever talks to the adapter registry, so adding a
 // game is a new adapter file plus one choice here.
-import { SlashCommandBuilder, InteractionContextType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 import { getAdapter } from '../../adapters/games/index.js';
 import { AdapterError } from '../../adapters/games/gameAdapter.js';
 import { isModuleEnabled } from '../../db/modules.js';
@@ -84,7 +85,7 @@ export async function runStatsLookup(game, title, username, platform) {
   return { stats, cached: false };
 }
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!(await isModuleEnabled(interaction.guildId, 'game-stats'))) {
     return interaction.reply({

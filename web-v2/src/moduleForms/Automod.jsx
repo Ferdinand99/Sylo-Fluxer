@@ -12,7 +12,6 @@ const MODE_LABELS = {
 };
 // Rules with an extra "Settings" panel — same set as V1's automod.ejs.
 const WITH_PARAMS = new Set(['links', 'spam', 'mentions', 'caps', 'words', 'emojis', 'spoilers']);
-const PRESET_LABELS = { profanity: 'Profanity', sexual: 'Sexual content', slurs: 'Slurs' };
 
 function mode(rule) {
   return rule?.enabled ? rule.action || 'delete' : 'off';
@@ -40,7 +39,6 @@ export default function Automod() {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [nativeNote, setNativeNote] = useState(null);
 
   useEffect(() => {
     if (data) setForm(toFormConfig(data.config));
@@ -66,22 +64,15 @@ export default function Automod() {
   const setRule = (key, patch) =>
     setForm((f) => ({ ...f, rules: { ...f.rules, [key]: { ...f.rules[key], ...patch } } }));
   const setMode = (key, m) => setRule(key, { enabled: m !== 'off', action: m === 'off' ? 'delete' : m });
-  const setNative = (patch) => setForm((f) => ({ ...f, native: { ...f.native, ...patch } }));
-  const togglePreset = (p, checked) =>
-    setNative({
-      presets: checked ? [...form.native.presets, p] : form.native.presets.filter((x) => x !== p),
-    });
 
   async function onSave(e) {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
-    setNativeNote(null);
     try {
       const result = await saveModuleConfig(guildId, 'automod', form);
       setForm(toFormConfig(result.config));
       setSaved(true);
-      if (result.nativeNote) setNativeNote({ text: result.nativeNote, warned: result.nativeWarned });
     } catch (err) {
       alert(err.message);
     } finally {
@@ -229,53 +220,6 @@ export default function Automod() {
           ))}
         </div>
 
-        <h2 className="v2-group-title">Native Discord AutoMod</h2>
-        <p className="v2-field-hint">
-          Push the mappable checks onto Discord's built-in AutoMod so they are enforced before a message is
-          posted, and keep working while Sylo is offline. Needs the Manage Server permission. Sylo owns any
-          rule named "Sylo: …" — edit those here, not in Server Settings.
-        </p>
-        <div className="v2-field">
-          <label className="v2-check">
-            <input
-              type="checkbox"
-              checked={form.native.enabled}
-              onChange={(e) => setNative({ enabled: e.target.checked })}
-            />
-            Enforce natively
-          </label>
-          <div className="v2-check-grid">
-            {data.nativeMappable.map(([key, label]) => (
-              <label className="v2-check" key={key}>
-                <input
-                  type="checkbox"
-                  checked={Boolean(form.native[key])}
-                  onChange={(e) => setNative({ [key]: e.target.checked })}
-                />
-                {label}
-                {mode(form.rules[key]) === 'off' ? (
-                  <span className="v2-field-hint"> — enable the check above first</span>
-                ) : null}
-              </label>
-            ))}
-          </div>
-          <p className="v2-field-hint">
-            Discord keyword presets <span>— Discord-maintained word lists</span>
-          </p>
-          <div className="v2-check-grid">
-            {data.presetKeys.map((p) => (
-              <label className="v2-check" key={p}>
-                <input
-                  type="checkbox"
-                  checked={form.native.presets.includes(p)}
-                  onChange={(e) => togglePreset(p, e.target.checked)}
-                />
-                {PRESET_LABELS[p] || p}
-              </label>
-            ))}
-          </div>
-        </div>
-
         <div className="v2-field">
           <label htmlFor="timeoutMinutes">Timeout length for the "Delete + Timeout" action (minutes)</label>
           <input
@@ -305,9 +249,6 @@ export default function Automod() {
             {saving ? 'Saving…' : 'Save automod'}
           </button>
           {saved ? <span className="v2-field-hint"> Saved.</span> : null}
-          {nativeNote ? (
-            <p className={nativeNote.warned ? 'v2-warn-text' : 'v2-field-hint'}>{nativeNote.text}</p>
-          ) : null}
         </div>
       </form>
     </>

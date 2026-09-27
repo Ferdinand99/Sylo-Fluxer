@@ -1,7 +1,7 @@
 import './helpers/tmpDb.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Collection } from 'discord.js';
+import { Collection } from '../src/platform/index.js';
 import { todayStr, isDue, cleanupChannel } from '../src/modules/channelCleanup.js';
 
 test('todayStr formats as YYYY-MM-DD in local time', () => {

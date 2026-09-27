@@ -1,5 +1,5 @@
 // /voice-unlock — let people join your temporary voice channel again.
-import { SlashCommandBuilder, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 import { setLock } from '../../modules/tempVoice.js';
 

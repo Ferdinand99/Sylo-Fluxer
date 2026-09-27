@@ -1,5 +1,6 @@
 // /invites [user] — a member's invite tally, plus a personal invite link.
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, MessageFlags, PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import {
   getInviteCount,
@@ -55,7 +56,7 @@ async function personalLink(guild, userId) {
   }
 }
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });

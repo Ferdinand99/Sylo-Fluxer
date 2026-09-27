@@ -1,5 +1,6 @@
 // /poll — create a reaction poll in the current channel.
-import { SlashCommandBuilder, MessageFlags, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';
 import { createPoll } from '../../db/polls.js';
 import { LETTERS, MIN_OPTIONS, parseChoices, buildPollPayload } from '../../modules/polls.js';
@@ -22,7 +23,10 @@ export const data = new SlashCommandBuilder()
       .setRequired(true)
   )
   .addStringOption((o) =>
-    o.setName('duration').setDescription('Auto-close after e.g. 30m, 2h, 1d (min 1m, max 30d)')
+    o
+      .setName('duration')
+      .setPattern(...DURATION)
+      .setDescription('Auto-close after e.g. 30m, 2h, 1d (min 1m, max 30d)')
   )
   .addBooleanOption((o) => o.setName('multiple').setDescription('Allow voting for more than one option'))
   .addIntegerOption((o) =>
@@ -33,7 +37,7 @@ export const data = new SlashCommandBuilder()
       .setMaxValue(100000)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!(await isModuleEnabled(interaction.guildId, 'polls'))) {
     return interaction.reply({

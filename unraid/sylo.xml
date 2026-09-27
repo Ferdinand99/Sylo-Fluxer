@@ -1,27 +1,23 @@
 <?xml version="1.0"?>
 <Container version="2">
-  <Name>Sylo</Name>
-  <Repository>docker.io/iwgamin/sylo:latest</Repository>
-  <Registry>https://hub.docker.com/r/iwgamin/sylo</Registry>
+  <Name>Sylo-Fluxer</Name>
+  <Repository>ghcr.io/ferdinand99/sylo-fluxer:latest</Repository>
+  <Registry>https://github.com/Ferdinand99/Sylo-Fluxer/pkgs/container/sylo-fluxer</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/Ferdinand99/Sylo/issues</Support>
-  <Project>https://github.com/Ferdinand99/Sylo</Project>
-  <Overview>Sylo is a multi-function Discord bot with a web dashboard. It has a per-guild module system (31 modules) - moderation with warning thresholds and a numbered case log (/history, /case), server logging, tickets/modmail answered from the dashboard, reaction roles &amp; autoroles, verification (Verify button or Cloudflare Turnstile captcha), welcome/leave messages, a Welcome Channel builder, birthday announcements, sticky messages, auto-moderation (invite/link/flood/mention/caps/word filters, optionally pushed to Discord's native AutoMod), a counting mini-game, action-based custom slash commands, an autoresponder, reminders (one-off or recurring channel posts), leveling (text + optional voice XP, per-role/channel multipliers, all-time/weekly/monthly public leaderboard), AFK, server statistics (live-count voice channels), server insights (activity charts - messages, joins/leaves and voice-channel usage over time), a free games notifier (Epic Games Store, plus more stores with an IsThereAnyDeal key), ban appeals (banned members get a DM'd link to an appeal form; staff accept/deny from the dashboard), MEE6-style temporary voice channels ("join to create" hubs plus /voice-* control commands), a starboard (re-posts messages that get enough of a reaction into a highlights channel), an invite tracker (credits who invited each member and ranks inviters), reaction polls (/poll with a timer or vote cap), prize giveaways (Enter button, auto-drawn winners), optional Battlefield-series and RuneScape (OSRS/RS3) player stats (/stats, gated by the Game stats module), Twitch / YouTube / Kick go-live &amp; new-video alerts (with an optional "delete the message when the stream ends" mode), RSS/Atom feed alerts (plus Reddit / Mastodon / Bluesky handles), scheduled channel cleanup (auto-delete messages older than a threshold from a channel, on a weekly schedule you pick), and a message/embed creator - plus per-server command management, a Prometheus /metrics endpoint (a ready-made Grafana dashboard ships in the repo), and an editable Discord presence/activity. State is stored in a single SQLite file under /app/data and survives updates. The database is snapshotted automatically (before every schema migration and on a schedule) into /app/data/backups - optionally shipped off-site as well (WebDAV and/or a Discord webhook; see BACKUP_WEBDAV_URL / BACKUP_WEBHOOK_URL); from the dashboard's Health page you can also create, download, import and restore a snapshot (restore swaps the file and lets the container restart on the restored data).
+  <Support>https://github.com/Ferdinand99/Sylo-Fluxer/issues</Support>
+  <Project>https://github.com/Ferdinand99/Sylo-Fluxer</Project>
+  <Overview>Sylo-Fluxer is a multi-function bot for Fluxer (https://fluxer.app) with a web dashboard - a port of Sylo. It has a per-community module system: moderation with warning thresholds and a numbered case log, server logging, tickets/modmail answered from the dashboard, reaction roles &amp; autoroles, verification (react to verify, or a Cloudflare Turnstile captcha), welcome/leave messages, birthdays, sticky messages, auto-moderation, counting, custom commands, an autoresponder, reminders, leveling (text + voice XP), AFK, server statistics, server insights, free games, ban appeals, temporary voice channels, a starboard, an invite tracker, polls, giveaways, game stats, Twitch / YouTube / Kick / RSS alerts, scheduled channel cleanup and a message/embed creator. Commands are typed with a prefix (! by default, changeable per community). State is stored in a single SQLite file under /app/data and survives updates; it is snapshotted automatically into /app/data/backups.
 
-Setup: create a Discord application at https://discord.com/developers/applications, then set DISCORD_TOKEN (Bot tab) and DISCORD_CLIENT_ID (General Information). Invite the bot with the scopes "bot" and "applications.commands".
+Setup: in the Fluxer app open User Settings -> Developer -> Applications, create an application, then set FLUXER_TOKEN (Bot token) and FLUXER_CLIENT_ID (Application ID). Invite the bot with https://web.fluxer.app/oauth2/authorize?client_id=YOUR_APPLICATION_ID&amp;scope=bot&amp;permissions=1100469103831
 
-Intents: the member/message-driven modules (logging, welcome, reaction roles, verification, leveling, server statistics, invite tracker, auto-moderation, counting, autoresponder, starboard) need the "Server Members" and/or "Message Content" intents enabled on the Developer Portal Bot page. Leave INTENT_GUILD_MEMBERS / INTENT_MESSAGE_CONTENT at their defaults, or set one to false to boot without that intent (its modules stay unavailable).
-
-Dashboard: runs open by default (use only on a trusted LAN). To require "Log in with Discord" for server admins, set DISCORD_CLIENT_SECRET and add http://[UNRAID-IP]:[HOST-PORT]/auth/discord/callback to the app's OAuth2 Redirects.
-
-Community &amp; support: https://discord.gg/GAzR9k5hhS</Overview>
+Dashboard: runs open by default (use only on a trusted LAN). To require "Log in with Fluxer" for community admins, set FLUXER_CLIENT_SECRET and add http://[UNRAID-IP]:[HOST-PORT]/auth/fluxer/callback to the application's Redirect URIs.</Overview>
   <Category>Tools: Network:Messenger</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/Ferdinand99/Sylo/main/unraid/sylo.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/Ferdinand99/Sylo/main/unraid/sylo-icon.png</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/Ferdinand99/Sylo-Fluxer/main/unraid/sylo.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Ferdinand99/Sylo-Fluxer/main/unraid/sylo-icon.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
@@ -42,85 +38,67 @@ Community &amp; support: https://discord.gg/GAzR9k5hhS</Overview>
   <Config
     Name="Data Directory"
     Target="/app/data"
-    Default="/mnt/user/appdata/sylo/data"
+    Default="/mnt/user/appdata/sylo-fluxer/data"
     Mode="rw"
     Description="Where the SQLite database (sylo.db) is stored. Persists across updates/restarts."
     Type="Path"
     Display="always"
     Required="true"
-    Mask="false">/mnt/user/appdata/sylo/data</Config>
+    Mask="false">/mnt/user/appdata/sylo-fluxer/data</Config>
   <Config
-    Name="DISCORD_TOKEN"
-    Target="DISCORD_TOKEN"
+    Name="FLUXER_TOKEN"
+    Target="FLUXER_TOKEN"
     Default=""
-    Description="Discord bot token (Developer Portal -> your app -> Bot -> Reset Token)."
+    Description="Fluxer bot token (User Settings -> Developer -> Applications -> your app -> Bot token)."
     Type="Variable"
     Display="always"
     Required="true"
     Mask="true"/>
   <Config
-    Name="DISCORD_CLIENT_ID"
-    Target="DISCORD_CLIENT_ID"
+    Name="FLUXER_CLIENT_ID"
+    Target="FLUXER_CLIENT_ID"
     Default=""
-    Description="Discord application (client) ID (Developer Portal -> your app -> General Information)."
+    Description="Fluxer Application ID (top of the same page)."
     Type="Variable"
     Display="always"
     Required="true"
     Mask="false"/>
   <Config
-    Name="DISCORD_DEV_GUILD_IDS"
-    Target="DISCORD_DEV_GUILD_IDS"
+    Name="FLUXER_SHARD_COUNT"
+    Target="FLUXER_SHARD_COUNT"
     Default=""
-    Description="Optional. Set to a server ID (or several, comma-separated) to register slash commands to those guild(s) instantly (useful for testing). Leave blank to register globally (can take up to ~1 hour the first time)."
-    Type="Variable"
-    Display="always"
-    Required="false"
-    Mask="false"/>
-  <Config
-    Name="DISCORD_SHARD_COUNT"
-    Target="DISCORD_SHARD_COUNT"
-    Default=""
-    Description="Optional. Number of Discord gateway shards this one container runs. Leave blank (or 'auto') to follow Discord's recommendation - it stays at 1 until the bot is in ~2,500+ servers, so most instances never need this. Multi-process sharding is not supported."
+    Description="Optional. Number of gateway shards this one container runs. Leave blank (or 'auto') - it stays at 1 until the bot is in ~2,500+ communities. Multi-process sharding is not supported."
     Type="Variable"
     Display="advanced"
     Required="false"
     Mask="false"/>
   <Config
-    Name="DISCORD_CLIENT_SECRET"
-    Target="DISCORD_CLIENT_SECRET"
+    Name="FLUXER_CLIENT_SECRET"
+    Target="FLUXER_CLIENT_SECRET"
     Default=""
-    Description="Optional. Set this (Developer Portal -> OAuth2 -> Client Secret) to require 'Log in with Discord' on the dashboard, restricted to server admins. Also add http://[UNRAID-IP]:[HOST-PORT]/auth/discord/callback to the app's OAuth2 Redirects. Leave blank to run the dashboard open (trusted LAN only)."
+    Description="Optional. Set this (same page -> Client secret) to require 'Log in with Fluxer' on the dashboard, restricted to community admins. Also add http://[UNRAID-IP]:[HOST-PORT]/auth/fluxer/callback to the application's Redirect URIs. Leave blank to run the dashboard open (trusted LAN only)."
     Type="Variable"
     Display="always"
     Required="false"
     Mask="true"/>
   <Config
-    Name="INTENT_GUILD_MEMBERS"
-    Target="INTENT_GUILD_MEMBERS"
-    Default="true"
-    Description="Whether to request the Server Members privileged intent (needed by logging, welcome, reaction roles/autoroles, verification, leveling, server statistics and the invite tracker). Must also be enabled on the Developer Portal Bot page. Set to false to boot without it - those modules then stay unavailable."
-    Type="Variable"
-    Display="advanced"
-    Required="false"
-    Mask="false">true</Config>
-  <Config
-    Name="INTENT_MESSAGE_CONTENT"
-    Target="INTENT_MESSAGE_CONTENT"
-    Default="true"
-    Description="Whether to request the Message Content privileged intent (needed by logging, auto-moderation, the autoresponder, the counting game and the starboard). Must also be enabled on the Developer Portal Bot page. Set to false to boot without it - those modules then stay unavailable."
-    Type="Variable"
-    Display="advanced"
-    Required="false"
-    Mask="false">true</Config>
-  <Config
-    Name="SESSION_SECRET"
-    Target="SESSION_SECRET"
+    Name="FLUXER_API_URL"
+    Target="FLUXER_API_URL"
     Default=""
-    Description="Optional. Any long random string; signs the dashboard session cookie so logins survive a container restart. Auto-generated when blank."
+    Description="Optional, self-hosted Fluxer only. Public API origin of your instance. Leave blank for hosted Fluxer (fluxer.app)."
     Type="Variable"
     Display="advanced"
     Required="false"
-    Mask="true"/>
+    Mask="false"/>
+  <Config
+    Name="FLUXER_WEB_URL"
+    Target="FLUXER_WEB_URL"
+    Default=""
+    Description="Optional, self-hosted Fluxer only. Web app origin of your instance. Leave blank for hosted Fluxer."
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false"/>
   <Config
     Name="DASHBOARD_URL"
     Target="DASHBOARD_URL"
@@ -278,7 +256,7 @@ Community &amp; support: https://discord.gg/GAzR9k5hhS</Overview>
     Name="BACKUP_WEBHOOK_URL"
     Target="BACKUP_WEBHOOK_URL"
     Default=""
-    Description="Optional. Off-site backups: a Discord webhook URL. Each gzipped snapshot is uploaded as an attachment (skipped when it is over ~8 MiB — use WebDAV for a larger database)."
+    Description="Optional. Off-site backups: a webhook URL. Each gzipped snapshot is uploaded as an attachment (skipped when it is over ~8 MiB — use WebDAV for a larger database)."
     Type="Variable"
     Display="advanced"
     Required="false"

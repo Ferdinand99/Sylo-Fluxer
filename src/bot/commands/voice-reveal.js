@@ -1,5 +1,5 @@
 // /voice-reveal — make a hidden temporary voice channel visible again.
-import { SlashCommandBuilder, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 import { setHidden } from '../../modules/tempVoice.js';
 

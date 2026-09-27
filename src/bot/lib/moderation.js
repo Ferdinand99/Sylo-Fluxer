@@ -1,6 +1,6 @@
 // Shared helpers for the moderation commands: hierarchy/permission checks,
 // notifying the target by DM, and building consistent result embeds.
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../../platform/index.js';
 
 export const MOD_COLOR = 0xb4472b;
 export const INFO_COLOR = 0x4aa3df;
@@ -13,8 +13,8 @@ export const NO_REASON = 'No reason provided';
  * error string when the action must be blocked, or `null` when it's allowed.
  *
  * @param {object} args
- * @param {import('discord.js').ChatInputCommandInteraction} args.interaction
- * @param {import('discord.js').GuildMember} args.target
+ * @param {import('../framework/MessageInteraction.js').MessageInteraction} args.interaction
+ * @param {import('@fluxerjs/core').GuildMember} args.target
  * @param {string} args.action  e.g. "kick", "ban", "time out"
  * @returns {string | null}
  */
@@ -49,7 +49,7 @@ export function checkActable({ interaction, target, action }) {
 
 /**
  * Try to DM the target about an action taken against them. Never throws.
- * @param {import('discord.js').User} user
+ * @param {import('@fluxerjs/core').User} user
  * @param {object} info
  * @param {string} info.guildName
  * @param {string} info.action        past tense, e.g. "kicked", "banned"
@@ -78,8 +78,8 @@ export async function notifyTarget(user, { guildName, action, reason, extra }) {
  * reply and the mod-log.
  * @param {object} args
  * @param {string} args.action           display title, e.g. "Member kicked"
- * @param {import('discord.js').User} args.target
- * @param {import('discord.js').User} args.moderator
+ * @param {import('@fluxerjs/core').User} args.target
+ * @param {import('@fluxerjs/core').User} args.moderator
  * @param {string} args.reason
  * @param {Array<{ name: string, value: string }>} [args.fields]
  * @returns {EmbedBuilder}

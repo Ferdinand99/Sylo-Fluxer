@@ -1,76 +1,48 @@
 import './helpers/tmpDb.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRoleComponents } from '../src/modules/roles.js';
+import { effectivePairs } from '../src/modules/roles.js';
 
-const R = (n) => String(10n ** 17n + BigInt(n)); // valid-looking snowflakes
+const R = (n) => `10000000000000000${n}`;
 
-function fakeGuild(names = {}) {
-  return {
-    roles: {
-      cache: {
-        get: (id) => (names[id] ? { id, name: names[id] } : { id, name: 'role' }),
+test('effectivePairs keeps pairs that already have an emoji', () => {
+  const pairs = effectivePairs({
+    pairs: [
+      { key: '🎮', display: '🎮', react: '🎮', roleId: R(1) },
+      {
+        key: '123456789012345678',
+        display: '<:x:123456789012345678>',
+        react: 'x:123456789012345678',
+        roleId: R(2),
       },
-    },
-  };
-}
-
-test('buttons style: rows of ≤5 buttons with rr:<id>:<role> customIds', () => {
-  const pairs = Array.from({ length: 7 }, (_, i) => ({ roleId: R(i), label: `L${i}`, btnStyle: 'primary' }));
-  const rows = buildRoleComponents(fakeGuild(), { id: '42', style: 'buttons', pairs }).map((r) => r.toJSON());
-  assert.equal(rows.length, 2);
-  assert.equal(rows[0].components.length, 5);
-  assert.equal(rows[1].components.length, 2);
-  const b = rows[0].components[0];
-  assert.equal(b.custom_id, `rr:42:${R(0)}`);
-  assert.equal(b.label, 'L0');
-  assert.equal(b.style, 1); // Primary
+    ],
+  });
+  assert.deepEqual(
+    pairs.map((p) => p.key),
+    ['🎮', '123456789012345678']
+  );
 });
 
-test('button label falls back to the role name; bad btnStyle -> secondary', () => {
-  const rows = buildRoleComponents(fakeGuild({ [R(1)]: 'Gamer' }), {
-    id: '1',
+test('effectivePairs gives emoji-less pairs (old button/select styles) keycaps in order', () => {
+  const pairs = effectivePairs({
     style: 'buttons',
-    pairs: [{ roleId: R(1), btnStyle: 'chartreuse' }],
-  }).map((r) => r.toJSON());
-  assert.equal(rows[0].components[0].label, 'Gamer');
-  assert.equal(rows[0].components[0].style, 2); // Secondary
-});
-
-test('select style: one menu, rrsel:<id>, options carry role ids', () => {
-  const pairs = [
-    { roleId: R(1), label: 'One' },
-    { roleId: R(2), label: 'Two' },
-    { roleId: R(3), label: 'Three' },
-  ];
-  const [row] = buildRoleComponents(fakeGuild(), {
-    id: '9',
-    style: 'select',
-    pairs,
-    placeholder: 'Choose',
-  }).map((r) => r.toJSON());
-  const menu = row.components[0];
-  assert.equal(menu.custom_id, 'rrsel:9');
-  assert.equal(menu.placeholder, 'Choose');
-  assert.equal(menu.min_values, 0);
-  assert.equal(menu.max_values, 3);
+    pairs: [
+      { roleId: R(1), label: 'A' },
+      { key: '1️⃣', display: '1️⃣', react: '1️⃣', roleId: R(2) },
+      { roleId: R(3) },
+    ],
+  });
+  // 1️⃣ is taken by the second pair, so the first free keycaps are 2️⃣ and 3️⃣.
   assert.deepEqual(
-    menu.options.map((o) => o.value),
-    [R(1), R(2), R(3)]
+    pairs.map((p) => [p.roleId, p.key, p.react]),
+    [
+      [R(1), '2️⃣', '2️⃣'],
+      [R(2), '1️⃣', '1️⃣'],
+      [R(3), '3️⃣', '3️⃣'],
+    ]
   );
 });
 
-test('exclusive select clamps to a single pick', () => {
-  const pairs = [{ roleId: R(1) }, { roleId: R(2) }];
-  const [row] = buildRoleComponents(fakeGuild(), { id: '3', style: 'select', exclusive: true, pairs }).map(
-    (r) => r.toJSON()
-  );
-  assert.equal(row.components[0].max_values, 1);
-});
-
-test('invalid role ids are dropped; no valid pairs -> no components', () => {
-  assert.deepEqual(
-    buildRoleComponents(fakeGuild(), { id: '1', style: 'buttons', pairs: [{ roleId: 'nope' }] }),
-    []
-  );
+test('effectivePairs drops pairs without a valid role id', () => {
+  assert.deepEqual(effectivePairs({ pairs: [{ roleId: 'nope', key: '🎮' }] }), []);
 });

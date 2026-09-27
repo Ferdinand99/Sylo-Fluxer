@@ -1,6 +1,5 @@
 // Auto-react: automatically react (and optionally add/remove a role) when a
-// message comes from a chosen user or role. No message-content reading, so
-// this module needs no privileged intents.
+// message comes from a chosen user or role. It never reads message content.
 //
 // config shape (see normaliseAutoReact):
 //   { cooldownSeconds: number, logChannelId: string, rules: [ {
@@ -11,7 +10,7 @@
 //     channelId: string,             // '' = every channel, otherwise locked to just this one
 //   } ] }
 // First matching rule wins, same as autoresponder's responders.
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { sendToChannel } from './lib/send.js';
 

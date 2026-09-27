@@ -1,7 +1,7 @@
 // Shared "the stream ended" handling for the Twitch / YouTube-live / Kick alert
 // modules. On the live -> offline transition each module calls settleEndedPost()
 // with the message it announced (from posted_keys) and the alert's `onEnd` mode.
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../../platform/index.js';
 import { formatDuration } from '../../bot/lib/duration.js';
 import { deleteChannelMessage, editChannelMessage } from './send.js';
 

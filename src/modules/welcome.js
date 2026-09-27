@@ -2,7 +2,7 @@
 //   { joinChannel, joinMessage, leaveChannel, leaveMessage, dmMessage, useEmbed,
 //     card, cardBackground }
 // Placeholders: {user} {user.tag} {user.name} {user.id} {server} {memberCount}
-import { EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { EmbedBuilder, AttachmentBuilder } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { sendToChannel } from './lib/send.js';
 import { guildEmbedColor } from '../db/guildSettings.js';

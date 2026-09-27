@@ -7,8 +7,8 @@ import { writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-process.env.DISCORD_TOKEN ||= 'x';
-process.env.DISCORD_CLIENT_ID ||= '000000000000000000';
+process.env.FLUXER_TOKEN ||= 'x';
+process.env.FLUXER_CLIENT_ID ||= '000000000000000000';
 process.env.BACKUP_WEBDAV_URL = 'https://dav.test/backups/';
 process.env.BACKUP_WEBDAV_USER = 'me';
 process.env.BACKUP_WEBDAV_PASS = 'pw';

@@ -2,18 +2,12 @@
 // having first saved whatever @everyone overwrite was there before. Unlocking
 // restores that saved state exactly (or removes the overwrite if there wasn't
 // one). Shared by /lock, /unlock and /lockdown.
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from '../../platform/index.js';
 import { recordChannelLock, getChannelLock, clearChannelLock } from '../../db/channelLocks.js';
 
-// The permissions a lock takes away. Threads + reactions are included so a
-// locked channel can't be talked in sideways.
-export const LOCK_PERMS = [
-  'SendMessages',
-  'SendMessagesInThreads',
-  'CreatePublicThreads',
-  'CreatePrivateThreads',
-  'AddReactions',
-];
+// The permissions a lock takes away. Reactions are included so a locked
+// channel can't be talked in sideways.
+export const LOCK_PERMS = ['SendMessages', 'AddReactions'];
 
 /** Channel types /lock and /lockdown can act on. */
 export function isLockableChannel(channel) {
@@ -23,7 +17,7 @@ export function isLockableChannel(channel) {
 /**
  * Can Sylo edit @everyone overwrites here? Returns a user-facing reason string
  * when it can't, or null when it can.
- * @param {import('discord.js').GuildChannel} channel
+ * @param {import('@fluxerjs/core').GuildChannel} channel
  */
 export function lockPreflight(channel) {
   const me = channel.guild.members.me;
@@ -63,7 +57,7 @@ export function restoreLockPerms(prevAllow, prevDeny) {
 /**
  * Lock a channel. No-op-safe: the pre-lock overwrite is only recorded the first
  * time, so a second lock can't overwrite the saved baseline with locked values.
- * @param {import('discord.js').GuildChannel} channel
+ * @param {import('@fluxerjs/core').GuildChannel} channel
  * @param {{ moderatorTag: string, lockdown?: boolean }} opts
  */
 export async function lockChannel(channel, { moderatorTag, lockdown = false }) {
@@ -87,7 +81,7 @@ export async function lockChannel(channel, { moderatorTag, lockdown = false }) {
  * Unlock a channel, restoring the saved @everyone state. If there is no saved
  * row (locked before this feature, or the DB row was lost) it just clears the
  * lock perms back to "inherit".
- * @param {import('discord.js').GuildChannel} channel
+ * @param {import('@fluxerjs/core').GuildChannel} channel
  * @param {{ moderatorTag: string }} opts
  */
 export async function unlockChannel(channel, { moderatorTag }) {

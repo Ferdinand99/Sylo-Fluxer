@@ -9,7 +9,7 @@
 //     resultsMessage: { content, title, color, footer, image } }
 // pollMessage placeholders:    {question} {choices} {ends} {mode}
 // resultsMessage placeholders: {question} {results} {total} {winner} {mode}
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';

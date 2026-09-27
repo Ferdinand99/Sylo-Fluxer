@@ -5,7 +5,7 @@
 // forever. The fix stores only the ids of guilds the user actually manages
 // (filtered at login, not read time), as plain strings instead of
 // `{ id, owner, permissions }` objects, capped as a last resort.
-process.env.DISCORD_CLIENT_SECRET = 'test-secret';
+process.env.FLUXER_CLIENT_SECRET = 'test-secret';
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

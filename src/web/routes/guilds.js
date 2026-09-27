@@ -2,13 +2,13 @@
 // management, and the moderation panel (warnings + bans). Every route requires
 // the signed-in user to be an admin of that guild (pass-through in open mode).
 import { Router } from 'express';
-import { PermissionFlagsBits, EmbedBuilder, ChannelType } from 'discord.js';
+import { PermissionFlagsBits, EmbedBuilder, ChannelType } from '../../platform/index.js';
 import { runtime } from '../../runtime.js';
 import { requireGuildAdmin, currentUser } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { getGuild, baseContext, assignableRoles } from '../lib/guildContext.js';
-import { guildTextChannels, guildVoiceChannels, guildCategories, resolveUserTags } from '../lib/discord.js';
-import { getModule, missingIntents } from '../../modules/registry.js';
+import { guildTextChannels, guildVoiceChannels, guildCategories, resolveUserTags } from '../lib/platform.js';
+import { getModule } from '../../modules/registry.js';
 import { getGuildModule, setGuildModule } from '../../db/modules.js';
 import { getCommandOverrides, setCommandOverride } from '../../db/commandOverrides.js';
 import {
@@ -33,14 +33,7 @@ import { timeAgo } from '../lib/format.js';
 import { LOG_EVENTS } from '../../modules/logging.js';
 import { WELCOME_PLACEHOLDERS } from '../../modules/welcome.js';
 import { applyWarnThresholds, normaliseThresholds, THRESHOLD_ACTIONS } from '../../modules/moderation.js';
-import {
-  normaliseAutomodConfig,
-  AUTOMOD_RULES,
-  AUTOMOD_ACTIONS,
-  NATIVE_MAPPABLE,
-  PRESET_KEYS,
-} from '../../modules/automod.js';
-import { syncGuildAutomod } from '../../bot/lib/automodSync.js';
+import { normaliseAutomodConfig, AUTOMOD_RULES, AUTOMOD_ACTIONS } from '../../modules/automod.js';
 import { normaliseHoneypotConfig, HONEYPOT_ACTIONS, ensureHoneypotMessages } from '../../modules/honeypot.js';
 import { recentHoneypotCatches } from '../../db/honeypotCatches.js';
 import { parseEmoji, publishReactionMessage } from '../../modules/roles.js';
@@ -112,7 +105,6 @@ import {
   MAX_INTERVAL_MINUTES,
 } from '../../modules/scheduledMessages.js';
 import { sendComposed } from '../../modules/messageCreator.js';
-import { syncGuildCustomCommands } from '../../bot/lib/customCommandSync.js';
 import { normaliseLevelingConfig, ANNOUNCE_MODES, XP_RATES, syncRewards } from '../../modules/leveling.js';
 import { levelFromXp } from '../../modules/lib/levels.js';
 import {
@@ -160,6 +152,7 @@ import {
   regenerateGithubWatchSecret,
 } from '../../db/githubWatches.js';
 import { GITHUB_EVENT_TYPES, sanitiseGithubEvents } from '../../modules/githubAlerts.js';
+import { hxTrigger } from '../lib/htmx.js';
 
 const router = Router();
 
@@ -718,7 +711,7 @@ router.post(
     if (req.get('HX-Request')) {
       return res
         .status(204)
-        .set('HX-Trigger', JSON.stringify({ toast: { msg: 'Immunity roles saved', kind: 'ok' } }))
+        .set('HX-Trigger', hxTrigger({ toast: { msg: 'Immunity roles saved', kind: 'ok' } }))
         .end();
     }
     res.redirect(`/guilds/${req.guild.id}/moderation?msg=saved`);
@@ -834,8 +827,6 @@ async function moduleViewLocals(mod, req, configOverride) {
         : [],
     automodRules: AUTOMOD_RULES,
     automodActions: AUTOMOD_ACTIONS,
-    nativeMappable: NATIVE_MAPPABLE,
-    presetKeys: PRESET_KEYS,
     verifyModes: VERIFY_MODES,
     turnstileEnabled: appConfig.turnstileEnabled,
     twitchEnabled: appConfig.twitchEnabled,
@@ -1025,7 +1016,7 @@ router.post(
           kind: 'bad',
         };
     if (req.get('HX-Request')) {
-      return res.status(204).set('HX-Trigger', JSON.stringify({ toast })).end();
+      return res.status(204).set('HX-Trigger', hxTrigger({ toast })).end();
     }
     const msg = r.ok ? 'test-sent' : r.reason === 'no-channel' ? 'test-nochan' : 'test-fail';
     res.redirect(`${back}?msg=${msg}`);
@@ -1147,13 +1138,6 @@ router.post(
         exemptChannels: [].concat(b.exemptChannels ?? []),
         // Immunity roles are managed on the Admin tab — keep whatever is stored.
         exemptRoles: prevAutomod.exemptRoles ?? [],
-        native: {
-          enabled: b.native_enabled === 'on',
-          words: b.native_words === 'on',
-          mentions: b.native_mentions === 'on',
-          spam: b.native_spam === 'on',
-          presets: [].concat(b.native_presets ?? []),
-        },
         rules: {
           invites: rule('invites'),
           links: { ...rule('links'), allowed: b.r_links_allowed },
@@ -1497,20 +1481,6 @@ router.post(
         log.error('honeypot', 'ensure message after save failed:', err.message)
       );
     }
-    let nativeNote = '';
-    let nativeWarned = false;
-    if (mod.id === 'automod') {
-      const r = await syncGuildAutomod(req.guild, config);
-      if (r.skipped === 'missing-permission') {
-        nativeNote = ' - native rules skipped: Sylo needs the Manage Server permission';
-        nativeWarned = true;
-      } else if (r.skipped === 'fetch-failed' || r.errors.length) {
-        nativeNote = ' - some native rules could not be updated';
-        nativeWarned = true;
-      } else if (r.created || r.edited || r.removed) {
-        nativeNote = ` - native rules +${r.created} ~${r.edited} -${r.removed}`;
-      }
-    }
     if (mod.id === 'welcome-channel' && req.body.action === 'publish') {
       const cfg = normaliseWelcomeChannelConfig(
         (await getGuildModule(req.guild.id, 'welcome-channel')).config
@@ -1529,10 +1499,7 @@ router.post(
     // htmx: swap the re-rendered panel + fire a toast instead of a full reload.
     if (req.get('HX-Request')) {
       return res
-        .set(
-          'HX-Trigger',
-          JSON.stringify({ toast: { msg: `Saved${nativeNote}`, kind: nativeWarned ? 'warn' : 'ok' } })
-        )
+        .set('HX-Trigger', hxTrigger({ toast: { msg: 'Saved', kind: 'ok' } }))
         .render('guild/_module-config', await moduleViewLocals(mod, req, config));
     }
     res.redirect(`${back}?msg=saved`);
@@ -2551,9 +2518,6 @@ router.post(
       action: 'module:custom-commands',
       detail: `${existing ? 'updated' : 'created'} /${name}`,
     });
-    await syncGuildCustomCommands(req.guild).catch((err) =>
-      log.error('custom-commands', 'sync after save failed:', err.message)
-    );
     res.redirect(`${back}?msg=saved`);
   })
 );
@@ -2571,9 +2535,6 @@ router.post(
       action: 'module:custom-commands',
       detail: 'deleted a command',
     });
-    await syncGuildCustomCommands(req.guild).catch((err) =>
-      log.error('custom-commands', 'sync after delete failed:', err.message)
-    );
     res.redirect(`/guilds/${req.guild.id}/m/custom-commands?msg=saved`);
   })
 );
@@ -2613,7 +2574,7 @@ router.post(
   })
 );
 
-const LOCKDOWN_TYPES = [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.GuildForum];
+const LOCKDOWN_TYPES = [ChannelType.GuildText];
 
 // Lock every text channel (dashboard equivalent of /lockdown start).
 router.post(
@@ -2738,11 +2699,6 @@ router.post(
     const enabled = Boolean(req.body.enabled);
     for (const id of ids) {
       await setGuildModule(req.guild.id, id, { enabled });
-      if (id === 'custom-commands') {
-        syncGuildCustomCommands(req.guild).catch((err) =>
-          log.error('custom-commands', 'sync after bulk toggle failed:', err.message)
-        );
-      }
       if (id === 'invite-tracker' && enabled) {
         primeInviteCache(req.guild).catch((err) =>
           log.error('invite-tracker', 'cache prime after bulk enable failed:', err.message)
@@ -2772,28 +2728,15 @@ router.post(
       action: `module:${mod.id}`,
       detail: enabled ? 'enabled' : 'disabled',
     });
-    if (mod.id === 'custom-commands') {
-      syncGuildCustomCommands(req.guild).catch((err) =>
-        log.error('custom-commands', 'sync after toggle failed:', err.message)
-      );
-    }
     if (mod.id === 'invite-tracker' && enabled) {
       primeInviteCache(req.guild).catch((err) =>
         log.error('invite-tracker', 'cache prime after enable failed:', err.message)
       );
     }
-    if (mod.id === 'automod') {
-      // Re-assert native rules when turned back on; tear them down when off.
-      const cfg = normaliseAutomodConfig((await getGuildModule(req.guild.id, 'automod')).config);
-      const target = enabled ? cfg : { ...cfg, native: { ...cfg.native, enabled: false } };
-      syncGuildAutomod(req.guild, target).catch((err) =>
-        log.error('automod', 'native sync after toggle failed:', err.message)
-      );
-    }
     if (req.get('HX-Request')) {
       res.set(
         'HX-Trigger',
-        JSON.stringify({
+        hxTrigger({
           moduleToggled: { id: mod.id, enabled },
           toast: { msg: `${mod.name} ${enabled ? 'enabled' : 'disabled'}`, kind: 'ok' },
         })
@@ -2806,7 +2749,7 @@ router.post(
         guild: req.guild,
         activeModule: mod,
         moduleEnabled: enabled,
-        toggleDisabled: missingIntents(mod).length > 0,
+        toggleDisabled: false,
       });
     }
     res.json({ enabled });
@@ -2965,7 +2908,7 @@ router.post(
       if (hx) {
         return res
           .status(404)
-          .set('HX-Trigger', JSON.stringify({ toast: { msg: 'Unknown command', kind: 'bad' } }))
+          .set('HX-Trigger', hxTrigger({ toast: { msg: 'Unknown command', kind: 'bad' } }))
           .end();
       }
       return res.redirect(`/guilds/${guild.id}/commands?msg=badcommand`);
@@ -2990,7 +2933,7 @@ router.post(
     if (hx) {
       return res
         .status(204)
-        .set('HX-Trigger', JSON.stringify({ toast: { msg: `/${command} updated`, kind: 'ok' } }))
+        .set('HX-Trigger', hxTrigger({ toast: { msg: `${command} updated`, kind: 'ok' } }))
         .end();
     }
     res.redirect(`/guilds/${guild.id}/commands?msg=saved`);

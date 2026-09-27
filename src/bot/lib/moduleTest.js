@@ -1,7 +1,7 @@
 // "Send test" from the dashboard: post one representative message for a module
 // to its configured channel, so an admin can confirm the channel + permissions
 // without waiting for a real trigger.
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../../platform/index.js';
 import { getGuildModule } from '../../db/modules.js';
 import { guildEmbedColor } from '../../db/guildSettings.js';
 import { sendToChannel } from '../../modules/lib/send.js';

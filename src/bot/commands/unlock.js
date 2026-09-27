@@ -1,25 +1,13 @@
 // /unlock [channel] [reason] — undo /lock, restoring the prior @everyone
 // overwrite exactly.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  ChannelType,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { lockPreflight, unlockChannel } from '../lib/channelLock.js';
 import { isChannelLocked } from '../../db/channelLocks.js';
 
-const LOCKABLE = [
-  ChannelType.GuildText,
-  ChannelType.GuildAnnouncement,
-  ChannelType.GuildForum,
-  ChannelType.GuildVoice,
-  ChannelType.GuildStageVoice,
-];
+const LOCKABLE = [ChannelType.GuildText, ChannelType.GuildVoice];
 
 export const data = new SlashCommandBuilder()
   .setName('unlock')
@@ -36,7 +24,7 @@ export const data = new SlashCommandBuilder()
     o.setName('reason').setDescription('Shown in the audit log and mod-log').setMaxLength(400)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const channel = interaction.options.getChannel('channel') ?? interaction.channel;
   const reason = interaction.options.getString('reason') ?? NO_REASON;

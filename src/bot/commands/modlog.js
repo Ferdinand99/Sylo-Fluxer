@@ -1,11 +1,6 @@
 // /modlog set|disable|status — choose where moderation actions are logged.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  ChannelType,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, ChannelType } from '../../platform/index.js';
 import { getGuildSettings, setModlogChannel } from '../../db/guildSettings.js';
 
 export const data = new SlashCommandBuilder()
@@ -22,13 +17,13 @@ export const data = new SlashCommandBuilder()
           .setName('channel')
           .setDescription('Channel for the log')
           .setRequired(true)
-          .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+          .addChannelTypes(ChannelType.GuildText)
       )
   )
   .addSubcommand((s) => s.setName('disable').setDescription('Stop logging moderation actions.'))
   .addSubcommand((s) => s.setName('status').setDescription('Show the current mod-log channel.'));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const sub = interaction.options.getSubcommand();
   const guildId = interaction.guild.id;

@@ -1,5 +1,5 @@
 // Builds the Discord embed for a RuneScape hiscores lookup (OSRS / RS3).
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../../platform/index.js';
 
 const RS_COLOR = 0xc8aa6e;
 const MAX_SKILL_FIELDS = 6;

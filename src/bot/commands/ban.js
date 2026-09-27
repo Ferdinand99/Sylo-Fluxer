@@ -1,5 +1,6 @@
 // /ban <user> [reason] [delete_messages] — ban a member, or pre-ban a user by ID.
-import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { addCase } from '../../db/modCases.js';
@@ -31,6 +32,7 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) =>
     o
       .setName('duration')
+      .setPattern(...DURATION)
       .setDescription('Auto-unban after this long, e.g. 2h, 7d, 1w. Leave blank for a permanent ban.')
       .setMaxLength(20)
   )
@@ -41,7 +43,7 @@ export const data = new SlashCommandBuilder()
       .addChoices(...DELETE_CHOICES)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const user = interaction.options.getUser('user', true);
   const member = interaction.options.getMember('user'); // null if not in the guild

@@ -5,7 +5,7 @@ import { getGuild, baseContext } from '../lib/guildContext.js';
 import { requireTicketAccess } from '../middleware/ticketAccess.js';
 import { currentUser } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { resolveUserTags } from '../lib/discord.js';
+import { resolveUserTags } from '../lib/platform.js';
 import { timeAgo } from '../lib/format.js';
 import { getTicket, listTickets, ticketMessages, markStaffSeen } from '../../db/tickets.js';
 import { relayStaffReply, closeTicketWithNotice, buildTranscript } from '../../modules/tickets.js';

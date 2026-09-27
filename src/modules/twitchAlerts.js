@@ -7,7 +7,7 @@
 // message placeholders: {name} {title} {game} {url} {viewers}
 // plainText: send a plain message with no embed (for channels bridged elsewhere,
 // e.g. a RuneLite Discord->game-chat plugin that ignores embeds).
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { config } from '../config.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';

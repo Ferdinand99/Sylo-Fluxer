@@ -111,7 +111,6 @@ jobs:
         run: |
           echo "PLATFORM_SLUG=${PLATFORM//\//-}" >> "$GITHUB_ENV"
           # GHCR rejects a non-lowercase repository in a canonical reference.
-          echo "DH_IMAGE=docker.io/${{ vars.DOCKERHUB_USERNAME }}/sylo" >> "$GITHUB_ENV"
           echo "GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v7
@@ -127,19 +126,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Derive labels
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: |
-            docker.io/${{ vars.DOCKERHUB_USERNAME }}/sylo
-            ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}
 
       - name: Build and push by digest
         id: build
@@ -154,7 +145,7 @@ jobs:
           # Docker (schema 2) manifests, not OCI — Unraid's "check for updates"
           # can't parse OCI media types. push-by-digest: no tag here, the merge
           # job applies :latest / :X.Y.Z / :X.Y to the assembled list.
-          outputs: type=image,"name=${{ env.DH_IMAGE }},${{ env.GHCR_IMAGE }}",oci-mediatypes=false,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.GHCR_IMAGE }},oci-mediatypes=false,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -170,7 +161,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Stitch the per-arch digests into one multi-arch tag on both registries.
+  # Stitch the per-arch digests into one multi-arch tag on GHCR. (GHCR only —
+  # the Fluxer port has no Docker Hub repository; never push to docker.io/…/sylo,
+  # which is the original Sylo image.)
   # `docker manifest` (not `buildx imagetools`) so the list is a Docker v2
   # manifest list, which Unraid's update check can read.
   merge:
@@ -197,19 +190,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Derive tags
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: |
-            docker.io/${{ vars.DOCKERHUB_USERNAME }}/sylo
-            ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
             type=semver,pattern={{version}},value=${{ needs.resolve.outputs.tag }}
@@ -219,18 +204,16 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
-          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
         run: |
           set -euo pipefail
           digests=(*)
           echo "Per-arch digests: ${digests[*]}"
-          for image in "docker.io/${DOCKERHUB_USERNAME}/sylo" "ghcr.io/${GITHUB_REPOSITORY,,}"; do
-            sources=()
-            for d in "${digests[@]}"; do sources+=("${image}@sha256:${d}"); done
-            while IFS= read -r tag; do
-              echo "==> $tag"
-              docker manifest rm "$tag" >/dev/null 2>&1 || true
-              docker manifest create "$tag" "${sources[@]}"
-              docker manifest push "$tag"
-            done < <(jq -r --arg img "$image" '.tags[] | select(startswith($img + ":"))' <<<"$DOCKER_METADATA_OUTPUT_JSON")
-          done
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          sources=()
+          for d in "${digests[@]}"; do sources+=("${image}@sha256:${d}"); done
+          while IFS= read -r tag; do
+            echo "==> $tag"
+            docker manifest rm "$tag" >/dev/null 2>&1 || true
+            docker manifest create "$tag" "${sources[@]}"
+            docker manifest push "$tag"
+          done < <(jq -r '.tags[]' <<<"$DOCKER_METADATA_OUTPUT_JSON")

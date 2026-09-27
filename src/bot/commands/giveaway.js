@@ -1,11 +1,6 @@
 // /giveaway start|end|reroll|list — run prize giveaways with an Enter button.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import {
   createGiveaway,
@@ -14,7 +9,14 @@ import {
   activeGiveaways,
   giveawayEntryCount,
 } from '../../db/giveaways.js';
-import { buildGiveawayPayload, endGiveaway, MIN_MS, MAX_MS, MAX_WINNERS } from '../../modules/giveaways.js';
+import {
+  buildGiveawayPayload,
+  endGiveaway,
+  ENTER_EMOJI,
+  MIN_MS,
+  MAX_MS,
+  MAX_WINNERS,
+} from '../../modules/giveaways.js';
 import { parseDuration, formatDuration } from '../lib/duration.js';
 
 export const data = new SlashCommandBuilder()
@@ -32,6 +34,7 @@ export const data = new SlashCommandBuilder()
       .addStringOption((o) =>
         o
           .setName('duration')
+          .setPattern(...DURATION)
           .setDescription('How long it runs, e.g. 30m, 6h, 2d (min 1m, max 60d)')
           .setRequired(true)
       )
@@ -71,7 +74,7 @@ export const data = new SlashCommandBuilder()
 
 const eph = (interaction, content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!(await isModuleEnabled(interaction.guildId, 'giveaways'))) {
     return eph(interaction, 'The Giveaways module is not enabled in this server.');
@@ -112,6 +115,7 @@ export async function execute(interaction) {
     await interaction.reply(buildGiveawayPayload(row, { entryCount: 0 }));
     const message = await interaction.fetchReply();
     await setGiveawayMessage(id, message.id);
+    await message.react(ENTER_EMOJI).catch(() => {});
     return interaction.followUp({
       content: `Giveaway **#${id}** started — ends in ${formatDuration(ms)}.`,
       flags: MessageFlags.Ephemeral,

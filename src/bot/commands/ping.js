@@ -1,11 +1,12 @@
 // /ping — basic health check. Reports gateway heartbeat and round-trip latency.
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 
 export const data = new SlashCommandBuilder()
   .setName('ping')
   .setDescription('Check that Sylo is alive and see its latency.');
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const sent = await interaction.reply({
     content: 'Pinging…',

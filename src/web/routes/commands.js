@@ -2,7 +2,8 @@
 // The list is derived from the live command collection, so it always matches
 // what is actually registered.
 import { Router } from 'express';
-import { ApplicationCommandOptionType as OptType, PermissionsBitField } from 'discord.js';
+import { OptionType as OptType } from '../../bot/framework/CommandBuilder.js';
+import { PermissionsBitField } from '../../platform/index.js';
 import { runtime } from '../../runtime.js';
 
 const router = Router();
@@ -36,7 +37,7 @@ function usage(options) {
 /**
  * Flatten the loaded command collection into rows for display. A command with
  * subcommands produces one row per subcommand.
- * @param {import('discord.js').Collection<string, { data: any }>} [collection]
+ * @param {import('@fluxerjs/core').Collection<string, { data: any }>} [collection]
  */
 function describeCommands(collection) {
   if (!collection) return [];

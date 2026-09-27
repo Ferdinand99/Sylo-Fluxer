@@ -1,9 +1,11 @@
-// Verification / gate: new members must click a Verify button (and optionally
-// pass a Cloudflare Turnstile captcha on the dashboard) to get a role.
+// Verification / gate: new members react ✅ on the verify message (and
+// optionally pass a Cloudflare Turnstile captcha on the dashboard) to get a
+// role. Fluxer has no buttons, so the reaction is the "Verify" click; Sylo
+// removes it again straight away so the message stays clean.
 //
 // config shape:
 //   {
-//     mode: 'button' | 'captcha',       // captcha falls back to button when Turnstile is unconfigured
+//     mode: 'button' | 'captcha',       // 'button' = react to verify; captcha falls back to it when Turnstile is unconfigured
 //     verifiedRoleId: '',
 //     channelId: '',                    // where the verify message is posted
 //     messageId: '',                    // id of that message (bot-managed)
@@ -14,15 +16,18 @@
 //     kickAfterMinutes: 0,              // 0 = never kick unverified
 //   }
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { on } from './dispatch.js';
-import { registerComponent } from '../bot/lib/components.js';
 import { config } from '../config.js';
 import { getGuildModule, setGuildModule, isModuleEnabled } from '../db/modules.js';
 import { sendToChannel } from './lib/send.js';
+import { log } from '../lib/log.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 export const VERIFY_MODES = ['button', 'captcha'];
 const TOKEN_TTL_MS = 15 * 60 * 1000;
+/** The reaction members add on the verify message. */
+export const VERIFY_EMOJI = '✅';
 
 const DEFAULTS = {
   mode: 'button',
@@ -30,7 +35,7 @@ const DEFAULTS = {
   channelId: '',
   messageId: '',
   title: 'Verification',
-  message: 'Click the button below to verify and unlock the rest of the server.',
+  message: 'React with ✅ below to verify and unlock the rest of the server.',
   successMessage: 'You are verified — welcome!',
   logChannelId: '',
   kickAfterMinutes: 0,
@@ -94,17 +99,12 @@ export function verifyVerifyToken(token) {
 
 // --- the verify message ------------------------------------------------------
 
-function verifyButtonRow(label = 'Verify') {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('verify:start').setStyle(ButtonStyle.Success).setLabel(`✅ ${label}`)
-  );
-}
-
 /** Make sure the guild's verify message exists; (re)post it and store the id. */
 export async function ensureVerifyMessage(guild, cfg) {
   if (!cfg.channelId || !cfg.verifiedRoleId) return;
   const channel =
-    guild.channels.cache.get(cfg.channelId) ?? (await guild.channels.fetch(cfg.channelId).catch(() => null));
+    guild.channels.cache.get(cfg.channelId) ??
+    (await fetchGuildChannel(guild, cfg.channelId).catch(() => null));
   if (!channel?.isTextBased()) return;
   const me = guild.members.me;
   if (!channel.permissionsFor(me)?.has(['ViewChannel', 'SendMessages', 'EmbedLinks'])) return;
@@ -112,14 +112,14 @@ export async function ensureVerifyMessage(guild, cfg) {
   if (cfg.messageId) {
     const existing = await channel.messages.fetch(cfg.messageId).catch(() => null);
     if (existing) {
-      await existing.edit({ embeds: [verifyEmbed(cfg)], components: [verifyButtonRow()] }).catch(() => {});
+      await existing.edit({ embeds: [verifyEmbed(cfg)] }).catch(() => {});
+      await existing.react(VERIFY_EMOJI).catch(() => {});
       return;
     }
   }
-  const posted = await channel
-    .send({ embeds: [verifyEmbed(cfg)], components: [verifyButtonRow()] })
-    .catch(() => null);
+  const posted = await channel.send({ embeds: [verifyEmbed(cfg)] }).catch(() => null);
   if (!posted) return;
+  await posted.react(VERIFY_EMOJI).catch(() => {});
   const fresh = (await getGuildModule(guild.id, 'verification')).config;
   await setGuildModule(guild.id, 'verification', { config: { ...fresh, messageId: posted.id } });
 }
@@ -159,50 +159,68 @@ export async function grantVerified(guild, userId, cfg) {
   return 'ok';
 }
 
-// --- interaction handler (Verify button) ---------------------------------
+// --- the ✅ reaction ----------------------------------------------------------
 
-async function handleVerifyButton(interaction) {
-  if (!interaction.inGuild() || !(await isModuleEnabled(interaction.guildId, 'verification'))) {
-    return interaction.reply({
-      content: 'Verification is not active here.',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-  const cfg = normaliseVerificationConfig((await getGuildModule(interaction.guildId, 'verification')).config);
-  if (!cfg.verifiedRoleId) {
-    return interaction.reply({
-      content: 'Verification is misconfigured — no role is set.',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-  if (interaction.member.roles.cache.has(cfg.verifiedRoleId)) {
-    return interaction.reply({ content: 'You are already verified.', flags: MessageFlags.Ephemeral });
-  }
-
-  if (effectiveMode(cfg) === 'captcha' && config.dashboardUrl) {
-    const url = `${config.dashboardUrl}/verify/${interaction.guildId}?t=${signVerifyToken(interaction.guildId, interaction.user.id)}`;
-    return interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: 'One quick check — open the link below to finish verifying. It expires in 15 minutes.',
-      components: [
-        new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Complete verification').setURL(url)
-        ),
-      ],
-    });
-  }
-
-  const result = await grantVerified(interaction.guild, interaction.user.id, cfg);
-  const msg =
-    result === 'ok'
-      ? cfg.successMessage
-      : result === 'already'
-        ? 'You are already verified.'
-        : "That didn't work — the bot may be missing Manage Roles, or its role is below the verified role.";
-  return interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
+/**
+ * Tell the member something privately: by DM, or — when their DMs are closed —
+ * as a mention in the verify channel that deletes itself after a minute.
+ */
+async function tellMember(member, channel, content) {
+  const dmed = await member.user.send({ content }).then(
+    () => true,
+    () => false
+  );
+  if (dmed || !channel) return;
+  const note = await channel.send({ content: `<@${member.id}> ${content}` }).catch(() => null);
+  if (note) setTimeout(() => note.delete().catch(() => {}), 60_000).unref();
 }
 
-registerComponent('verification', 'verify:start', handleVerifyButton);
+on('verification', 'reactionAdd', async ({ reaction, user }, rawConfig, guildId) => {
+  if (user.bot) return;
+  const cfg = normaliseVerificationConfig(rawConfig);
+  if (!cfg.messageId || reaction.message.id !== cfg.messageId) return;
+  if ((reaction.emoji.id || reaction.emoji.name) !== VERIFY_EMOJI) return;
+  // Clear their reaction so the message keeps a single ✅ from Sylo.
+  reaction.users.remove(user.id).catch(() => {});
+
+  const guild = reaction.message.guild;
+  const member = await guild?.members.fetch(user.id).catch(() => null);
+  if (!member) return;
+  const channel = reaction.message.channel;
+
+  if (!cfg.verifiedRoleId) {
+    return tellMember(
+      member,
+      channel,
+      'Verification is misconfigured — no role is set. Please tell a moderator.'
+    );
+  }
+  if (member.roles.cache.has(cfg.verifiedRoleId))
+    return tellMember(member, channel, 'You are already verified.');
+
+  if (effectiveMode(cfg) === 'captcha' && config.dashboardUrl) {
+    const url = `${config.dashboardUrl}/verify/${guildId}?t=${signVerifyToken(guildId, user.id)}`;
+    return tellMember(
+      member,
+      channel,
+      `One quick check — open this link to finish verifying in **${guild.name}** (expires in 15 minutes): ${url}`
+    );
+  }
+
+  const result = await grantVerified(guild, user.id, cfg);
+  if (result === 'ok') return tellMember(member, channel, cfg.successMessage);
+  if (result !== 'already') {
+    log.warn(
+      'verification',
+      `could not grant the verified role in ${guildId} (missing Manage Roles or ranked below it)`
+    );
+    return tellMember(
+      member,
+      channel,
+      "That didn't work — please tell a moderator Sylo couldn't give you the role."
+    );
+  }
+});
 
 // --- kick unverified after a grace period -------------------------------
 

@@ -1,6 +1,6 @@
 // Ticket / modmail helpers. Users DM the bot; staff reply from the dashboard.
 // The bot relays messages both ways. Staff replies are anonymous ("Staff").
-import { EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { EmbedBuilder, AttachmentBuilder } from '../platform/index.js';
 import { config } from '../config.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
@@ -12,6 +12,7 @@ import {
   closeTicket,
   ticketMessages,
 } from '../db/tickets.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 const TICKET_COLOR = 0x4aa3df;
 export const DEFAULT_GREETING =
@@ -139,7 +140,7 @@ async function notifyStaff(guild, text, embed) {
   if (!cfg.notifyChannel) return;
   const ch =
     guild.channels.cache.get(cfg.notifyChannel) ??
-    (await guild.channels.fetch(cfg.notifyChannel).catch(() => null));
+    (await fetchGuildChannel(guild, cfg.notifyChannel).catch(() => null));
   if (!ch?.isTextBased()) return;
   const me = guild.members.me;
   if (me && !ch.permissionsFor(me)?.has(['ViewChannel', 'SendMessages'])) return;
@@ -151,8 +152,8 @@ async function notifyStaff(guild, text, embed) {
 /**
  * Record an inbound DM into the user's open ticket for `guild`, creating the
  * ticket (and sending the greeting + staff notification) if it's new.
- * @param {import('discord.js').Guild} guild
- * @param {import('discord.js').User} user
+ * @param {import('@fluxerjs/core').Guild} guild
+ * @param {import('@fluxerjs/core').User} user
  * @param {{ content: string, attachments: string[] }} payload
  */
 export async function ingestUserDM(guild, user, payload) {

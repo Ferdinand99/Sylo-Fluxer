@@ -1,8 +1,8 @@
 services:
-  sylo:
+  sylo-fluxer:
     build: .
-    image: sylo:latest
-    container_name: sylo
+    image: sylo-fluxer:latest
+    container_name: sylo-fluxer
     restart: unless-stopped
     env_file: .env
     ports:

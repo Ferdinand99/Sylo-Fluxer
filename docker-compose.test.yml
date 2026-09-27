@@ -1,19 +1,20 @@
-# Test / staging instance of Sylo, deployed to a remote Docker host (an Unraid
-# box) over an SSH docker context — it runs 24/7 there, independent of any dev
-# session. Deploy a new build with:
+# Test / staging instance of Sylo-Fluxer, deployed to a remote Docker host (an
+# Unraid box) over an SSH docker context — it runs 24/7 there, independent of
+# any dev session. Deploy a new build with:
 #
 #   docker --context sylo-test compose -f docker-compose.test.yml --env-file .env.test up -d --build
 #
 # Notes:
 #  - Named volume, not ./data: a bind-mount source path is resolved on the client
 #    and would be meaningless on the remote daemon.
-#  - Host port 3010 so it can sit next to the production container (3000).
-#  - Its own container name / image so it never collides with prod.
+#  - The same host also runs the original (Discord) Sylo and Sylo-Test, so every
+#    name here — service, container, image, volume — is prefixed sylo-fluxer and
+#    the host port is 3011 (Sylo uses 3000, Sylo-Test 3010).
 services:
-  sylo-test:
+  sylo-fluxer-test:
     build: .
-    image: sylo-test:latest
-    container_name: sylo-test
+    image: sylo-fluxer-test:latest
+    container_name: sylo-fluxer-test
     restart: unless-stopped
     env_file: .env.test
     environment:
@@ -21,9 +22,9 @@ services:
       # regardless of what .env.test says.
       WEB_PORT: '3000'
     ports:
-      - '3010:3000'
+      - '3011:3000'
     volumes:
-      - sylo-test-data:/app/data
+      - sylo-fluxer-test-data:/app/data
     healthcheck:
       test:
         - CMD
@@ -36,4 +37,4 @@ services:
       start_period: 20s
 
 volumes:
-  sylo-test-data:
+  sylo-fluxer-test-data:

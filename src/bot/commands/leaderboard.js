@@ -1,14 +1,7 @@
 // /leaderboard — top members by leveling XP as an image card (falls back to a
 // text embed), plus a link to the web leaderboard.
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
-  MessageFlags,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, AttachmentBuilder, MessageFlags } from '../../platform/index.js';
 import { config } from '../../config.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';
 import { topMembers, memberRank } from '../../db/leveling.js';
@@ -21,7 +14,7 @@ export const data = new SlashCommandBuilder()
   .setName('leaderboard')
   .setDescription('Show the top members by XP in this server.');
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });
@@ -63,16 +56,9 @@ export async function execute(interaction) {
 
   const yourRank = await memberRank(interaction.guildId, interaction.user.id);
   const cfg = (await getGuildModule(interaction.guildId, 'leveling')).config;
-  const components =
+  const fullLink =
     config.dashboardUrl && cfg.publicLeaderboard !== false
-      ? [
-          new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setStyle(ButtonStyle.Link)
-              .setLabel('Full leaderboard')
-              .setURL(`${config.dashboardUrl}/leaderboard/${interaction.guildId}`)
-          ),
-        ]
+      ? `[Full leaderboard](${config.dashboardUrl}/leaderboard/${interaction.guildId})`
       : undefined;
 
   try {
@@ -84,8 +70,8 @@ export async function execute(interaction) {
     });
     if (png) {
       return interaction.editReply({
+        content: fullLink,
         files: [new AttachmentBuilder(png, { name: 'leaderboard.png' })],
-        components,
       });
     }
   } catch (err) {
@@ -102,5 +88,5 @@ export async function execute(interaction) {
     )
     .setFooter({ text: `Your rank: #${yourRank}` });
 
-  return interaction.editReply({ embeds: [embed], components });
+  return interaction.editReply({ content: fullLink, embeds: [embed] });
 }

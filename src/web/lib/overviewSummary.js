@@ -1,10 +1,10 @@
 // View-model for the guild "Combined Overview" page: a server-health card plus
 // category-grouped module status cards (YAGPDB-style), each summarising that
 // module's current configuration with a jump link to its settings.
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from '../../platform/index.js';
 import { config } from '../../config.js';
 import { runtime } from '../../runtime.js';
-import { MODULES, getModule, missingIntents } from '../../modules/registry.js';
+import { MODULES, getModule } from '../../modules/registry.js';
 import { getGuildModules } from '../../db/modules.js';
 import { getGuildSettings } from '../../db/guildSettings.js';
 import { getCommandOverrides } from '../../db/commandOverrides.js';
@@ -78,7 +78,7 @@ function channelName(guild, id) {
 
 /**
  * Build the whole overview view-model for a guild.
- * @param {import('discord.js').Guild} guild
+ * @param {import('@fluxerjs/core').Guild} guild
  */
 export async function buildOverview(guild) {
   const settings = await getGuildSettings(guild.id);
@@ -101,25 +101,10 @@ async function buildHealth(guild, settings, state) {
     ? KEY_PERMS.filter(([bit]) => !me.permissions.has(PermissionFlagsBits[bit])).map(([, l]) => l)
     : KEY_PERMS.map(([, l]) => l);
 
-  // Which privileged intents an *enabled* module actually needs right now.
-  let needMembers = false;
-  let needContent = false;
-  for (const def of MODULES) {
-    if (!(state.get(def.id)?.enabled ?? def.defaultEnabled)) continue;
-    if (def.requiredIntents.includes('GuildMembers')) needMembers = true;
-    if (def.requiredIntents.includes('MessageContent')) needContent = true;
-  }
-
   const enabledCount = MODULES.filter((d) => state.get(d.id)?.enabled ?? d.defaultEnabled).length;
 
   return {
     perms: { ok: missingPerms.length === 0, missing: missingPerms },
-    intents: {
-      members: config.intentGuildMembers,
-      content: config.intentMessageContent,
-      membersBlocking: needMembers && !config.intentGuildMembers,
-      contentBlocking: needContent && !config.intentMessageContent,
-    },
     modlog: {
       set: Boolean(settings?.modlog_channel_id),
       name: channelName(guild, settings?.modlog_channel_id),
@@ -138,7 +123,6 @@ async function buildCard(id, guild, settings, state) {
   if (!def) return null;
   const row = state.get(id);
   const enabled = row?.enabled ?? def.defaultEnabled;
-  const missing = missingIntents(def);
   return {
     kind: 'module',
     id,
@@ -148,8 +132,7 @@ async function buildCard(id, guild, settings, state) {
     hasToggle: true,
     enabled,
     beta: Boolean(def.beta),
-    missingIntents: missing,
-    status: missing.length ? 'blocked' : enabled ? 'on' : 'off',
+    status: enabled ? 'on' : 'off',
     href:
       id === 'insights'
         ? `/guilds/${guild.id}/insights`
@@ -434,7 +417,6 @@ function generalCard(guild, settings) {
     description: 'Bot masters, mod-log channel, embed colour, backup.',
     hasToggle: false,
     enabled: null,
-    missingIntents: [],
     status: 'link',
     href: `/guilds/${guild.id}/settings`,
     lines: [modlog ? on('Mod-log channel', `#${modlog}`) : off('Mod-log channel', 'not set')],
@@ -456,7 +438,6 @@ async function commandsCard(guild) {
     description: 'Enable, disable or restrict slash commands per server.',
     hasToggle: false,
     enabled: null,
-    missingIntents: [],
     status: 'link',
     href: `/guilds/${guild.id}/commands`,
     lines: [
@@ -477,7 +458,6 @@ async function messagesCard(guild) {
     description: 'Build rich embed messages and publish them to a channel as the bot.',
     hasToggle: false,
     enabled: null,
-    missingIntents: [],
     status: 'link',
     href: `/guilds/${guild.id}/messages`,
     lines: [n ? on('Saved embeds', String(n)) : neutral('Saved embeds', 'none')],

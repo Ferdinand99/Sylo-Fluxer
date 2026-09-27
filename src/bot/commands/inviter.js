@@ -1,5 +1,6 @@
 // /inviter [user] — who invited a member.
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { getJoin } from '../../db/inviteTracker.js';
 
@@ -8,7 +9,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Show who invited a member.')
   .addUserOption((o) => o.setName('user').setDescription('Whose inviter to look up').setRequired(false));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });

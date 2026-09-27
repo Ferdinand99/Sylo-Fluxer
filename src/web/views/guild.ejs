@@ -84,7 +84,6 @@
     <% var h = overview.health; %>
     <% var issues = []; %>
     <% if (!h.perms.ok) { issues.push('Missing bot permission: ' + h.perms.missing.join(', ')); } %>
-    <% if (h.intents.membersBlocking || h.intents.contentBlocking) { issues.push('An enabled plugin needs a privileged intent that is turned off'); } %>
     <% if (!h.modlog.set) { issues.push('No mod-log channel set (General settings)'); } %>
 
     <div class="plugin-head">
@@ -120,7 +119,7 @@
       <div class="plugin-grid">
         <% group.cards.forEach(function (c) { %>
           <div class="plugin-card is-<%= c.status %>" id="plugin-card-<%= c.id %>" data-mod-name="<%= c.name %>">
-            <% if (c.hasToggle && c.status !== 'blocked') { %>
+            <% if (c.hasToggle) { %>
               <label class="plugin-pick" @click.stop>
                 <input type="checkbox" @change="pick('<%= c.id %>', $event.target.checked)"
                        aria-label="Select <%= c.name %>" />
@@ -131,9 +130,7 @@
             <span class="plugin-name"><%= c.name %><% if (c.beta) { %> <span class="pill beta" title="New module — behavior may still change">Beta</span><% } %></span>
             <span class="plugin-desc"><%= c.description %></span>
             <span class="plugin-cta" data-guild="<%= guild.id %>" data-module="<%= c.id %>">
-              <% if (c.status === 'blocked') { %>
-                <span class="plugin-btn blocked" title="Needs the <%= c.missingIntents.join(', ') %> intent">Needs intent</span>
-              <% } else if (!c.hasToggle) { %>
+              <% if (!c.hasToggle) { %>
                 <span class="plugin-btn open">Open &rarr;</span>
               <% } else if (c.enabled) { %>
                 <a class="plugin-btn active" href="<%= c.href %>">✓ Active</a>
@@ -462,14 +459,11 @@
       <% var mrow = modules.find(function (x) { return x.id === activeModule.id; }); %>
       <div class="mod-hero">
         <%- include('guild/_hero-inner', { icon: (typeof moduleIconName !== 'undefined' ? moduleIconName : 'sliders'), title: activeModule.name }) %>
-        <%- include('guild/_module-toggle', { guild: guild, activeModule: activeModule, moduleEnabled: mrow.enabled, toggleDisabled: mrow.missingIntents.length > 0 }) %>
+        <%- include('guild/_module-toggle', { guild: guild, activeModule: activeModule, moduleEnabled: mrow.enabled, toggleDisabled: false }) %>
       </div>
       <p class="muted"><%= activeModule.description %></p>
       <% if (activeModule.beta) { %>
         <p class="muted small"><strong>Beta</strong> — this module is new; behavior may still change based on feedback.</p>
-      <% } %>
-      <% if (mrow.missingIntents.length) { %>
-        <p class="warn-text small">Needs intent: <%= mrow.missingIntents.join(', ') %> — enable it in the Discord Developer Portal.</p>
       <% } %>
       <% if (!mrow.enabled) { %><p class="muted small">Enable the module (toggle above) for these settings to take effect.</p><% } %>
       <% if (typeof moduleTestable !== 'undefined' && moduleTestable) { %>

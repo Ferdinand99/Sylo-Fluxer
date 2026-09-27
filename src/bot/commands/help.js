@@ -1,34 +1,27 @@
-// /help — overview of Sylo's commands and where to configure it. Paginated
-// by category via a select menu rather than one giant embed, both so it
-// reads better and so no single field can quietly cross Discord's
-// 1024-char-per-field limit again as commands are added (see GROUPS below).
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  ComponentType,
-} from 'discord.js';
+// !help — overview of Sylo's commands and where to configure it.
+//   !help             categories + how commands are typed
+//   !help <category>  that category's commands with their usage
+//   !help <command>   full usage: arguments, permissions, examples
+// Fluxer has no select menus, so categories are picked by typing their name.
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, permissionNames } from '../../platform/index.js';
+import { findCommand } from '../framework/router.js';
+import { usageLines, optionHelp } from '../framework/usage.js';
+import { getPrefix } from '../../db/guildSettings.js';
 import { config } from '../../config.js';
 
 const COLOR = 0x5b7cfa;
 const OVERVIEW_DESCRIPTION =
-  'Slash commands are grouped by category below. Server features — moderation, logging, ' +
-  'tickets, reaction roles, welcome, sticky messages, auto-moderation, counting, custom ' +
-  'commands, autoresponder, auto-react, scheduled messages and leveling — are enabled and ' +
-  'configured from the dashboard.';
+  'Server features — moderation, logging, tickets, reaction roles, welcome, sticky messages, ' +
+  'auto-moderation, counting, custom commands, autoresponder, auto-react, scheduled messages and ' +
+  'leveling — are enabled and configured from the dashboard.';
 
 // Command names grouped for display. Anything not listed still shows under
-// "Other" (only if there's anything left over), so /help stays honest as
-// commands are added. Discord caps an embed field/description at 1024
-// characters — keep groups small enough that none can realistically cross
-// it (buildCategoryEmbed() below also truncates defensively, so a
-// miscounted group degrades instead of crashing the command).
+// "Other" (only if there's anything left over), so !help stays honest as
+// commands are added. Embed fields cap at 1024 characters and descriptions at
+// 4096 — buildCategoryEmbed() truncates defensively.
 export const GROUPS = [
-  { name: 'General', commands: ['help', 'about', 'version', 'ping', 'stats'] },
+  { name: 'General', commands: ['help', 'about', 'version', 'ping', 'stats', 'prefix'] },
   { name: 'Leveling', commands: ['rank', 'leaderboard'] },
   { name: 'Community', commands: ['afk', 'birthday'] },
   {
@@ -72,15 +65,7 @@ export const GROUPS = [
   { name: 'Privacy', commands: ['mydata', 'forget'] },
 ];
 
-const FIELD_LIMIT = 1024;
-const COLLECTOR_TIMEOUT_MS = 5 * 60_000;
-
-function commandLines(all, names) {
-  return names
-    .map((n) => all.get(n))
-    .filter(Boolean)
-    .map((c) => `\`/${c.data.name}\` — ${c.data.description}`);
-}
+const DESCRIPTION_LIMIT = 4000;
 
 /** Every command not covered by any GROUPS entry — empty when the list above is kept in sync. */
 export function otherCommands(all) {
@@ -88,106 +73,97 @@ export function otherCommands(all) {
   return [...all.values()].filter((c) => !grouped.has(c.data.name));
 }
 
-function truncated(value) {
-  return value.length > FIELD_LIMIT ? `${value.slice(0, FIELD_LIMIT - 1)}…` : value;
-}
+const truncated = (value, limit) => (value.length > limit ? `${value.slice(0, limit - 1)}…` : value);
 
 function categories(all) {
-  const list = GROUPS.map((g, i) => ({ key: String(i), name: g.name, lines: commandLines(all, g.commands) }));
+  const list = GROUPS.map((g) => ({
+    name: g.name,
+    commands: g.commands.map((n) => all.get(n)).filter(Boolean),
+  }));
   const other = otherCommands(all);
-  if (other.length) {
-    list.push({
-      key: 'other',
-      name: 'Other',
-      lines: other.map((c) => `\`/${c.data.name}\` — ${c.data.description}`),
-    });
-  }
-  return list.filter((c) => c.lines.length > 0);
+  if (other.length) list.push({ name: 'Other', commands: other });
+  return list.filter((c) => c.commands.length > 0);
 }
 
-function buildOverviewEmbed(cats) {
-  return new EmbedBuilder()
+function buildOverviewEmbed(cats, prefix) {
+  const embed = new EmbedBuilder()
     .setColor(COLOR)
     .setTitle('Sylo — help')
-    .setDescription(OVERVIEW_DESCRIPTION)
-    .addFields({
-      name: 'Categories',
-      value: cats.map((c) => `**${c.name}** — ${c.lines.length} command(s)`).join('\n'),
-    })
-    .setFooter({ text: 'Pick a category below to see its commands.' });
+    .setDescription(
+      `Commands start with \`${prefix}\` (or mention me). ${OVERVIEW_DESCRIPTION}\n\n` +
+        `\`${prefix}help <category>\` lists a category · \`${prefix}help <command>\` shows how to use one.`
+    )
+    .addFields(
+      cats.map((c) => ({
+        name: c.name,
+        value: truncated(c.commands.map((cmd) => `\`${cmd.data.name}\``).join(' '), 1024),
+      }))
+    );
+  if (config.dashboardUrl) embed.setFooter({ text: `Dashboard: ${config.dashboardUrl}` });
+  return embed;
 }
 
-function buildCategoryEmbed(cat) {
+function buildCategoryEmbed(cat, prefix) {
+  const lines = cat.commands.flatMap((cmd) =>
+    usageLines(prefix, cmd.data).map((u) => `\`${u.line}\` — ${u.description}`)
+  );
   return new EmbedBuilder()
     .setColor(COLOR)
     .setTitle(`Sylo — help — ${cat.name}`)
-    .setDescription(truncated(cat.lines.join('\n')))
-    .setFooter({ text: 'Some moderation commands are hidden unless you have the matching permission.' });
+    .setDescription(truncated(lines.join('\n'), DESCRIPTION_LIMIT))
+    .setFooter({ text: `${prefix}help <command> for details` });
 }
 
-function buildSelect(cats, selected) {
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId('help-category')
-    .setPlaceholder('Choose a category…')
-    .addOptions(
-      { label: 'Overview', value: 'overview', default: selected === 'overview' },
-      ...cats.map((c) => ({ label: c.name, value: c.key, default: selected === c.key }))
-    );
-  return new ActionRowBuilder().addComponents(menu);
-}
-
-function buildComponents(cats, selected, disabled = false) {
-  const rows = [buildSelect(cats, selected)];
-  if (disabled) rows[0].components[0].setDisabled(true);
-  if (config.dashboardUrl) {
-    rows.push(
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setLabel('Open dashboard')
-          .setURL(config.dashboardUrl)
-          .setDisabled(disabled)
-      )
-    );
+function buildCommandEmbed(cmd, prefix) {
+  const data = cmd.data;
+  const embed = new EmbedBuilder()
+    .setColor(COLOR)
+    .setTitle(`${prefix}${data.name}`)
+    .setDescription(data.description || null);
+  for (const u of usageLines(prefix, data)) {
+    const opts = u.options.map(optionHelp).join('\n');
+    embed.addFields({
+      name: u.sub ? `${u.sub} — ${u.description}` : 'Usage',
+      value: truncated(`\`${u.line}\`${opts ? `\n${opts}` : ''}`, 1024),
+    });
   }
-  return rows;
+  const extras = [];
+  if (data.aliases?.length)
+    extras.push(`Aliases: ${data.aliases.map((a) => `\`${prefix}${a}\``).join(', ')}`);
+  if (data.default_member_permissions !== undefined) {
+    extras.push(`Requires: ${permissionNames(data.default_member_permissions).join(', ')}`);
+  }
+  if (data.examples?.length) {
+    extras.push(`Examples:\n${data.examples.map((e) => `\`${prefix}${data.name} ${e}\``).join('\n')}`);
+  }
+  extras.push('Arguments can also be given by name, e.g. `reason:"text"`.');
+  embed.addFields({ name: 'More', value: truncated(extras.join('\n'), 1024) });
+  return embed;
 }
 
 export const data = new SlashCommandBuilder()
   .setName('help')
-  .setDescription('Show what Sylo can do and how to configure it.');
+  .setDescription('Show what Sylo can do and how to use a command.')
+  .setAliases(['commands'])
+  .addStringOption((o) => o.setName('topic').setDescription('A category or command name'))
+  .setExamples(['', 'moderation', 'warn']);
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const all = interaction.client.commands;
   const cats = categories(all);
+  const prefix = await getPrefix(interaction.guildId);
+  const topic = (interaction.options.getString('topic') ?? '').trim().toLowerCase().replace(/^[!/]/, '');
 
-  await interaction.reply({
-    embeds: [buildOverviewEmbed(cats)],
-    components: buildComponents(cats, 'overview'),
-    flags: MessageFlags.Ephemeral,
-  });
+  if (!topic) return interaction.reply({ embeds: [buildOverviewEmbed(cats, prefix)] });
 
-  const message = await interaction.fetchReply();
-  const collector = message.createMessageComponentCollector({
-    componentType: ComponentType.StringSelect,
-    time: COLLECTOR_TIMEOUT_MS,
-  });
+  const cat = cats.find((c) => c.name.toLowerCase() === topic);
+  if (cat) return interaction.reply({ embeds: [buildCategoryEmbed(cat, prefix)] });
 
-  collector.on('collect', async (i) => {
-    if (i.user.id !== interaction.user.id) {
-      return i.reply({
-        content: "This isn't your help menu — run `/help` yourself.",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
-    const value = i.values[0];
-    const embed =
-      value === 'overview' ? buildOverviewEmbed(cats) : buildCategoryEmbed(cats.find((c) => c.key === value));
-    await i.update({ embeds: [embed], components: buildComponents(cats, value) });
-  });
+  const cmd = findCommand(all, topic);
+  if (cmd) return interaction.reply({ embeds: [buildCommandEmbed(cmd, prefix)] });
 
-  collector.on('end', () => {
-    interaction.editReply({ components: buildComponents(cats, 'overview', true) }).catch(() => {});
+  return interaction.reply({
+    content: `I don't know \`${topic}\`. Categories: ${cats.map((c) => `\`${c.name.toLowerCase()}\``).join(', ')}.`,
   });
 }

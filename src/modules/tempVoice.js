@@ -11,7 +11,7 @@
 //     ignoredRoles: [], moderatorRoles: [],
 //     ownerPerms: { manageChannels, managePermissions, prioritySpeaker, moveMembers },
 //     textChannel: { enabled, restrictCommands, pinUsages, restrict } }
-import { ChannelType, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, PermissionFlagsBits } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { runtime } from '../runtime.js';
 import { getGuildModule } from '../db/modules.js';
@@ -31,6 +31,12 @@ import {
   setTempBans,
   setTempEmptySince,
 } from '../db/tempVoice.js';
+import { fetchGuildChannel, deleteGuildChannel } from '../platform/channels.js';
+import { createGuildChannel } from '../platform/channels.js';
+
+// Upper bound for a temp channel's bitrate (bps); Fluxer doesn't expose a
+// per-guild maximum the way Discord's boost tiers did.
+const MAX_BITRATE = 384_000;
 
 const DEFAULT_NAME = "#{index} - {username}'s Channel";
 const SWEEP_MS = 60 * 1000;
@@ -211,12 +217,12 @@ async function handleJoin(guild, member, hub) {
 
   let channel;
   try {
-    channel = await guild.channels.create({
+    channel = await createGuildChannel(guild, {
       name,
       type: ChannelType.GuildVoice,
       parent: parent ?? undefined,
       userLimit: hub.userLimit || undefined,
-      bitrate: hub.bitrate ? Math.min(hub.bitrate * 1000, guild.maximumBitrate) : undefined,
+      bitrate: hub.bitrate ? Math.min(hub.bitrate * 1000, MAX_BITRATE) : undefined,
       reason: `Temp voice for ${member.user.tag}`,
       permissionOverwrites: overwrites,
     });
@@ -228,7 +234,7 @@ async function handleJoin(guild, member, hub) {
   let textChannelId = null;
   if (hub.textChannel.enabled) {
     try {
-      const t = await guild.channels.create({
+      const t = await createGuildChannel(guild, {
         name,
         type: ChannelType.GuildText,
         parent: parent ?? undefined,
@@ -248,9 +254,9 @@ async function handleJoin(guild, member, hub) {
               {
                 title: `Controls for ${name}`,
                 description:
-                  '`/voice-lock` `/voice-unlock` · `/voice-hide` `/voice-reveal`\n' +
-                  '`/voice-limit` `/voice-rename` · `/voice-kick` `/voice-ban` `/voice-unban`\n' +
-                  '`/voice-claim` `/voice-transfer` `/voice-owner`',
+                  '`!voice-lock` `!voice-unlock` · `!voice-hide` `!voice-reveal`\n' +
+                  '`!voice-limit` `!voice-rename` · `!voice-kick` `!voice-ban` `!voice-unban`\n' +
+                  '`!voice-claim` `!voice-transfer` `!voice-owner`',
                 color: 0x5b7cfa,
               },
             ],
@@ -269,7 +275,7 @@ async function handleJoin(guild, member, hub) {
     .catch(() => false);
   if (!moved) {
     await channel.delete('Temp voice: member never joined').catch(() => {});
-    if (textChannelId) await guild.channels.delete(textChannelId).catch(() => {});
+    if (textChannelId) await deleteGuildChannel(guild, textChannelId).catch(() => {});
     return;
   }
   await addTempChannel({
@@ -316,7 +322,7 @@ async function onLeaveTemp(guild, channelId) {
 async function destroy(guild, row) {
   const ch = guild.channels.cache.get(row.channel_id);
   if (ch) await ch.delete('Temp voice: empty').catch(() => {});
-  if (row.text_channel_id) await guild.channels.delete(row.text_channel_id).catch(() => {});
+  if (row.text_channel_id) await deleteGuildChannel(guild, row.text_channel_id).catch(() => {});
   await removeTempChannel(row.channel_id);
 }
 
@@ -353,9 +359,9 @@ async function sweep() {
     if (!guild) continue;
     const channel =
       guild.channels.cache.get(row.channel_id) ??
-      (await guild.channels.fetch(row.channel_id).catch(() => null));
+      (await fetchGuildChannel(guild, row.channel_id).catch(() => null));
     if (!channel) {
-      if (row.text_channel_id) await guild.channels.delete(row.text_channel_id).catch(() => {});
+      if (row.text_channel_id) await deleteGuildChannel(guild, row.text_channel_id).catch(() => {});
       await removeTempChannel(row.channel_id);
       continue;
     }

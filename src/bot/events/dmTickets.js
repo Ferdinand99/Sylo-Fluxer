@@ -1,41 +1,61 @@
 // DM → ticket bridge. A DM to the bot opens (or appends to) a ticket. When the
 // user shares several ticket-enabled servers and has no open ticket, the bot
-// asks which server with a select menu.
-import { Events, StringSelectMenuBuilder, ActionRowBuilder } from 'discord.js';
+// lists them with numbers and the user replies with one (Fluxer has no select
+// menus). DMs that are bot commands (e.g. `!mydata`) are left to the router.
+import { Events } from '../../platform/index.js';
 import { ticketGuildsForUser, ingestUserDM } from '../../modules/tickets.js';
 import { getOpenTicket } from '../../db/tickets.js';
-import { registerComponent } from '../lib/components.js';
+import { DEFAULT_PREFIX } from '../../db/guildSettings.js';
+import { splitCommand, findCommand } from '../framework/router.js';
 import { log } from '../../lib/log.js';
 
-const SELECT_ID = 'ticket-guild';
-const pending = new Map(); // userId -> { content, attachments, at }
+/** userId -> { payload: { content, attachments }, guildIds: string[], at } */
+const pending = new Map();
 const PENDING_TTL = 10 * 60 * 1000;
 
-function stash(userId, payload) {
-  pending.set(userId, { ...payload, at: Date.now() });
-}
-function takeStash(userId) {
+function takePending(userId) {
   const p = pending.get(userId);
   pending.delete(userId);
   if (!p || Date.now() - p.at > PENDING_TTL) return null;
   return p;
 }
 
+/** Is this DM a built-in command (handled by the prefix router instead)? */
+function isCommand(message) {
+  const split = splitCommand(message.content ?? '', DEFAULT_PREFIX, message.client.user?.id ?? null);
+  return Boolean(split && findCommand(message.client.commands, split.name));
+}
+
 async function handleDM(message) {
-  if (message.guild || message.author.bot) return;
-  if (message.partial) {
-    try {
-      await message.fetch();
-    } catch {
-      return;
-    }
-  }
+  if (message.guildId || message.author.bot) return;
+  if (isCommand(message)) return;
 
   const payload = {
     content: message.content ?? '',
     attachments: [...message.attachments.values()].map((a) => a.url),
   };
   if (!payload.content && payload.attachments.length === 0) return;
+
+  // An answer to "which server?" — a bare number while a choice is pending.
+  const choice = /^\s*(\d{1,2})\s*$/.exec(payload.content);
+  if (choice && !payload.attachments.length && pending.has(message.author.id)) {
+    const p = takePending(message.author.id);
+    const guild = p ? message.client.guilds.get(p.guildIds[Number(choice[1]) - 1]) : null;
+    if (!p) {
+      await message.reply('That request expired — send your message again.').catch(() => {});
+      return;
+    }
+    if (!guild) {
+      pending.set(message.author.id, p); // keep it; they mistyped
+      await message.reply(`Reply with a number from 1 to ${p.guildIds.length}.`).catch(() => {});
+      return;
+    }
+    const ticket = await ingestUserDM(guild, message.author, p.payload);
+    await message
+      .reply(`Opened ticket #${ticket.id} for **${guild.name}**. Just keep replying here.`)
+      .catch(() => {});
+    return;
+  }
 
   const guilds = await ticketGuildsForUser(message.author);
   if (guilds.length === 0) {
@@ -60,44 +80,15 @@ async function handleDM(message) {
   }
 
   // Ambiguous — ask which server.
-  stash(message.author.id, payload);
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId(SELECT_ID)
-    .setPlaceholder('Which server is this about?')
-    .addOptions(
-      (openGuilds.length ? openGuilds : guilds)
-        .slice(0, 25)
-        .map((g) => ({ label: g.name.slice(0, 100), value: g.id }))
-    );
+  const options = (openGuilds.length ? openGuilds : guilds).slice(0, 25);
+  pending.set(message.author.id, { payload, guildIds: options.map((g) => g.id), at: Date.now() });
+  const list = options.map((g, i) => `**${i + 1}.** ${g.name}`).join('\n');
   await message
-    .reply({
-      content: 'You can reach staff in more than one server. Pick one:',
-      components: [new ActionRowBuilder().addComponents(menu)],
-    })
+    .reply(`You can reach staff in more than one server. Reply with the number of the one you mean:\n${list}`)
     .catch(() => {});
 }
 
-async function handleSelect(interaction) {
-  const guild = interaction.client.guilds.cache.get(interaction.values[0]);
-  const payload = takeStash(interaction.user.id);
-  if (!guild || !payload) {
-    await interaction
-      .update({ content: 'That request expired — send your message again.', components: [] })
-      .catch(() => {});
-    return;
-  }
-  const ticket = await ingestUserDM(guild, interaction.user, payload);
-  await interaction
-    .update({
-      content: `Opened ticket #${ticket.id} for **${guild.name}**. Just keep replying here.`,
-      components: [],
-    })
-    .catch(() => {});
-}
-
-registerComponent('tickets', SELECT_ID, handleSelect);
-
-/** @param {import('discord.js').Client} client */
+/** @param {import('@fluxerjs/core').Client} client */
 export function register(client) {
   client.on(Events.MessageCreate, (message) => {
     handleDM(message).catch((err) => log.error('tickets', 'DM handler failed:', err));

@@ -1,5 +1,5 @@
 // /voice-lock — stop new people from joining your temporary voice channel.
-import { SlashCommandBuilder, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 import { setLock } from '../../modules/tempVoice.js';
 

@@ -1,10 +1,10 @@
 // Shared view-model for the per-guild control panel.
 import { runtime } from '../../runtime.js';
-import { MODULES, missingIntents } from '../../modules/registry.js';
+import { MODULES } from '../../modules/registry.js';
 import { getGuildModules } from '../../db/modules.js';
 import { openTicketCount } from '../../db/tickets.js';
 import { countOpenAppeals } from '../../db/appeals.js';
-import { guildTextChannels } from './discord.js';
+import { guildTextChannels } from './platform.js';
 
 /** The guild from the URL, or null. */
 export function getGuild(req) {
@@ -22,7 +22,7 @@ export function assignableRoles(guild) {
 /**
  * Base context every panel needs: guild summary, text channels, and the module
  * list with per-guild enabled state and intent readiness.
- * @param {import('discord.js').Guild} guild
+ * @param {import('@fluxerjs/core').Guild} guild
  * @param {string} panel  active panel id (for nav highlighting)
  */
 export async function baseContext(guild, panel) {
@@ -34,7 +34,6 @@ export async function baseContext(guild, panel) {
     icon: m.icon,
     configurable: m.configurable,
     enabled: enabledById.get(m.id) ?? false,
-    missingIntents: missingIntents(m),
   }));
 
   return {

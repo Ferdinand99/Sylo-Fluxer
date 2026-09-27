@@ -3,7 +3,7 @@
 //   { channel: "<id>", events: { memberJoin, memberLeave, memberBan,
 //     memberUnban, memberTimeout, nickChange, roleChange, messageDelete,
 //     messageEdit, messageBulkDelete, roleCreateDelete, channelCreateDelete } }
-import { EmbedBuilder, AuditLogEvent } from 'discord.js';
+import { EmbedBuilder, AuditLogEvent } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { sendToChannel } from './lib/send.js';
 

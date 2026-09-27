@@ -7,7 +7,7 @@ import {
   buildOverwrites,
   syncedOverwrites,
 } from '../src/modules/tempVoice.js';
-import { PermissionFlagsBits as P, PermissionsBitField } from 'discord.js';
+import { PermissionFlagsBits as P, PermissionsBitField } from '../src/platform/index.js';
 import {
   addTempChannel,
   removeTempChannel,

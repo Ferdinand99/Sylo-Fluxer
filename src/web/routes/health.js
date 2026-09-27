@@ -10,7 +10,7 @@ import { config } from '../../config.js';
 import { requireOwner, isOwner, forbidOwner } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { runtime, uptimeSeconds, isDiscordReady, guildCount, errorScopeCounts } from '../../runtime.js';
+import { runtime, uptimeSeconds, isBotReady, guildCount, errorScopeCounts } from '../../runtime.js';
 import { byMetric } from '../../lib/metrics.js';
 import { dashboardStats, moduleUsage } from '../../db/dashboardStats.js';
 import {
@@ -48,7 +48,7 @@ const backupLimit = rateLimit({
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const ready = isDiscordReady();
+    const ready = isBotReady();
     // htmx (hx-boost) navigations fetch with `Accept: */*`, so fall back to the
     // HX-Request header — without this a boosted sidebar click renders the JSON.
     const wantsHtml = (req.headers.accept || '').includes('text/html') || Boolean(req.get('HX-Request'));

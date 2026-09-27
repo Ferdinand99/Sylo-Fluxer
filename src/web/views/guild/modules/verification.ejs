@@ -1,12 +1,12 @@
 <% var cfg = moduleConfig || {}; %>
 
 <p class="muted small">
-  Posts a message with a <strong>Verify</strong> button in the chosen channel. New members click it to
-  get the verified role. In <strong>captcha</strong> mode the button sends them a private link to a
+  Posts a message with a <strong>✅</strong> reaction in the chosen channel. New members react to it to
+  get the verified role. In <strong>captcha</strong> mode reacting sends them a private link (by DM) to a
   Cloudflare Turnstile check on this dashboard first.
   <% if (!turnstileEnabled) { %>
     <br /><span class="warn-text">Captcha mode needs <code>TURNSTILE_SITE_KEY</code> and
-    <code>TURNSTILE_SECRET_KEY</code> set — until then it behaves like button mode.</span>
+    <code>TURNSTILE_SECRET_KEY</code> set — until then it behaves like reaction mode.</span>
   <% } %>
 </p>
 
@@ -15,7 +15,7 @@
   <select name="mode">
     <% verifyModes.forEach(function (m) { %>
       <option value="<%= m %>" <%= m === (cfg.mode || 'button') ? 'selected' : '' %>>
-        <%= m === 'captcha' ? 'Captcha (button + Turnstile)' : 'Button only' %>
+        <%= m === 'captcha' ? 'Captcha (reaction + Turnstile)' : 'Reaction only' %>
       </option>
     <% }) %>
   </select>
@@ -40,7 +40,7 @@
   <input type="text" name="title" maxlength="200" value="<%= cfg.title || 'Verification' %>" />
 
   <label class="small">Message body</label>
-  <textarea name="message" rows="2" maxlength="1500"><%= cfg.message || 'Click the button below to verify and unlock the rest of the server.' %></textarea>
+  <textarea name="message" rows="2" maxlength="1500"><%= cfg.message || 'React with ✅ below to verify and unlock the rest of the server.' %></textarea>
 
   <label class="small">Reply after verifying</label>
   <input type="text" name="successMessage" maxlength="1000" value="<%= cfg.successMessage || 'You are verified — welcome!' %>" />

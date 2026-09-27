@@ -1,5 +1,5 @@
 // /voice-ban — block a member from re-joining your temporary voice channel.
-import { SlashCommandBuilder, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, targetActable, ephemeral } from '../lib/tempVoiceCmd.js';
 import { banFromChannel } from '../../modules/tempVoice.js';
 

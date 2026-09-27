@@ -1,5 +1,6 @@
 // /poll-end — close a poll early and post its results.
-import { SlashCommandBuilder, MessageFlags, PermissionFlagsBits, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { MessageFlags, PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { getPoll, latestPollInChannel } from '../../db/polls.js';
 import { endPoll } from '../../modules/polls.js';
@@ -20,7 +21,7 @@ const parseMessageId = (raw) => {
   return m ? m[1] : null;
 };
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!(await isModuleEnabled(interaction.guildId, 'polls'))) {
     return interaction.reply({

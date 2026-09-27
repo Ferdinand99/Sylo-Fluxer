@@ -13,7 +13,7 @@
 // triggerCount is bot-managed — bumped each time that row actually punishes
 // someone, and (for message rows) shown live in the trap message itself,
 // e.g. "Bans: 14" — never form-editable.
-import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { getGuildModule, setGuildModule } from '../db/modules.js';
 import { postModLog } from '../bot/lib/modlog.js';
@@ -21,6 +21,7 @@ import { notifyTarget, MOD_COLOR } from '../bot/lib/moderation.js';
 import { addCase } from '../db/modCases.js';
 import { recordHoneypotCatch } from '../db/honeypotCatches.js';
 import { log } from '../lib/log.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 export const HONEYPOT_ACTIONS = ['kick', 'timeout', 'ban'];
 const ACTION_LABELS = { kick: 'Kicks', timeout: 'Timeouts', ban: 'Bans' };
@@ -157,7 +158,7 @@ async function bumpHoneypotStat(guild, kind, channelId) {
 
   if (kind !== 'messages' || !row.messageId) return;
   const channel =
-    guild.channels.cache.get(channelId) ?? (await guild.channels.fetch(channelId).catch(() => null));
+    guild.channels.cache.get(channelId) ?? (await fetchGuildChannel(guild, channelId).catch(() => null));
   if (!channel?.isTextBased()) return;
   if (!canManageBait(channel, guild.members.me)) {
     log.warn(
@@ -192,7 +193,7 @@ export async function ensureHoneypotMessages(guild, config) {
     if (!row.channelId) continue;
     const channel =
       guild.channels.cache.get(row.channelId) ??
-      (await guild.channels.fetch(row.channelId).catch(() => null));
+      (await fetchGuildChannel(guild, row.channelId).catch(() => null));
     if (!channel?.isTextBased()) continue;
     if (!canManageBait(channel, me)) {
       log.warn(
