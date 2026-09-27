@@ -4,6 +4,13 @@ Sylo-Fluxer is a port of [Sylo](https://github.com/Ferdinand99/Sylo) (a Discord
 bot) to [Fluxer](https://fluxer.app). Its history starts at 0.1.0 — the port
 itself; Sylo's own changelog up to 3.38.0 lives in the Sylo repository.
 
+## [0.1.1](https://github.com/Ferdinand99/Sylo-Fluxer/compare/v0.1.0...v0.1.1) (2026-09-27)
+
+
+### Bug Fixes
+
+* fill in the guild on messages fetched over Fluxer's REST API ([#6](https://github.com/Ferdinand99/Sylo-Fluxer/issues/6)) ([c63083c](https://github.com/Ferdinand99/Sylo-Fluxer/commit/c63083c0d7ceca81fc9de1b9f7f9738b66cdc07f))
+
 ## 0.1.0 (2026-09-27)
 
 ### Features
