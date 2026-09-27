@@ -3,7 +3,7 @@
 // ITAD_API_KEY is set, IsThereAnyDeal's cross-store deals list.
 //
 // config shape: { channelId, roleId }
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { config } from '../config.js';
 import { runtime } from '../runtime.js';
 import { getGuildModule } from '../db/modules.js';
@@ -83,7 +83,7 @@ export function parseEpicPayload(json) {
 
 async function fetchEpic() {
   const res = await fetch(EPIC_URL, {
-    headers: { 'User-Agent': 'Sylo-Discord-Bot' },
+    headers: { 'User-Agent': 'Sylo-Fluxer-Bot' },
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`Epic API ${res.status}`);
@@ -132,7 +132,7 @@ async function fetchItad(kind = 'game') {
   if (!config.itadApiKey) return [];
   const url = `${ITAD_URL}?country=US&limit=200&sort=-cut&key=${encodeURIComponent(config.itadApiKey)}`;
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Sylo-Discord-Bot' },
+    headers: { 'User-Agent': 'Sylo-Fluxer-Bot' },
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`ITAD API ${res.status}`);

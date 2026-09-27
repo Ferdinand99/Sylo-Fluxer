@@ -1,5 +1,5 @@
 // /voice-rename — rename your temporary voice channel.
-import { SlashCommandBuilder, InteractionContextType } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 import { renameTemp } from '../../modules/tempVoice.js';
 

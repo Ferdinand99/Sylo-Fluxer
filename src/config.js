@@ -41,13 +41,6 @@ function optionalOrNull(name) {
   return value && value.trim() !== '' ? value.trim() : null;
 }
 
-/** Read a boolean env var (1/true/yes/on = true). */
-function optionalBool(name, fallback) {
-  const value = process.env[name];
-  if (value == null || value.trim() === '') return fallback;
-  return /^(1|true|yes|on)$/i.test(value.trim());
-}
-
 const cacheTtlMinutes = Number(optional('STATS_CACHE_TTL_MINUTES', '5'));
 if (!Number.isFinite(cacheTtlMinutes) || cacheTtlMinutes <= 0) {
   console.error('[config] STATS_CACHE_TTL_MINUTES must be a positive number.');
@@ -82,40 +75,37 @@ const backupWebdavUser = optionalOrNull('BACKUP_WEBDAV_USER');
 const backupWebdavPass = optionalOrNull('BACKUP_WEBDAV_PASS');
 const backupWebhookUrl = optionalOrNull('BACKUP_WEBHOOK_URL');
 if (backupWebhookUrl && !/^https:\/\//i.test(backupWebhookUrl)) {
-  console.warn('[config] BACKUP_WEBHOOK_URL should be an https Discord webhook URL.');
-}
-
-// DISCORD_DEV_GUILD_IDS: one id or a comma/space-separated list of servers that
-// get slash commands registered instantly (a dev convenience). Empty = global
-// registration. DISCORD_GUILD_ID is the pre-3.0 name — still honoured, with a
-// warning.
-const legacyGuildId = optionalOrNull('DISCORD_GUILD_ID');
-if (legacyGuildId) {
-  console.warn('[config] DISCORD_GUILD_ID is deprecated — rename it to DISCORD_DEV_GUILD_IDS.');
-}
-const discordGuildIds = (optionalOrNull('DISCORD_DEV_GUILD_IDS') ?? legacyGuildId ?? '')
-  .split(/[\s,]+/)
-  .map((s) => s.trim())
-  .filter(Boolean);
-const badGuildIds = discordGuildIds.filter((id) => !/^\d{17,20}$/.test(id));
-if (badGuildIds.length) {
-  console.error(`[config] DISCORD_DEV_GUILD_IDS has invalid id(s): ${badGuildIds.join(', ')}`);
-  process.exit(1);
+  console.warn('[config] BACKUP_WEBHOOK_URL should be an https webhook URL.');
 }
 
 // Internal sharding: how many gateway shards this single process runs. 'auto'
-// (the default) asks Discord for the recommended count — it stays 1 until the
+// (the default) derives the count from the guild count — it stays 1 until the
 // bot is in ~2,500+ servers, so it is a no-op for small instances. A positive
 // integer pins the count. This is always one process; multi-process sharding is
 // not supported.
-const shardCountRaw = optional('DISCORD_SHARD_COUNT', 'auto').toLowerCase();
-let discordShardCount = 'auto';
+const shardCountRaw = optional('FLUXER_SHARD_COUNT', 'auto').toLowerCase();
+let fluxerShardCount = 'auto';
 if (shardCountRaw !== 'auto') {
-  discordShardCount = Number(shardCountRaw);
-  if (!Number.isInteger(discordShardCount) || discordShardCount < 1) {
-    console.error("[config] DISCORD_SHARD_COUNT must be 'auto' or a positive integer.");
+  fluxerShardCount = Number(shardCountRaw);
+  if (!Number.isInteger(fluxerShardCount) || fluxerShardCount < 1) {
+    console.error("[config] FLUXER_SHARD_COUNT must be 'auto' or a positive integer.");
     process.exit(1);
   }
+}
+
+// Which Fluxer instance to talk to. Unset = hosted Fluxer (fluxer.app). For a
+// self-hosted instance set FLUXER_API_URL (its public API origin, e.g.
+// https://api.chat.example.com) and FLUXER_WEB_URL (its web app origin).
+const fluxerApiUrl = optionalOrNull('FLUXER_API_URL')?.replace(/\/+$/, '') ?? null;
+const fluxerWebUrl = optionalOrNull('FLUXER_WEB_URL')?.replace(/\/+$/, '') ?? null;
+
+// How timestamps are rendered in bot messages: 'native' uses the <t:unix:style>
+// markup (rendered in the reader's timezone by clients that support it),
+// 'text' writes a plain UTC string.
+const fluxerTimestamps = optional('FLUXER_TIMESTAMPS', 'native').toLowerCase();
+if (!['native', 'text'].includes(fluxerTimestamps)) {
+  console.error("[config] FLUXER_TIMESTAMPS must be 'native' or 'text'.");
+  process.exit(1);
 }
 
 // Hosted-only, opt-in Postgres driver (see docs/roadmap.md — "Postgres
@@ -128,11 +118,11 @@ if (databaseUrl && !/^postgres(ql)?:\/\//i.test(databaseUrl)) {
   process.exit(1);
 }
 
-// Dashboard auth. When DISCORD_CLIENT_SECRET is set, the dashboard requires
-// "Log in with Discord" and gates actions to guild admins. When unset, the
+// Dashboard auth. When FLUXER_CLIENT_SECRET is set, the dashboard requires
+// "Log in with Fluxer" and gates actions to guild admins. When unset, the
 // dashboard runs in open mode (localhost / trusted LAN only).
-const discordClientSecret = optionalOrNull('DISCORD_CLIENT_SECRET');
-// Bot-wide operator ids (comma/space-separated Discord user ids). Gates /health
+const fluxerClientSecret = optionalOrNull('FLUXER_CLIENT_SECRET');
+// Bot-wide operator ids (comma/space-separated Fluxer user ids). Gates /health
 // — status, error log and database backup/restore across every server — to just
 // these accounts, instead of any signed-in dashboard user.
 const ownerIds = (optionalOrNull('OWNER_IDS') ?? '')
@@ -150,7 +140,7 @@ if (badOwnerIds.length) {
 // no proactive notification, matching every other opt-in integration here.
 const devLogChannelId = optionalOrNull('DEV_LOG_CHANNEL_ID');
 if (devLogChannelId && !/^\d{17,20}$/.test(devLogChannelId)) {
-  console.error('[config] DEV_LOG_CHANNEL_ID must be a Discord channel id.');
+  console.error('[config] DEV_LOG_CHANNEL_ID must be a Fluxer channel id.');
   process.exit(1);
 }
 const turnstileSiteKey = optionalOrNull('TURNSTILE_SITE_KEY');
@@ -166,7 +156,7 @@ const kickClientSecret = optionalOrNull('KICK_CLIENT_SECRET');
 let sessionSecret = optionalOrNull('SESSION_SECRET');
 if (!sessionSecret) {
   sessionSecret = randomBytes(32).toString('hex');
-  if (discordClientSecret) {
+  if (fluxerClientSecret) {
     console.warn(
       '[config] SESSION_SECRET is not set — generated a random one. ' +
         'Dashboard sessions will not survive a restart until you pin SESSION_SECRET.'
@@ -175,16 +165,15 @@ if (!sessionSecret) {
 }
 
 export const config = Object.freeze({
-  // Discord
-  discordToken: required('DISCORD_TOKEN'),
-  discordClientId: required('DISCORD_CLIENT_ID'),
-  // Optional: register slash commands to these guild(s) for instant availability
-  // during development (one id, or a comma/space-separated list). When empty,
-  // commands are registered globally (can take up to ~1 hour to propagate).
-  discordGuildIds,
-  discordGuildId: discordGuildIds[0] ?? null, // back-compat: first listed guild
+  // Fluxer
+  fluxerToken: required('FLUXER_TOKEN'),
+  fluxerClientId: required('FLUXER_CLIENT_ID'),
   // Internal gateway sharding for this one process. 'auto' | positive integer.
-  discordShardCount,
+  fluxerShardCount,
+  // Instance overrides (null = hosted Fluxer) and timestamp rendering.
+  fluxerApiUrl,
+  fluxerWebUrl,
+  fluxerTimestamps,
 
   // Web dashboard
   webPort,
@@ -194,8 +183,8 @@ export const config = Object.freeze({
   dashboardUrl: optionalOrNull('DASHBOARD_URL')?.replace(/\/+$/, '') ?? null,
 
   // Dashboard auth (see above)
-  authEnabled: Boolean(discordClientSecret),
-  discordClientSecret,
+  authEnabled: Boolean(fluxerClientSecret),
+  fluxerClientSecret,
   sessionSecret,
   ownerIds,
   devLogChannelId,
@@ -242,13 +231,6 @@ export const config = Object.freeze({
   backupWebdavUser,
   backupWebdavPass,
   backupWebhookUrl,
-
-  // Privileged gateway intents. Enable the matching toggles in the Discord
-  // Developer Portal (Bot page). Verified bots may also need Discord's approval.
-  // Turn a flag off to boot without that intent (dependent modules then stay
-  // disabled) rather than hitting a "disallowed intents" login error.
-  intentGuildMembers: optionalBool('INTENT_GUILD_MEMBERS', true),
-  intentMessageContent: optionalBool('INTENT_MESSAGE_CONTENT', true),
 
   // Misc
   nodeEnv: optional('NODE_ENV', 'development'),

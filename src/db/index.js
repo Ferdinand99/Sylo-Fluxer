@@ -809,6 +809,29 @@ export const MIGRATIONS = [
       );
     `);
   },
+
+  // Per-guild command prefix (Fluxer has no slash commands — commands are
+  // typed as `<prefix>name`). NULL means the default `!`. See
+  // registerPostgresMigration(45, ...) in src/db/guildSettings.js.
+  (database) => {
+    database.exec('ALTER TABLE guild_settings ADD COLUMN prefix TEXT;');
+  },
+
+  // Emoji -> role mappings on messages Sylo posted with role reactions (the
+  // Fluxer stand-in for role buttons / select menus) — see
+  // src/db/messageRoleReactions.js.
+  (database) => {
+    database.exec(`
+      CREATE TABLE message_role_reactions (
+        message_id TEXT PRIMARY KEY,
+        guild_id   TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        choices    TEXT NOT NULL DEFAULT '[]',
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX idx_message_role_reactions_guild ON message_role_reactions (guild_id);
+    `);
+  },
 ];
 
 /** Highest schema version this build knows how to run. */

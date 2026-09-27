@@ -52,15 +52,15 @@ export default function Verification() {
     <>
       <h1 className="v2-section-title">Verification</h1>
       <p className="v2-field-hint">
-        Posts a message with a <strong>Verify</strong> button in the chosen channel. New members click it to
-        get the verified role. In <strong>captcha</strong> mode the button sends them a private link to a
-        Cloudflare Turnstile check on this dashboard first.
+        Posts a message with a <strong>✅</strong> reaction in the chosen channel. New members react to it to
+        get the verified role. In <strong>captcha</strong> mode reacting sends them a private link (by DM) to
+        a Cloudflare Turnstile check on this dashboard first.
         {!data.turnstileEnabled ? (
           <>
             {' '}
             <span className="v2-row-warn">
               Captcha mode needs <code>TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET_KEY</code> set —
-              until then it behaves like button mode.
+              until then it behaves like reaction mode.
             </span>
           </>
         ) : null}
@@ -72,7 +72,7 @@ export default function Verification() {
           <select id="mode" value={form.mode} onChange={(e) => set({ mode: e.target.value })}>
             {data.modes.map((m) => (
               <option key={m} value={m}>
-                {m === 'captcha' ? 'Captcha (button + Turnstile)' : 'Button only'}
+                {m === 'captcha' ? 'Captcha (reaction + Turnstile)' : 'Reaction only'}
               </option>
             ))}
           </select>

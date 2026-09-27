@@ -1,5 +1,6 @@
 // /freegames — show what's currently free to claim.
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 import { getFreeGames, gameEmbed } from '../../modules/freeGames.js';
 
 export const data = new SlashCommandBuilder()
@@ -9,7 +10,7 @@ export const data = new SlashCommandBuilder()
     o.setName('dlc').setDescription('Show free DLC / in-game content instead of games').setRequired(false)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const kind = interaction.options.getBoolean('dlc') ? 'dlc' : 'game';

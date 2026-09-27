@@ -1,11 +1,6 @@
 // /history <user> [page] — a member's moderation case log, newest first.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { listUserCases } from '../../db/modCases.js';
 import { INFO_COLOR } from '../lib/moderation.js';
 
@@ -35,7 +30,7 @@ export const data = new SlashCommandBuilder()
   .addUserOption((o) => o.setName('user').setDescription('Member to look up').setRequired(true))
   .addIntegerOption((o) => o.setName('page').setDescription('Page number').setMinValue(1));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const user = interaction.options.getUser('user', true);
   const asked = interaction.options.getInteger('page') ?? 1;

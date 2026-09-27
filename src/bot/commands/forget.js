@@ -1,7 +1,8 @@
 // /forget — self-service deletion of the data Sylo stores about the caller in
 // the current guild (warnings, leveling XP, ticket history, ban appeals, invite
 // records, AFK status, giveaway entries).
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, MessageFlags } from '../../platform/index.js';
 import { forgetUser } from '../../db/purge.js';
 
 export const data = new SlashCommandBuilder()
@@ -14,7 +15,7 @@ export const data = new SlashCommandBuilder()
       .setRequired(false)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({

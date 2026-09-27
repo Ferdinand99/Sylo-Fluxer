@@ -1,5 +1,6 @@
 // /unban <user_id> [reason] — lift a ban.
-import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType, USER_ID } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { resultEmbed, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { clearTempBan } from '../../db/tempBans.js';
@@ -10,14 +11,23 @@ export const data = new SlashCommandBuilder()
   .setDescription('Remove a ban by user ID.')
   .setContexts(InteractionContextType.Guild)
   .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-  .addStringOption((o) => o.setName('user_id').setDescription('ID of the banned user').setRequired(true))
+  .addStringOption((o) =>
+    o
+      .setName('user_id')
+      .setPattern(...USER_ID)
+      .setDescription('ID of the banned user')
+      .setRequired(true)
+  )
   .addStringOption((o) =>
     o.setName('reason').setDescription('Reason (shown in the audit log)').setMaxLength(400)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
-  const userId = interaction.options.getString('user_id', true).trim();
+  const userId = interaction.options
+    .getString('user_id', true)
+    .trim()
+    .replace(/^<@!?(\d+)>$/, '$1');
   const reason = interaction.options.getString('reason') ?? NO_REASON;
   const { guild } = interaction;
 

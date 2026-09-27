@@ -1,6 +1,7 @@
 // /rank — show a member's leveling progress as an image card (falls back to a
 // text embed if the image renderer is unavailable).
-import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, AttachmentBuilder, MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { getMember, memberRank, memberCount } from '../../db/leveling.js';
 import { levelProgress, progressBar } from '../../modules/lib/levels.js';
@@ -12,7 +13,7 @@ export const data = new SlashCommandBuilder()
   .setDescription('Show your leveling progress (or another member’s).')
   .addUserOption((o) => o.setName('user').setDescription('Whose rank to show').setRequired(false));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });

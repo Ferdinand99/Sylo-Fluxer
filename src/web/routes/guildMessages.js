@@ -6,7 +6,7 @@ import { Router } from 'express';
 import { getGuild, baseContext, assignableRoles } from '../lib/guildContext.js';
 import { requireGuildAdmin } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { guildTextChannels } from '../lib/discord.js';
+import { guildTextChannels } from '../lib/platform.js';
 import { timeAgo } from '../lib/format.js';
 import {
   listComposed,
@@ -16,6 +16,7 @@ import {
   deleteComposed,
 } from '../../db/composedMessages.js';
 import { sendComposed, editComposed } from '../../modules/messageCreator.js';
+import { fetchGuildChannel } from '../../platform/channels.js';
 
 const router = Router({ mergeParams: true });
 
@@ -168,7 +169,8 @@ router.post(
     if (rec.message_id) {
       try {
         const ch =
-          req.guild.channels.cache.get(rec.channel_id) ?? (await req.guild.channels.fetch(rec.channel_id));
+          req.guild.channels.cache.get(rec.channel_id) ??
+          (await fetchGuildChannel(req.guild, rec.channel_id));
         await ch.messages.delete(rec.message_id);
       } catch {
         /* already gone */
@@ -196,7 +198,8 @@ router.post(
       if (rec.message_id) {
         try {
           const ch =
-            req.guild.channels.cache.get(rec.channel_id) ?? (await req.guild.channels.fetch(rec.channel_id));
+            req.guild.channels.cache.get(rec.channel_id) ??
+            (await fetchGuildChannel(req.guild, rec.channel_id));
           await ch.messages.delete(rec.message_id);
           msg = 'deleted';
         } catch {

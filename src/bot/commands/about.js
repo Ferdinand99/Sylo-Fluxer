@@ -1,5 +1,6 @@
 // /about — version plus uptime and runtime info, in an embed.
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder } from '../../platform/index.js';
 import { BUILD, REPO_URL } from '../lib/buildInfo.js';
 import { formatDuration } from '../lib/duration.js';
 import { uptimeSeconds } from '../../runtime.js';
@@ -8,7 +9,7 @@ export const data = new SlashCommandBuilder()
   .setName('about')
   .setDescription('Show Sylo version, uptime and runtime information.');
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const { client } = interaction;
   const heartbeat = Math.round(client.ws.ping);
@@ -24,7 +25,7 @@ export async function execute(interaction) {
       { name: 'Gateway ping', value: heartbeat < 0 ? 'n/a' : `${heartbeat} ms`, inline: true },
       { name: 'Servers', value: String(client.guilds.cache.size), inline: true },
       { name: 'Memory', value: `${memMb.toFixed(0)} MB`, inline: true },
-      { name: 'Runtime', value: `Node ${BUILD.node}\ndiscord.js ${BUILD.discordJs}`, inline: true }
+      { name: 'Runtime', value: `Node ${BUILD.node}\nfluxer.js ${BUILD.fluxerJs}`, inline: true }
     )
     .setFooter({ text: REPO_URL.replace('https://', '') })
     .setTimestamp();

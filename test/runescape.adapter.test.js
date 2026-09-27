@@ -3,8 +3,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-process.env.DISCORD_TOKEN ||= 'test-token';
-process.env.DISCORD_CLIENT_ID ||= 'test-client-id';
+process.env.FLUXER_TOKEN ||= 'test-token';
+process.env.FLUXER_CLIENT_ID ||= 'test-client-id';
 
 const { runescapeAdapter } = await import('../src/adapters/games/runescape.js');
 const {

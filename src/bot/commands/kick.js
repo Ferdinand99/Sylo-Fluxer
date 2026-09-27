@@ -1,5 +1,6 @@
 // /kick <user> [reason] — remove a member from the server.
-import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { addCase } from '../../db/modCases.js';
@@ -14,7 +15,7 @@ export const data = new SlashCommandBuilder()
     o.setName('reason').setDescription('Reason (shown in the audit log)').setMaxLength(400)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const target = interaction.options.getMember('user');
   const reason = interaction.options.getString('reason') ?? NO_REASON;

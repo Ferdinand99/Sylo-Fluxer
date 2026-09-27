@@ -56,8 +56,8 @@ jobs:
     # them to exist, never to be valid. DB tests redirect DATABASE_PATH to a
     # temp file themselves (see test/helpers/tmpDb.js).
     env:
-      DISCORD_TOKEN: ci-placeholder
-      DISCORD_CLIENT_ID: "000000000000000000"
+      FLUXER_TOKEN: ci-placeholder
+      FLUXER_CLIENT_ID: "000000000000000000"
     steps:
       - uses: actions/checkout@v7
 

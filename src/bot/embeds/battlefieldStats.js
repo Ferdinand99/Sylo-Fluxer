@@ -1,5 +1,5 @@
 // Builds the Discord embed for a Battlefield stats lookup.
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../../platform/index.js';
 
 const BF_COLOR = 0x1b3a4b;
 

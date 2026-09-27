@@ -1,24 +1,15 @@
 // /lockdown start|end — lock (or unlock) every text channel at once, for raids.
 // Each channel's prior overwrite is saved individually, so `/lockdown end`
 // restores them to exactly where they were.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  ChannelType,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { lockPreflight, lockChannel, unlockChannel } from '../lib/channelLock.js';
 import { isChannelLocked, lockdownChannelLocks, clearChannelLock } from '../../db/channelLocks.js';
+import { fetchGuildChannel } from '../../platform/channels.js';
 
-const LOCKDOWN_TYPES = new Set([
-  ChannelType.GuildText,
-  ChannelType.GuildAnnouncement,
-  ChannelType.GuildForum,
-]);
+const LOCKDOWN_TYPES = new Set([ChannelType.GuildText]);
 // A hard ceiling so a huge server can't spawn thousands of permission edits.
 const MAX_CHANNELS = 500;
 
@@ -37,7 +28,7 @@ export const data = new SlashCommandBuilder()
   )
   .addSubcommand((c) => c.setName('end').setDescription('Unlock everything /lockdown start locked.'));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const sub = interaction.options.getSubcommand();
   const reason = interaction.options.getString('reason') ?? NO_REASON;
@@ -93,7 +84,7 @@ export async function execute(interaction) {
   for (const row of rows) {
     const channel =
       guild.channels.cache.get(row.channel_id) ??
-      (await guild.channels.fetch(row.channel_id).catch(() => null));
+      (await fetchGuildChannel(guild, row.channel_id).catch(() => null));
     if (!channel) {
       await clearChannelLock(guild.id, row.channel_id); // channel gone — drop the stale row
       failed += 1;

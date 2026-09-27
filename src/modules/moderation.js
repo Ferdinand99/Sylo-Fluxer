@@ -6,7 +6,7 @@
 //     dmOnPunish: boolean,
 //     warnThresholds: [ { count, action: 'timeout'|'kick'|'ban', durationMinutes? } ]
 //   }
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
 import { dueTempBans, clearTempBan } from '../db/tempBans.js';
@@ -34,8 +34,8 @@ export function normaliseThresholds(list) {
 
 /**
  * After a warning is issued, apply the strictest matching threshold rule.
- * @param {import('discord.js').Guild} guild
- * @param {import('discord.js').User} targetUser
+ * @param {import('@fluxerjs/core').Guild} guild
+ * @param {import('@fluxerjs/core').User} targetUser
  * @param {number} warnCount  the user's new total warning count
  * @param {string} moderatorLabel  who issued the warning (for the mod-log)
  */

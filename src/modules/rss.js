@@ -10,7 +10,7 @@
 //          'url' it is the feed URL itself.
 //   url  — the resolved feed URL the poll loop actually fetches.
 // template placeholders: {title} {link} {author} {feed}
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { randomBytes } from 'node:crypto';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
@@ -22,7 +22,7 @@ import { log } from '../lib/log.js';
 const COLOR = 0xee802f;
 const POLL_MS = 5 * 60_000;
 const KEEP_MS = 30 * 24 * 60 * 60 * 1000;
-const UA = 'Mozilla/5.0 (compatible; Sylo-Discord-Bot/1.0; +https://github.com/Ferdinand99/Sylo)';
+const UA = 'Mozilla/5.0 (compatible; Sylo-Fluxer-Bot/1.0; +https://github.com/Ferdinand99/Sylo-Fluxer)';
 const ACCEPT = 'application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5';
 
 const MAX_FEEDS_PER_GUILD = 15;

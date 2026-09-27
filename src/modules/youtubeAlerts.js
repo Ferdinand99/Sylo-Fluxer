@@ -7,7 +7,7 @@
 //   { alerts: [ { id, ytChannelId, name, discordChannelId, roleId,
 //                 onVideo, onLive, videoMessage, liveMessage } ] }
 // message placeholders: {name} {title} {url}
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
 import {
@@ -29,7 +29,7 @@ import { log } from '../lib/log.js';
 const FEED = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
 const COLOR = 0xff0000;
 const POLL_MS = 3 * 60_000;
-const UA = 'Mozilla/5.0 (compatible; Sylo-Discord-Bot/1.0; +https://github.com/Ferdinand99/Sylo)';
+const UA = 'Mozilla/5.0 (compatible; Sylo-Fluxer-Bot/1.0; +https://github.com/Ferdinand99/Sylo-Fluxer)';
 
 // feed.js's grab() defaults to a 300 KB scan cap, sized for RSS/Atom feed
 // bodies. resolveYtChannel/checkLive scrape full YouTube HTML pages instead —

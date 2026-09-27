@@ -11,8 +11,8 @@ import {
   setScheduledEnabled,
   deleteScheduled,
 } from '../db/scheduledMessages.js';
-import { buildPayload } from './messageCreator.js';
-import { sendToChannel } from './lib/send.js';
+import { buildPayload, applyRoleReactions } from './messageCreator.js';
+import { postToChannel } from './lib/send.js';
 import { log } from '../lib/log.js';
 
 export const SCHEDULE_PRESETS = [
@@ -48,10 +48,19 @@ const TICK_MS = 20_000;
 const MODULE_ID = 'reminders';
 
 function payloadFor(reminder) {
-  const { payload, empty } = buildPayload(reminder.spec || { content: reminder.content ?? '' });
+  const { payload, empty, choices } = buildPayload(reminder.spec || { content: reminder.content ?? '' });
   if (empty) return null;
   payload.allowedMentions = { parse: ['roles', 'everyone'] };
-  return payload;
+  return { payload, choices };
+}
+
+/** Post a reminder, adding its role reactions (if any) once it's up. */
+async function post(r) {
+  const built = payloadFor(r);
+  if (!built) return;
+  const posted = await postToChannel(r.guild_id, r.channel_id, built.payload);
+  const guild = runtime.client.guilds.get(r.guild_id);
+  if (posted && guild && built.choices.length) await applyRoleReactions(guild, posted.message, built.choices);
 }
 
 async function tick() {
@@ -65,8 +74,7 @@ async function tick() {
     if (r.mode === 'single') {
       await markSingleFired(r.id, now); // claim it first so a crash can't double-fire
       if (enabled && inGuild) {
-        const payload = payloadFor(r);
-        if (payload) await sendToChannel(r.guild_id, r.channel_id, payload);
+        await post(r);
       }
       continue;
     }
@@ -86,8 +94,7 @@ async function tick() {
     if (r.start_at && now < r.start_at) continue;
     if (!r.dayList.includes(new Date(now).getDay())) continue; // not a chosen weekday
 
-    const payload = payloadFor(r);
-    if (payload) await sendToChannel(r.guild_id, r.channel_id, payload);
+    await post(r);
   }
 }
 

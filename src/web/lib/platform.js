@@ -1,12 +1,12 @@
-// Helpers for reading Discord state from the shared client in web routes.
-import { ChannelType } from 'discord.js';
+// Helpers for reading guild state (channels, users) from the shared client in web routes.
+import { ChannelType } from '../../platform/index.js';
 
-const TEXTY = new Set([ChannelType.GuildText, ChannelType.GuildAnnouncement]);
+const TEXTY = new Set([ChannelType.GuildText]);
 
 /**
  * Text channels of a guild that the bot could post logs to, sorted the way
- * Discord shows them.
- * @param {import('discord.js').Guild} guild
+ * the client shows them.
+ * @param {import('@fluxerjs/core').Guild} guild
  * @returns {Array<{ id: string, name: string }>}
  */
 export function guildTextChannels(guild) {
@@ -16,10 +16,10 @@ export function guildTextChannels(guild) {
     .map((c) => ({ id: c.id, name: c.name }));
 }
 
-/** Voice / stage channels — used by the Server statistics module. */
+/** Voice channels — used by the Server statistics module. */
 export function guildVoiceChannels(guild) {
   return [...guild.channels.cache.values()]
-    .filter((c) => c.type === ChannelType.GuildVoice || c.type === ChannelType.GuildStageVoice)
+    .filter((c) => c.type === ChannelType.GuildVoice)
     .sort((a, b) => a.rawPosition - b.rawPosition)
     .map((c) => ({ id: c.id, name: c.name }));
 }
@@ -35,7 +35,7 @@ export function guildCategories(guild) {
 /**
  * Resolve a set of user IDs to `{ id, tag }`, using the cache and falling back
  * to a REST fetch. Unknown IDs map to their raw id.
- * @param {import('discord.js').Client} client
+ * @param {import('@fluxerjs/core').Client} client
  * @param {Iterable<string>} ids
  * @returns {Promise<Map<string, string>>} id -> tag
  */

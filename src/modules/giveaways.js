@@ -1,14 +1,16 @@
-// Giveaways: `/giveaway start` posts an embed with an "Enter" button; a
-// background loop draws winners at the end time. `/giveaway reroll` and `end`,
-// plus the dashboard, call endGiveaway() directly.
+// Giveaways: `!giveaway start` posts an embed with a 🎉 reaction — reacting
+// enters, removing the reaction leaves (Fluxer has no buttons). A background
+// loop draws winners at the end time. `!giveaway reroll` and `end`, plus the
+// dashboard, call endGiveaway() directly.
 //
 // config shape: { ping: 'none' | 'here' | 'everyone', dmWinners: boolean }
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { runtime } from '../runtime.js';
-import { registerComponent } from '../bot/lib/components.js';
+import { on } from './dispatch.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
 import {
   getGiveaway,
+  getGiveawayByMessage,
   dueGiveaways,
   markGiveawayEnded,
   setGiveawayWinners,
@@ -19,11 +21,14 @@ import {
   giveawayEntrantIds,
 } from '../db/giveaways.js';
 import { log } from '../lib/log.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 export const MIN_MS = 60_000; // 1 minute
 export const MAX_MS = 60 * 86_400_000; // 60 days
 export const MAX_WINNERS = 20;
 const ACCENT = 0xf0b232;
+/** The reaction members add to enter. */
+export const ENTER_EMOJI = '🎉';
 
 // Coalesced "N entries" footer refreshes — at most one message edit per
 // COUNT_REFRESH_MS per giveaway (see scheduleCountRefresh). Keyed by giveaway id.
@@ -64,7 +69,7 @@ export function buildGiveawayPayload(g, { entryCount = 0 } = {}) {
   if (!g.ended) {
     embed.setDescription(
       [
-        `Click **🎉 Enter** below to join.`,
+        `React with ${ENTER_EMOJI} below to join — remove it to leave.`,
         '',
         `Ends: <t:${endTs}:R>  ·  <t:${endTs}:f>`,
         `Winners: **${g.winners}**`,
@@ -92,17 +97,7 @@ export function buildGiveawayPayload(g, { entryCount = 0 } = {}) {
     embed.setFooter({ text: `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'} · giveaway ended` });
   }
 
-  const button = new ButtonBuilder()
-    .setCustomId(`gaw:enter:${g.id}`)
-    .setStyle(g.ended ? ButtonStyle.Secondary : ButtonStyle.Success)
-    .setLabel(g.ended ? 'Giveaway ended' : '🎉 Enter')
-    .setDisabled(Boolean(g.ended));
-
-  return {
-    embeds: [embed],
-    components: [new ActionRowBuilder().addComponents(button)],
-    allowedMentions: { parse: [] },
-  };
+  return { embeds: [embed], allowedMentions: { parse: [] } };
 }
 
 /**
@@ -122,7 +117,8 @@ export async function endGiveaway(id, opts = {}) {
     return { ok: false, reason: 'no-guild' };
   }
   const channel =
-    guild.channels.cache.get(g.channel_id) ?? (await guild.channels.fetch(g.channel_id).catch(() => null));
+    guild.channels.cache.get(g.channel_id) ??
+    (await fetchGuildChannel(guild, g.channel_id).catch(() => null));
 
   // Eligible = entrants still in the guild (and still holding the required role).
   const entrants = await giveawayEntrantIds(id);
@@ -183,9 +179,9 @@ export async function endGiveaway(id, opts = {}) {
   return { ok: true, winners };
 }
 
-// --- entry button -----------------------------------------------------
+// --- entry reaction ------------------------------------------------------
 
-/** Queue a trailing footer refresh; a burst of clicks yields one edit / 5s. */
+/** Queue a trailing footer refresh; a burst of reactions yields one edit / 5s. */
 function scheduleCountRefresh(message, id) {
   if (pendingCountRefresh.has(id)) return;
   const t = setTimeout(async () => {
@@ -198,46 +194,38 @@ function scheduleCountRefresh(message, id) {
   pendingCountRefresh.set(id, t);
 }
 
-async function handleEnter(interaction, id) {
-  const g = await getGiveaway(id);
-  if (!g || g.ended) {
-    return interaction.reply({ content: 'This giveaway has ended.', flags: MessageFlags.Ephemeral });
-  }
-  if (!(await isModuleEnabled(interaction.guildId, 'giveaways'))) {
-    return interaction.reply({
-      content: 'Giveaways are disabled in this server.',
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-  if (g.required_role_id && !interaction.member.roles.cache.has(g.required_role_id)) {
-    return interaction.reply({
-      content: `You need <@&${g.required_role_id}> to enter this giveaway.`,
-      flags: MessageFlags.Ephemeral,
-      allowedMentions: { parse: [] },
-    });
-  }
+const isEnterReaction = (reaction) => (reaction.emoji.id || reaction.emoji.name) === ENTER_EMOJI;
 
-  let joined;
-  if (await hasGiveawayEntry(id, interaction.user.id)) {
-    await removeGiveawayEntry(id, interaction.user.id);
-    joined = false;
-  } else {
-    await addGiveawayEntry(id, interaction.user.id);
-    joined = true;
+on('giveaways', 'reactionAdd', async ({ reaction, user }) => {
+  if (user.bot || !isEnterReaction(reaction)) return;
+  const g = await getGiveawayByMessage(reaction.message.id);
+  if (!g) return;
+  if (g.ended) {
+    reaction.users.remove(user.id).catch(() => {});
+    return;
   }
+  if (g.required_role_id) {
+    const member = await reaction.message.guild?.members.fetch(user.id).catch(() => null);
+    if (!member?.roles.cache.has(g.required_role_id)) {
+      reaction.users.remove(user.id).catch(() => {});
+      const role = reaction.message.guild?.roles.get(g.required_role_id);
+      user
+        .send(`You need the **${role?.name ?? 'required'}** role to enter the giveaway for **${g.prize}**.`)
+        .catch(() => {});
+      return;
+    }
+  }
+  if (!(await hasGiveawayEntry(g.id, user.id))) await addGiveawayEntry(g.id, user.id);
+  scheduleCountRefresh(reaction.message, g.id);
+});
 
-  // Refresh the "N entries" footer — coalesced so a click burst can't spam edits.
-  scheduleCountRefresh(interaction.message, id);
-
-  return interaction.reply({
-    content: joined ? "You're in! 🎉  Click again to leave." : "You've left this giveaway.",
-    flags: MessageFlags.Ephemeral,
-  });
-}
-
-registerComponent('giveaways', 'gaw:enter:', (interaction) =>
-  handleEnter(interaction, Number(interaction.customId.slice('gaw:enter:'.length)))
-);
+on('giveaways', 'reactionRemove', async ({ reaction, user }) => {
+  if (user.bot || !isEnterReaction(reaction)) return;
+  const g = await getGiveawayByMessage(reaction.message.id);
+  if (!g || g.ended) return;
+  await removeGiveawayEntry(g.id, user.id);
+  scheduleCountRefresh(reaction.message, g.id);
+});
 
 // --- expiry loop ----------------------------------------------------
 

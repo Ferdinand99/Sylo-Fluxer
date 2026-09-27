@@ -87,6 +87,7 @@ export const GUILD_TABLES = [
   'channel_cleanup_schedules',
   'github_watches',
   'honeypot_catches',
+  'message_role_reactions',
 ];
 
 const simpleStmts = GUILD_TABLES.map((t) => prepare(`DELETE FROM ${t} WHERE guild_id = ?`));

@@ -21,7 +21,7 @@
 //
 // The decision is always shown on the appeal page itself when the user reopens
 // their link, so notification never depends on the DM succeeding.
-import { ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { config } from '../config.js';
 import { signToken, verifyToken } from '../lib/signedToken.js';
@@ -149,8 +149,8 @@ function takePreBanDm(guildId, userId) {
 /**
  * DM the appeal link to a member who is about to be banned. Call this *before*
  * `guild.bans.create()`.
- * @param {import('discord.js').Guild} guild
- * @param {import('discord.js').User} user
+ * @param {import('@fluxerjs/core').Guild} guild
+ * @param {import('@fluxerjs/core').User} user
  * @param {string} reason
  * @returns {Promise<boolean | null>} true/false when appeals handled the DM
  *   (delivered or not); null when the module is off / no dashboard URL, so the
@@ -228,7 +228,7 @@ on('appeals', 'guildBanAdd', async (ban, rawConfig) => {
 /**
  * Create a one-time invite so an unbanned user can rejoin. Best-effort — needs
  * Create Invite and a channel to anchor it to. Returns the invite URL or null.
- * @param {import('discord.js').Guild} guild
+ * @param {import('@fluxerjs/core').Guild} guild
  */
 export async function createRejoinInvite(guild) {
   const me = guild.members.me;
@@ -236,7 +236,7 @@ export async function createRejoinInvite(guild) {
 
   const canInvite = (ch) =>
     ch &&
-    (ch.type === ChannelType.GuildText || ch.type === ChannelType.GuildAnnouncement) &&
+    ch.type === ChannelType.GuildText &&
     ch.permissionsFor(me)?.has(PermissionFlagsBits.CreateInstantInvite);
 
   const target =
@@ -260,7 +260,7 @@ export async function createRejoinInvite(guild) {
 
 /**
  * Record a decision, optionally lift the ban, DM the user, and log it.
- * @param {import('discord.js').Guild} guild
+ * @param {import('@fluxerjs/core').Guild} guild
  * @param {object} appeal            row from db/appeals.js (answers parsed)
  * @param {{ status: 'accepted' | 'denied', decidedBy: string, reason: string }} decision
  * @returns {Promise<{ recorded: boolean, unbanned: boolean, dmDelivered: boolean, inviteUrl: string | null }>}

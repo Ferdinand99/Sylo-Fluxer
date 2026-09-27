@@ -1,7 +1,7 @@
 {
-  "name": "sylo",
-  "version": "3.38.0",
-  "description": "Multi-function Discord bot with a web dashboard and an extensible game-stats module (starting with the Battlefield series).",
+  "name": "sylo-fluxer",
+  "version": "0.1.0",
+  "description": "Multi-function Fluxer bot with a web dashboard and an extensible game-stats module — a port of Sylo.",
   "type": "module",
   "main": "src/index.js",
   "engines": {
@@ -10,7 +10,6 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "register": "node scripts/register-commands.js",
     "migrate-to-postgres": "node scripts/migrate-sqlite-to-postgres.js",
     "test": "node --test",
     "build:v2": "vite build --config web-v2/vite.config.js",
@@ -21,8 +20,8 @@
     "format:check": "prettier --check ."
   },
   "keywords": [
-    "discord",
-    "discord-bot",
+    "fluxer",
+    "fluxer-bot",
     "battlefield",
     "stats",
     "dashboard"
@@ -30,10 +29,11 @@
   "author": "Ferdinand99",
   "license": "MIT",
   "dependencies": {
+    "@fluxerjs/collection": "3.0.0",
+    "@fluxerjs/core": "3.1.0",
     "@napi-rs/canvas": "^1.0.9",
     "better-sqlite3": "^13.0.3",
     "cookie-session": "^2.1.1",
-    "discord.js": "^14.16.3",
     "dotenv": "^18.0.1",
     "ejs": "^6.0.1",
     "express": "^5.1.0",

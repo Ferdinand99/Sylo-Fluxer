@@ -1,5 +1,6 @@
 // /invites-leaderboard — top inviters in this server.
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { topInviters } from '../../db/inviteTracker.js';
 
@@ -9,7 +10,7 @@ export const data = new SlashCommandBuilder()
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });

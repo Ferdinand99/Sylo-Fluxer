@@ -18,7 +18,7 @@ import {
   UpstreamUnavailableError,
 } from './gameAdapter.js';
 
-const USER_AGENT = 'Sylo-Discord-Bot (+https://github.com/Ferdinand99/Sylo)';
+const USER_AGENT = 'Sylo-Fluxer-Bot (+https://github.com/Ferdinand99/Sylo-Fluxer)';
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /**

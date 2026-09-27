@@ -1,7 +1,7 @@
 import './helpers/tmpDb.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from '../src/platform/index.js';
 import {
   denyLockPerms,
   restoreLockPerms,
@@ -59,7 +59,7 @@ test('restoreLockPerms maps saved bitfields back to true / false / null', () => 
 
   assert.equal(map.SendMessages, true); // was explicitly allowed
   assert.equal(map.AddReactions, false); // was explicitly denied
-  assert.equal(map.CreatePublicThreads, null); // was inherited
+  assert.equal(restoreLockPerms(allow, 0n).AddReactions, null); // inherited
   // Accepts decimal strings (how the row is stored) too.
   assert.deepEqual(restoreLockPerms(String(allow), String(deny)), map);
 });
@@ -123,7 +123,7 @@ test('unlockChannel restores the saved overwrite and clears the row', async () =
   await unlockChannel(ch, { moderatorTag: 'mod#1' });
   assert.equal(await getChannelLock(G, C1), null);
   assert.equal(ch._edits.at(-1).opts.SendMessages, true); // restored to allow
-  assert.equal(ch._edits.at(-1).opts.CreatePublicThreads, null);
+  assert.equal(ch._edits.at(-1).opts.AddReactions, null); // was inherited
 });
 
 test('unlockChannel deletes the overwrite when there was none before the lock', async () => {

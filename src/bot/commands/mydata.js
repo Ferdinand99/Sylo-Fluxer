@@ -2,7 +2,8 @@
 // current guild (GDPR access + portability). Read only; use /forget to delete.
 // The caller gets a readable summary embed plus the full copy as a JSON file,
 // by DM — or on the ephemeral reply if their DMs are closed.
-import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder, MessageFlags, time } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { EmbedBuilder, AttachmentBuilder, MessageFlags, time } from '../../platform/index.js';
 import { exportUserData } from '../../db/purge.js';
 
 const COOLDOWN_MS = 10 * 60_000; // one export per member per guild per 10 min
@@ -60,7 +61,7 @@ export const data = new SlashCommandBuilder()
   .setName('mydata')
   .setDescription('Get a copy of the data Sylo has stored about you in this server.');
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({

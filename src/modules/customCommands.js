@@ -1,6 +1,6 @@
-// Custom commands: per-guild `/slash` commands built from an ordered list of
-// actions (MEE6-style). Each command is registered with Discord via
-// bot/lib/customCommandSync.js and executed by handleCustomSlash().
+// Custom commands: per-guild prefix commands (`!name`) built from an ordered
+// list of actions (MEE6-style). Executed by handleCustomCommand() in
+// bot/lib/customCommandRun.js when no built-in command matches.
 //
 // config shape:
 //   { commands: [ {
@@ -16,7 +16,7 @@
 //
 // `messages` with more than one entry: the bot picks one at random.
 // Placeholders in content / embed text: {user} {username} {server} {channel} {args}
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { buildEmbed } from './messageCreator.js';
 import { normaliseEmbedSpec } from './welcomeChannel.js';
 

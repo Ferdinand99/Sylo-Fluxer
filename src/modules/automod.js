@@ -15,14 +15,8 @@
 //       caps:     { enabled, action, minLength, percent },
 //       words:    { enabled, action, list: string[] },
 //     },
-//     native: {                        // push mappable rules to Discord AutoMod
-//       enabled: boolean,              // master switch
-//       words, mentions, spam: boolean,// mirror that rule natively too
-//       presets: string[],             // subset of PRESET_KEYS
-//     }
 //   }
-import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
-import { PRESET_KEYS } from '../bot/lib/automodSync.js';
+import { EmbedBuilder, PermissionFlagsBits } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { postModLog } from '../bot/lib/modlog.js';
 import { notifyTarget } from '../bot/lib/moderation.js';
@@ -36,7 +30,7 @@ export const AUTOMOD_ACTIONS = ['delete', 'warn', 'timeout'];
 export const AUTOMOD_RULES = [
   ['words', 'Bad words', 'Blocks messages containing any listed word or phrase.'],
   ['repeat', 'Repeated text', 'Blocks messages that are mostly one repeated word or character.'],
-  ['invites', 'Server invites', 'Blocks messages containing a discord.gg / invite link.'],
+  ['invites', 'Server invites', 'Blocks messages containing a Fluxer (fluxer.gg) or Discord invite link.'],
   ['links', 'External links', 'Blocks URLs. List allowed domains to permit only those.'],
   ['caps', 'Excessive caps', 'Messages that are mostly uppercase.'],
   ['emojis', 'Excessive emojis', 'More than N emojis in a single message.'],
@@ -49,7 +43,8 @@ export const AUTOMOD_RULES = [
 const RULE_KEYS = AUTOMOD_RULES.map(([k]) => k);
 const AUTOMOD_COLOR = 0xe5b567;
 
-const INVITE_RE = /(?:discord\.(?:gg|io|me|li)|discord(?:app)?\.com\/invite)\/[\w-]+/i;
+const INVITE_RE =
+  /(?:fluxer\.gg|(?:web\.)?fluxer\.app\/invite|discord\.(?:gg|io|me|li)|discord(?:app)?\.com\/invite)\/[\w-]+/i;
 const URL_RE = /\bhttps?:\/\/[^\s/$.?#][^\s]*/gi;
 
 // --- config normalisation ------------------------------------------------
@@ -69,25 +64,6 @@ const termList = (v) =>
   ].slice(0, 200);
 const action = (v) => (AUTOMOD_ACTIONS.includes(v) ? v : 'delete');
 
-/** [key, label] for the checks that have a native Discord AutoMod equivalent. */
-export const NATIVE_MAPPABLE = [
-  ['words', 'Bad words'],
-  ['mentions', 'Excessive mentions'],
-  ['spam', 'Anti-spam'],
-];
-export { PRESET_KEYS };
-
-function normaliseNative(n = {}) {
-  const presets = (Array.isArray(n.presets) ? n.presets : [n.presets]).filter((p) => PRESET_KEYS.includes(p));
-  return {
-    enabled: Boolean(n.enabled),
-    words: Boolean(n.words),
-    mentions: Boolean(n.mentions),
-    spam: Boolean(n.spam),
-    presets: [...new Set(presets)],
-  };
-}
-
 /** Coerce any stored/submitted config into the canonical shape. */
 export function normaliseAutomodConfig(raw = {}) {
   const r = raw.rules || {};
@@ -96,7 +72,6 @@ export function normaliseAutomodConfig(raw = {}) {
     timeoutMinutes: clampInt(raw.timeoutMinutes, 1, 40320, 10),
     exemptChannels: idList(raw.exemptChannels),
     exemptRoles: idList(raw.exemptRoles),
-    native: normaliseNative(raw.native),
     rules: {
       invites: { enabled: Boolean(r.invites?.enabled), action: action(r.invites?.action) },
       links: {
@@ -251,7 +226,7 @@ function escapeRe(s) {
 }
 
 /**
- * @param {import('discord.js').Message} message
+ * @param {import('@fluxerjs/core').Message} message
  * @param {object} config  stored module config
  * @param {{ flood: boolean }} opts  flood check only makes sense on new messages
  */

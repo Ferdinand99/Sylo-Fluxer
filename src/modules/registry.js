@@ -2,7 +2,6 @@
 // toggled and configured per guild (like MEE6/Dyno plugins). Phase 1 defines
 // the catalogue and enable state; later phases attach behaviour (event
 // handlers, commands) and richer settings.
-import { config } from '../config.js';
 
 /**
  * @typedef {Object} ModuleDef
@@ -10,8 +9,6 @@ import { config } from '../config.js';
  * @property {string} name              Display name.
  * @property {string} description       One-line summary for the module list.
  * @property {string} icon             Emoji shown in the sidebar.
- * @property {string[]} requiredIntents Privileged intents the module needs
- *   ("GuildMembers", "MessageContent"). Empty = works with the base intents.
  * @property {boolean} defaultEnabled   Whether it is on by default in a new guild.
  * @property {boolean} configurable     Whether it has a settings panel yet.
  * @property {boolean} [beta]           Shows a "Beta" tag wherever the module is listed.
@@ -25,7 +22,6 @@ export const MODULES = [
     name: 'Moderation',
     description: 'Mod-log channel, warning thresholds, mute role, ban manager.',
     icon: '🛡️',
-    requiredIntents: [],
     defaultEnabled: true,
     configurable: true,
   },
@@ -34,7 +30,6 @@ export const MODULES = [
     name: 'Server logging',
     description: 'Send member, message, role and channel events to log channels.',
     icon: '📝',
-    requiredIntents: ['GuildMembers', 'MessageContent'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -43,7 +38,6 @@ export const MODULES = [
     name: 'Tickets (modmail)',
     description: 'Members DM the bot; staff read and reply from this dashboard.',
     icon: '🎫',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -52,7 +46,6 @@ export const MODULES = [
     name: 'Reaction roles & autoroles',
     description: 'Self-assign roles from a message; roles automatically on join.',
     icon: '🎭',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -61,7 +54,6 @@ export const MODULES = [
     name: 'Verification',
     description: 'Gate new members behind a Verify button or a captcha before they get a role.',
     icon: '✅',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -70,7 +62,6 @@ export const MODULES = [
     name: 'Welcome & leave',
     description: 'Greet new members and announce departures.',
     icon: '👋',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -79,7 +70,6 @@ export const MODULES = [
     name: 'Birthdays',
     description: 'Members save their birthday; Sylo posts a greeting and can grant a role for the day.',
     icon: '🎂',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -88,7 +78,6 @@ export const MODULES = [
     name: 'Welcome channel',
     description: 'Build one rich, pinned message for a dedicated read-only welcome channel.',
     icon: '📢',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -98,7 +87,6 @@ export const MODULES = [
     description:
       'Build /slash commands from an ordered list of actions: reply, post to a channel, add or remove a role.',
     icon: '⌨️',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -107,7 +95,6 @@ export const MODULES = [
     name: 'Autoresponder',
     description: 'Automatically reply when a message matches a trigger phrase.',
     icon: '💬',
-    requiredIntents: ['MessageContent'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -116,7 +103,6 @@ export const MODULES = [
     name: 'Auto-react',
     description: 'Automatically react — and optionally add or remove a role — for chosen users or roles.',
     icon: '🎯',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -125,7 +111,6 @@ export const MODULES = [
     name: 'Reminders',
     description: 'Post a text or embed message to a channel — once, or on a repeating schedule.',
     icon: '⏰',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -134,7 +119,6 @@ export const MODULES = [
     name: 'Sticky messages',
     description: 'Keep a message pinned to the bottom of a channel by re-posting it.',
     icon: '📌',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -143,7 +127,6 @@ export const MODULES = [
     name: 'Counting',
     description: 'Members count upward one number at a time in a dedicated channel.',
     icon: '🔢',
-    requiredIntents: ['MessageContent'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -152,7 +135,6 @@ export const MODULES = [
     name: 'Leveling',
     description: 'XP and levels from activity, with role rewards and a leaderboard.',
     icon: '📈',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -161,7 +143,6 @@ export const MODULES = [
     name: 'Auto-moderation',
     description: 'Filter invites, links, spam, caps and banned words automatically.',
     icon: '🚦',
-    requiredIntents: ['MessageContent'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -170,7 +151,6 @@ export const MODULES = [
     name: 'Honeypot',
     description: 'Trap channels and messages that instantly punish scrapers and raid bots.',
     icon: '🍯',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
     beta: true,
@@ -180,7 +160,6 @@ export const MODULES = [
     name: 'AFK',
     description: 'Members mark themselves away; Sylo replies to anyone who mentions them.',
     icon: '💤',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -189,7 +168,6 @@ export const MODULES = [
     name: 'Server statistics',
     description: 'Keep voice channels named with live member / role / boost counts.',
     icon: '📊',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -198,7 +176,6 @@ export const MODULES = [
     name: 'Free games',
     description: 'Announce games that become free to claim on the Epic Games Store.',
     icon: '🎮',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -207,7 +184,6 @@ export const MODULES = [
     name: 'Ban appeals',
     description: 'DM banned members a link to an appeal form; staff accept or deny it here.',
     icon: '⚖️',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -217,7 +193,6 @@ export const MODULES = [
     description:
       'MEE6-style hubs: join to spawn your own voice (and text) channel, controlled with /voice-* commands.',
     icon: '🎙️',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -226,7 +201,6 @@ export const MODULES = [
     name: 'Starboard',
     description: 'Re-post messages that get enough of a reaction into a highlights channel.',
     icon: '⭐',
-    requiredIntents: ['MessageContent'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -235,7 +209,6 @@ export const MODULES = [
     name: 'Invite tracker',
     description: 'Track who invited each new member and rank inviters on a leaderboard.',
     icon: '📨',
-    requiredIntents: ['GuildMembers'],
     defaultEnabled: false,
     configurable: true,
   },
@@ -244,7 +217,6 @@ export const MODULES = [
     name: 'Polls',
     description: 'Members create reaction polls with /poll; they auto-close on a timer or vote cap.',
     icon: '🗳️',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -253,7 +225,6 @@ export const MODULES = [
     name: 'Twitch alerts',
     description: 'Announce in a channel when a Twitch streamer goes live.',
     icon: '📺',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -262,7 +233,6 @@ export const MODULES = [
     name: 'YouTube alerts',
     description: "Announce a channel's new uploads and when it goes live.",
     icon: '▶️',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -271,7 +241,6 @@ export const MODULES = [
     name: 'Kick alerts',
     description: 'Announce in a channel when a Kick.com streamer goes live.',
     icon: '🟢',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -280,7 +249,6 @@ export const MODULES = [
     name: 'RSS alerts',
     description: 'Post new items from RSS/Atom feeds — plus Reddit, Mastodon and Bluesky handles.',
     icon: '📰',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -289,7 +257,6 @@ export const MODULES = [
     name: 'Server insights',
     description: 'Track messages, joins and leaves per day and chart server activity over time.',
     icon: '📈',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: false,
   },
@@ -298,7 +265,6 @@ export const MODULES = [
     name: 'Giveaways',
     description: 'Run prize giveaways with an Enter button; winners drawn automatically at the end time.',
     icon: '🎉',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -308,7 +274,6 @@ export const MODULES = [
     description:
       'Player stat lookups via /stats: the Battlefield series, Old School RuneScape and RuneScape 3.',
     icon: '🎯',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -317,7 +282,6 @@ export const MODULES = [
     name: 'Channel cleanup',
     description: 'Auto-delete old messages from a channel on a weekly schedule you pick.',
     icon: '🧹',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -326,7 +290,6 @@ export const MODULES = [
     name: 'GitHub alerts',
     description: 'Post GitHub activity — pushes, releases, issues, pull requests — from a repo to a channel.',
     icon: '🐙',
-    requiredIntents: [],
     defaultEnabled: false,
     configurable: true,
   },
@@ -337,22 +300,4 @@ const BY_ID = new Map(MODULES.map((m) => [m.id, m]));
 /** @param {string} id */
 export function getModule(id) {
   return BY_ID.get(id) ?? null;
-}
-
-/** Whether every intent a module needs is currently enabled in config. */
-export function intentsSatisfied(mod) {
-  return mod.requiredIntents.every((i) => {
-    if (i === 'GuildMembers') return config.intentGuildMembers;
-    if (i === 'MessageContent') return config.intentMessageContent;
-    return true;
-  });
-}
-
-/** Human list of the intents a module is missing, for the UI. */
-export function missingIntents(mod) {
-  return mod.requiredIntents.filter((i) => {
-    if (i === 'GuildMembers') return !config.intentGuildMembers;
-    if (i === 'MessageContent') return !config.intentMessageContent;
-    return false;
-  });
 }

@@ -1,5 +1,6 @@
 // /birthday set|remove|list — members save a birthday for the Birthdays module.
-import { SlashCommandBuilder, InteractionContextType, MessageFlags, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { setBirthday, getBirthday, removeBirthday, guildBirthdays } from '../../db/birthdays.js';
 import { isValidBirthday, daysUntilBirthday } from '../../modules/birthdays.js';
@@ -56,7 +57,7 @@ export const data = new SlashCommandBuilder()
     s.setName('list').setDescription('Show the next birthdays coming up in this server.')
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!(await isModuleEnabled(interaction.guildId, 'birthdays'))) {
     return interaction.reply({

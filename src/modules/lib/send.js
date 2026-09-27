@@ -1,5 +1,6 @@
 // Helper for modules that post to a configured channel.
 import { runtime } from '../../runtime.js';
+import { fetchGuildChannel } from '../../platform/channels.js';
 
 /** Resolve a text-based channel the bot can post in, or null. Never throws. */
 async function usableChannel(guildId, channelId) {
@@ -7,7 +8,7 @@ async function usableChannel(guildId, channelId) {
   const guild = runtime.client?.guilds.cache.get(guildId);
   if (!guild) return null;
   try {
-    const channel = guild.channels.cache.get(channelId) ?? (await guild.channels.fetch(channelId));
+    const channel = guild.channels.cache.get(channelId) ?? (await fetchGuildChannel(guild, channelId));
     if (!channel?.isTextBased()) return null;
     const me = guild.members.me;
     if (me && !channel.permissionsFor(me)?.has(['ViewChannel', 'SendMessages', 'EmbedLinks'])) return null;
@@ -18,16 +19,16 @@ async function usableChannel(guildId, channelId) {
 }
 
 /**
- * Send to a channel and return a reference to the message, or null on any
- * failure (missing channel, no permission, …). Never throws.
- * @returns {Promise<{ channelId: string, messageId: string } | null>}
+ * Send to a channel and return a reference to the message (plus the message
+ * itself), or null on any failure (missing channel, no permission, …). Never throws.
+ * @returns {Promise<{ channelId: string, messageId: string, message: import('@fluxerjs/core').Message } | null>}
  */
 export async function postToChannel(guildId, channelId, payload) {
   const channel = await usableChannel(guildId, channelId);
   if (!channel) return null;
   try {
     const msg = await channel.send(payload);
-    return { channelId, messageId: msg.id };
+    return { channelId, messageId: msg.id, message: msg };
   } catch {
     return null;
   }

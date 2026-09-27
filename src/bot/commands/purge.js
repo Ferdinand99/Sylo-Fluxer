@@ -1,11 +1,6 @@
 // /purge <amount> [user] — bulk-delete recent messages in the current channel.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 
@@ -24,7 +19,7 @@ export const data = new SlashCommandBuilder()
   )
   .addUserOption((o) => o.setName('user').setDescription('Only delete messages from this user'));
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const amount = interaction.options.getInteger('amount', true);
   const user = interaction.options.getUser('user');

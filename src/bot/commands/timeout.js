@@ -1,5 +1,6 @@
 // /timeout <user> <duration> [reason] — temporarily mute a member (Discord timeout).
-import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { parseDuration, formatDuration } from '../lib/duration.js';
@@ -13,12 +14,18 @@ export const data = new SlashCommandBuilder()
   .setContexts(InteractionContextType.Guild)
   .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
   .addUserOption((o) => o.setName('user').setDescription('Member to time out').setRequired(true))
-  .addStringOption((o) => o.setName('duration').setDescription('e.g. 30s, 10m, 2h, 1d, 1w').setRequired(true))
+  .addStringOption((o) =>
+    o
+      .setName('duration')
+      .setPattern(...DURATION)
+      .setDescription('e.g. 30s, 10m, 2h, 1d, 1w')
+      .setRequired(true)
+  )
   .addStringOption((o) =>
     o.setName('reason').setDescription('Reason (shown in the audit log)').setMaxLength(400)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const target = interaction.options.getMember('user');
   const reason = interaction.options.getString('reason') ?? NO_REASON;

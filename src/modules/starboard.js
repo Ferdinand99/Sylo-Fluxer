@@ -7,7 +7,7 @@
 //   removeBotReactions, minAgeMinutes, maxAgeMinutes, roleMode: 'allow'|'deny',
 //   roleList: [], channelMode, channelList: [] } ] }
 // `key` for an emoji is its custom id, or the unicode character. [] = any emoji.
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } from 'discord.js';
+import { EmbedBuilder, PermissionsBitField } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { runtime } from '../runtime.js';
 import {
@@ -110,13 +110,8 @@ function renderPost(message, board, count, guild) {
   if (img) embed.setImage(img);
 
   return {
-    content: `${emojiDisplay(board, guild)} **${count}** · <#${message.channelId}>`,
+    content: `${emojiDisplay(board, guild)} **${count}** · <#${message.channelId}> · [Jump to message](${message.url})`,
     embeds: [embed],
-    components: [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Jump to message').setURL(message.url)
-      ),
-    ],
     allowedMentions: { parse: [] },
   };
 }
@@ -174,13 +169,13 @@ async function fetchPost(guild, channelId, msgId) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Which non-thread text channels a board should look at, honouring its
-// channel restriction and the bot's read permissions.
+// Which text channels a board should look at, honouring its channel
+// restriction and the bot's read permissions.
 function watchedChannels(guild, board) {
   const me = guild.members.me;
   const need = [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ReadMessageHistory];
   return [...guild.channels.cache.values()].filter((c) => {
-    if (!c.isTextBased?.() || (typeof c.isThread === 'function' && c.isThread())) return false;
+    if (!c.isTextBased?.()) return false;
     if (c.id === board.channelId) return false;
     if (me && !c.permissionsFor(me)?.has(need)) return false;
     if (board.channelList.length) {

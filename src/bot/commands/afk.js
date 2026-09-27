@@ -1,5 +1,6 @@
 // /afk — mark yourself away; Sylo replies to anyone who mentions you.
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
+import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';
 import { setAfk } from '../../db/afk.js';
 
@@ -10,7 +11,7 @@ export const data = new SlashCommandBuilder()
     o.setName('reason').setDescription('Shown to people who mention you').setMaxLength(200)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   if (!interaction.inGuild()) {
     return interaction.reply({ content: 'Use this in a server.', flags: MessageFlags.Ephemeral });

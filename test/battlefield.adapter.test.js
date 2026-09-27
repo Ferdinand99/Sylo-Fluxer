@@ -4,8 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 // config.js validates required env vars on import — provide dummies before loading.
-process.env.DISCORD_TOKEN ||= 'test-token';
-process.env.DISCORD_CLIENT_ID ||= 'test-client-id';
+process.env.FLUXER_TOKEN ||= 'test-token';
+process.env.FLUXER_CLIENT_ID ||= 'test-client-id';
 process.env.GAMETOOLS_API_BASE ||= 'https://api.example.test';
 
 const { battlefieldAdapter } = await import('../src/adapters/games/battlefield.js');

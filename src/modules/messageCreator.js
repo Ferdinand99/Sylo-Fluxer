@@ -1,22 +1,14 @@
-// Message Creator: turn a dashboard "spec" into a Discord message and send or
-// edit it as the bot. Supports content, embeds, link buttons, role buttons
-// (toggle a role on click) and a role select menu.
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-} from 'discord.js';
-import { getComposedByMessage } from '../db/composedMessages.js';
-import { registerComponent } from '../bot/lib/components.js';
-
-const BUTTON_STYLE = {
-  primary: ButtonStyle.Primary,
-  secondary: ButtonStyle.Secondary,
-  success: ButtonStyle.Success,
-  danger: ButtonStyle.Danger,
-};
+// Message Creator: turn a dashboard "spec" into a Fluxer message and send or
+// edit it as the bot. Supports content and embeds. Fluxer has no message
+// components, so the spec's component rows are rendered as:
+//   - link buttons  → a line of markdown links under the content;
+//   - role buttons and the role select → role reactions: a legend line per role
+//     and a reaction on the message; reacting toggles the role (see
+//     handleRoleReaction, fed from bot/events/moduleEvents.js).
+import { EmbedBuilder } from '../platform/index.js';
+import { getMessageRoleChoices, setMessageRoleChoices } from '../db/messageRoleReactions.js';
+import { log } from '../lib/log.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 const hexToInt = (h) => {
   const m = /^#?([0-9a-f]{6})$/i.exec(String(h ?? ''));
@@ -70,70 +62,113 @@ export function buildEmbed(e) {
   return hasContent ? eb : null;
 }
 
-function buildComponents(spec) {
-  const rows = [];
-  for (const row of (Array.isArray(spec.rows) ? spec.rows : []).slice(0, 5)) {
+const KEYCAPS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+const CUSTOM_EMOJI = /^<a?:([a-zA-Z0-9_]+):(\d{17,20})>$/;
+
+/** { key, react, display } for a unicode or <:name:id> emoji, or null. */
+function parseChoiceEmoji(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return null;
+  const m = CUSTOM_EMOJI.exec(s);
+  if (m) return { key: m[2], react: `${m[1]}:${m[2]}`, display: s };
+  if (/^[\p{L}\p{N}\s_.-]+$/u.test(s)) return null; // plain text, not an emoji
+  return { key: s, react: s, display: s };
+}
+
+/** Link buttons from the spec's rows, as `[label](url)`. */
+function linkButtons(spec) {
+  const out = [];
+  for (const row of Array.isArray(spec.rows) ? spec.rows : []) {
+    if (row.type === 'roleselect') continue;
+    for (const b of Array.isArray(row.buttons) ? row.buttons : []) {
+      if (b.style !== 'link' || !isUrl(b.url)) continue;
+      const label = [trimOr(b.emoji, 64), trimOr(b.label, 80)].filter(Boolean).join(' ') || b.url;
+      out.push(`[${label}](${b.url})`);
+    }
+  }
+  return out;
+}
+
+/**
+ * Role choices from the spec's role buttons and role select, each with a
+ * reaction emoji (its own, or the next free keycap).
+ * @returns {import('../db/messageRoleReactions.js').RoleChoice[]}
+ */
+export function roleChoices(spec) {
+  const raw = [];
+  for (const row of Array.isArray(spec.rows) ? spec.rows : []) {
     if (row.type === 'roleselect') {
-      const opts = (Array.isArray(row.options) ? row.options : [])
-        .map((o) => ({
-          label: trimOr(o.label, 100),
-          value: String(o.roleId),
-          description: trimOr(o.description, 100),
-          emoji: trimOr(o.emoji, 64),
-        }))
-        .filter((o) => o.label && /^\d{17,20}$/.test(o.value))
-        .slice(0, 25);
-      if (!opts.length) continue;
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('msgroles')
-        .setPlaceholder(trimOr(row.placeholder, 150) ?? 'Select roles')
-        .setMinValues(Math.max(0, Math.min(Number(row.min) || 0, opts.length)))
-        .setMaxValues(Math.max(1, Math.min(Number(row.max) || opts.length, opts.length)))
-        .addOptions(opts);
-      rows.push(new ActionRowBuilder().addComponents(menu));
+      for (const o of Array.isArray(row.options) ? row.options : []) {
+        if (/^\d{17,20}$/.test(String(o.roleId ?? ''))) {
+          raw.push({ roleId: String(o.roleId), label: trimOr(o.label, 100), emoji: o.emoji });
+        }
+      }
       continue;
     }
-    // button row
-    const buttons = [];
-    for (const b of (Array.isArray(row.buttons) ? row.buttons : []).slice(0, 5)) {
-      const label = trimOr(b.label, 80);
-      const emoji = trimOr(b.emoji, 64);
-      if (!label && !emoji) continue;
-      const btn = new ButtonBuilder();
-      if (label) btn.setLabel(label);
-      if (emoji) btn.setEmoji(emoji);
-      if (b.style === 'link') {
-        if (!isUrl(b.url)) continue;
-        btn.setStyle(ButtonStyle.Link).setURL(b.url);
-      } else if (/^\d{17,20}$/.test(b.roleId ?? '')) {
-        btn.setStyle(BUTTON_STYLE[b.style] ?? ButtonStyle.Secondary).setCustomId(`msgrole:${b.roleId}`);
-      } else {
-        continue;
+    for (const b of Array.isArray(row.buttons) ? row.buttons : []) {
+      if (b.style !== 'link' && /^\d{17,20}$/.test(b.roleId ?? '')) {
+        raw.push({ roleId: b.roleId, label: trimOr(b.label, 80), emoji: b.emoji });
       }
-      buttons.push(btn);
     }
-    if (buttons.length) rows.push(new ActionRowBuilder().addComponents(buttons));
   }
-  return rows;
+  const seen = new Set();
+  const withEmoji = raw
+    .filter((c) => !seen.has(c.roleId) && seen.add(c.roleId))
+    .map((c) => ({ ...c, parsed: parseChoiceEmoji(c.emoji) }));
+  const used = new Set(withEmoji.map((c) => c.parsed?.key).filter(Boolean));
+  const spare = KEYCAPS.filter((k) => !used.has(k));
+  const out = [];
+  for (const c of withEmoji) {
+    let e = c.parsed && !out.some((o) => o.key === c.parsed.key) ? c.parsed : null;
+    if (!e) {
+      const k = spare.shift();
+      if (!k) break; // more roles than reactions we can hand out
+      e = { key: k, react: k, display: k };
+    }
+    out.push({ key: e.key, react: e.react, display: e.display, roleId: c.roleId, label: c.label });
+  }
+  return out.slice(0, 20);
 }
 
 /**
  * @param {object} spec
- * @returns {{ payload: import('discord.js').MessageCreateOptions, empty: boolean }}
+ * @returns {{ payload: import('@fluxerjs/core').MessageSendOptions, empty: boolean, choices: object[] }}
  */
 export function buildPayload(spec) {
-  const content = trimOr(spec.content, 2000);
+  const base = trimOr(spec.content, 2000);
+  const links = linkButtons(spec);
+  const choices = roleChoices(spec);
+  const legend = choices.map((c) => `${c.display} ${c.label ? `${c.label} — ` : ''}<@&${c.roleId}>`);
+  const content = [
+    base,
+    links.join(' · '),
+    legend.length ? `React to pick a role:\n${legend.join('\n')}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+    .slice(0, 4000);
   const embeds = (Array.isArray(spec.embeds) ? spec.embeds : []).slice(0, 10).map(buildEmbed).filter(Boolean);
-  const components = buildComponents(spec);
-  const empty = !content && embeds.length === 0 && components.length === 0;
+  const empty = !content && embeds.length === 0;
   return {
-    payload: { content: content ?? '', embeds, components, allowedMentions: { parse: ['users', 'roles'] } },
+    payload: { content: content || undefined, embeds, allowedMentions: { parse: ['users'] } },
     empty,
+    choices,
   };
 }
 
+/** Put the role reactions on a posted message and remember the mapping. */
+export async function applyRoleReactions(guild, message, choices) {
+  await setMessageRoleChoices(guild.id, message.channelId, message.id, choices);
+  for (const c of choices) {
+    await message
+      .react(c.react)
+      .catch((err) => log.warn('messageCreator', `react ${c.display}: ${err.message}`));
+  }
+}
+
 async function resolveChannel(guild, channelId) {
-  const ch = guild.channels.cache.get(channelId) ?? (await guild.channels.fetch(channelId).catch(() => null));
+  const ch =
+    guild.channels.cache.get(channelId) ?? (await fetchGuildChannel(guild, channelId).catch(() => null));
   if (!ch?.isTextBased()) throw new Error('Channel not found or not text-based.');
   const me = guild.members.me;
   if (me && !ch.permissionsFor(me)?.has(['ViewChannel', 'SendMessages', 'EmbedLinks'])) {
@@ -143,68 +178,60 @@ async function resolveChannel(guild, channelId) {
 }
 
 export async function sendComposed(guild, channelId, spec) {
-  const { payload, empty } = buildPayload(spec);
-  if (empty) throw new Error('Nothing to send — add content, an embed, or a component.');
+  const { payload, empty, choices } = buildPayload(spec);
+  if (empty) throw new Error('Nothing to send — add content or an embed.');
   const channel = await resolveChannel(guild, channelId);
   const message = await channel.send(payload);
+  if (choices.length) await applyRoleReactions(guild, message, choices);
   return message;
 }
 
 export async function editComposed(guild, channelId, messageId, spec) {
-  const { payload, empty } = buildPayload(spec);
-  if (empty) throw new Error('Nothing to send — add content, an embed, or a component.');
+  const { payload, empty, choices } = buildPayload(spec);
+  if (empty) throw new Error('Nothing to send — add content or an embed.');
   const channel = await resolveChannel(guild, channelId);
   const message = await channel.messages.fetch(messageId);
-  await message.edit({ content: payload.content, embeds: payload.embeds, components: payload.components });
+  await message.edit({ content: payload.content ?? '', embeds: payload.embeds });
+  const previous = (await getMessageRoleChoices(guild.id, messageId)) ?? [];
+  const keep = new Set(choices.map((c) => c.key));
+  for (const old of previous) {
+    if (!keep.has(old.key)) await message.removeReactionEmoji(old.react).catch(() => {});
+  }
+  await applyRoleReactions(guild, message, choices);
   return message;
 }
 
-// --- interaction handlers: role buttons + role select --------------------
+// --- role reactions ---------------------------------------------------------
 
-async function toggleRole(interaction, roleId) {
-  const role = interaction.guild.roles.cache.get(roleId);
-  if (!role) return interaction.reply({ content: 'That role no longer exists.', ephemeral: true });
-  if (!role.editable) {
-    return interaction.reply({
-      content: "I can't assign that role (missing Manage Roles or ranked below it).",
-      ephemeral: true,
-    });
+/**
+ * Toggle a role when a member reacts on (or un-reacts from) a message posted
+ * with role reactions. Returns true when the message had role reactions.
+ * @param {'add' | 'remove'} kind
+ * @param {{ reaction: any, user: import('@fluxerjs/core').User }} payload
+ */
+export async function handleRoleReaction(kind, { reaction, user }) {
+  if (user.bot) return false;
+  const guild = reaction.message?.guild;
+  if (!guild) return false;
+  const choices = await getMessageRoleChoices(guild.id, reaction.message.id);
+  if (!choices?.length) return false;
+  const key = reaction.emoji.id || reaction.emoji.name;
+  const choice = choices.find((c) => c.key === key);
+  if (!choice) return true;
+  const role = guild.roles.get(choice.roleId);
+  if (!role?.editable) {
+    log.warn(
+      'messageCreator',
+      `cannot manage role ${choice.roleId} in ${guild.id} (missing, or ranked above Sylo)`
+    );
+    return true;
   }
-  const has = interaction.member.roles.cache.has(roleId);
-  await interaction.member.roles[has ? 'remove' : 'add'](role, 'Message Creator role button');
-  return interaction.reply({ content: `${has ? 'Removed' : 'Added'} **${role.name}**.`, ephemeral: true });
+  const member = await guild.members.fetch(user.id).catch(() => null);
+  if (!member) return true;
+  const has = member.roles.cache.has(role.id);
+  if (kind === 'add' && !has)
+    await member.roles.add(role).catch((e) => log.warn('messageCreator', e.message));
+  if (kind === 'remove' && has)
+    await member.roles.remove(role).catch((e) => log.warn('messageCreator', e.message));
+  return true;
 }
-
-async function applyRoleSelect(interaction, composedSpecForMessage) {
-  const row = (composedSpecForMessage?.rows ?? []).find((r) => r.type === 'roleselect');
-  const menuRoleIds = new Set(
-    (row?.options ?? []).map((o) => String(o.roleId)).filter((v) => /^\d{17,20}$/.test(v))
-  );
-  if (menuRoleIds.size === 0)
-    return interaction.reply({ content: 'This menu is no longer configured.', ephemeral: true });
-
-  const picked = new Set(interaction.values);
-  const me = interaction.guild.members.me;
-  const add = [];
-  const remove = [];
-  for (const id of menuRoleIds) {
-    const role = interaction.guild.roles.cache.get(id);
-    if (!role || !role.editable || me.roles.highest.comparePositionTo(role) <= 0) continue;
-    if (picked.has(id) && !interaction.member.roles.cache.has(id)) add.push(id);
-    if (!picked.has(id) && interaction.member.roles.cache.has(id)) remove.push(id);
-  }
-  if (add.length) await interaction.member.roles.add(add, 'Message Creator role menu');
-  if (remove.length) await interaction.member.roles.remove(remove, 'Message Creator role menu');
-  return interaction.reply({
-    content: add.length || remove.length ? 'Roles updated.' : 'No changes.',
-    ephemeral: true,
-  });
-}
-
-registerComponent('messageCreator', 'msgrole:', (interaction) =>
-  toggleRole(interaction, interaction.customId.slice('msgrole:'.length))
-);
-registerComponent('messageCreator', 'msgroles', async (interaction) => {
-  const rec = await getComposedByMessage(interaction.guildId, interaction.message.id);
-  return applyRoleSelect(interaction, rec?.spec);
-});

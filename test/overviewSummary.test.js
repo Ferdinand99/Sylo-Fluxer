@@ -1,7 +1,7 @@
 import './helpers/tmpDb.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PermissionsBitField } from 'discord.js';
+import { PermissionsBitField } from '../src/platform/index.js';
 import { setGuildModule } from '../src/db/modules.js';
 import { buildOverview } from '../src/web/lib/overviewSummary.js';
 

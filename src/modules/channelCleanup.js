@@ -1,7 +1,7 @@
 // Channel cleanup: per-channel weekly schedule that deletes messages older
 // than a configured age. Not event-driven — a polling loop (started on
 // import) checks which schedules are due.
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from '../platform/index.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled } from '../db/modules.js';
 import { dueCandidates, markCleanupRan, deleteCleanupSchedule } from '../db/channelCleanup.js';

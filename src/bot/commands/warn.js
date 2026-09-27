@@ -1,11 +1,6 @@
 // /warn add|list|remove|clear — lightweight warning records per member.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, INFO_COLOR, notifyTarget, resultEmbed } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { addWarning, listWarnings, getWarning, removeWarning, clearWarnings } from '../../db/modCases.js';
@@ -46,7 +41,7 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) => o.setName('user').setDescription('Member to clear').setRequired(true))
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const sub = interaction.options.getSubcommand();
   const guildId = interaction.guild.id;

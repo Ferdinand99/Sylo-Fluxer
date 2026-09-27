@@ -3,12 +3,13 @@
 // day. Cross-guild, so the tick runs once per day guarded by an app-setting.
 //
 // config shape: { channel, message, roleId, pingRole }
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from '../platform/index.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
 import { getAppSetting, setAppSetting } from '../db/appSettings.js';
 import { birthdaysOnDay, guildBirthdays } from '../db/birthdays.js';
 import { log } from '../lib/log.js';
+import { fetchGuildChannel } from '../platform/channels.js';
 
 const DEFAULT_MESSAGE = '🎂 Happy birthday {user}! 🎉';
 const LAST_RUN_KEY = 'birthdays:lastRun';
@@ -98,7 +99,7 @@ async function celebrateGuild(guildId, now) {
 
   if (!cfg.channel || rows.length === 0) return;
   const channel =
-    guild.channels.cache.get(cfg.channel) ?? (await guild.channels.fetch(cfg.channel).catch(() => null));
+    guild.channels.cache.get(cfg.channel) ?? (await fetchGuildChannel(guild, cfg.channel).catch(() => null));
   if (!channel?.isTextBased()) return;
 
   for (const row of rows) {

@@ -16,7 +16,7 @@
  * @property {number} startedAt          Epoch ms when the process booted.
  * @property {{ message: string, at: number } | null} lastError  Most recent unexpected error.
  * @property {ErrorEntry[]} errors       Recent errors, most-recent-first, capped.
- * @property {import('discord.js').Client | null} client  The logged-in Discord client, once ready.
+ * @property {import('@fluxerjs/core').Client | null} client  The logged-in Fluxer client, once ready.
  */
 
 const MAX_ERRORS = 40;
@@ -69,8 +69,8 @@ export function errorScopeCounts() {
 }
 
 /**
- * Record a gateway-ping sample for the /health history. Ignores the -1 discord.js
- * reports before the first heartbeat.
+ * Record a gateway-ping sample for the /health history. Ignores the -1 the
+ * gateway reports before the first heartbeat ACK.
  * @param {number} ms
  */
 export function recordGatewayPing(ms) {
@@ -80,8 +80,8 @@ export function recordGatewayPing(ms) {
 }
 
 /**
- * Attach the Discord client once it has logged in.
- * @param {import('discord.js').Client} client
+ * Attach the Fluxer client once it has logged in.
+ * @param {import('@fluxerjs/core').Client} client
  */
 export function setClient(client) {
   runtime.client = client;
@@ -92,12 +92,12 @@ export function uptimeSeconds() {
   return Math.floor((Date.now() - runtime.startedAt) / 1000);
 }
 
-/** Whether the Discord client is connected and ready. */
-export function isDiscordReady() {
+/** Whether the Fluxer client is connected and ready. */
+export function isBotReady() {
   return Boolean(runtime.client?.isReady());
 }
 
 /** Number of guilds the bot is currently in (0 when not ready). */
 export function guildCount() {
-  return runtime.client?.guilds.cache.size ?? 0;
+  return runtime.client?.guilds.size ?? 0;
 }

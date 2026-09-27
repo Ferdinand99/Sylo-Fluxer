@@ -1,9 +1,11 @@
 // /voice-clean — delete every empty temporary voice channel in the server.
-import { SlashCommandBuilder, InteractionContextType, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { listGuildTempChannels, removeTempChannel } from '../../db/tempVoice.js';
 import { hubForChannel } from '../../modules/tempVoice.js';
 import { ephemeral } from '../lib/tempVoiceCmd.js';
+import { deleteGuildChannel } from '../../platform/channels.js';
 
 export const data = new SlashCommandBuilder()
   .setName('voice-clean')
@@ -32,13 +34,13 @@ export async function execute(interaction) {
   for (const r of rows) {
     const ch = interaction.guild.channels.cache.get(r.channel_id);
     if (!ch) {
-      if (r.text_channel_id) await interaction.guild.channels.delete(r.text_channel_id).catch(() => {});
+      if (r.text_channel_id) await deleteGuildChannel(interaction.guild, r.text_channel_id).catch(() => {});
       await removeTempChannel(r.channel_id);
       continue;
     }
     if (ch.members.size === 0) {
       await ch.delete('voice-clean').catch(() => {});
-      if (r.text_channel_id) await interaction.guild.channels.delete(r.text_channel_id).catch(() => {});
+      if (r.text_channel_id) await deleteGuildChannel(interaction.guild, r.text_channel_id).catch(() => {});
       await removeTempChannel(r.channel_id);
       n += 1;
     }

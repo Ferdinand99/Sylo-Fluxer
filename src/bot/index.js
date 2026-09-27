@@ -1,38 +1,23 @@
-// Discord client bootstrap: build the client, load commands and events,
-// register slash commands, and log in.
+// Fluxer client bootstrap: build the client, load commands and events, and log in.
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Client, GatewayIntentBits, Partials } from 'discord.js';
+// Platform first: importing it installs the SDK compatibility aliases.
+import { Client } from '../platform/index.js';
+import { clientInstanceOptions } from '../platform/urls.js';
 import { config } from '../config.js';
 import { setClient } from '../runtime.js';
 import { loadCommands } from './loadCommands.js';
-import { registerCommands } from './registerCommands.js';
 import { resolveShardOptions } from './lib/shards.js';
 import { log } from '../lib/log.js';
-
-/** Build the gateway intent list from config. */
-function buildIntents() {
-  const intents = [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildModeration, // ban add/remove, audit-log-adjacent events
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions, // reaction roles
-    GatewayIntentBits.GuildVoiceStates, // temporary "join to create" voice channels
-    GatewayIntentBits.GuildInvites, // invite tracker
-    GatewayIntentBits.DirectMessages, // ticket / modmail
-  ];
-  if (config.intentGuildMembers) intents.push(GatewayIntentBits.GuildMembers);
-  if (config.intentMessageContent) intents.push(GatewayIntentBits.MessageContent);
-  return intents;
-}
 
 const eventsDir = join(dirname(fileURLToPath(import.meta.url)), 'events');
 
 /**
  * Wire up every event module in ./events onto the client. A module either
  * exports { name, execute[, once] } for a single listener, or a
- * register(client) function that attaches its own listeners.
+ * register(client) function that attaches its own listeners. `execute` gets
+ * the event's arguments followed by the client (Fluxer's Ready carries none).
  */
 async function loadEvents(client) {
   const files = readdirSync(eventsDir).filter((f) => f.endsWith('.js') && !f.startsWith('_'));
@@ -46,24 +31,27 @@ async function loadEvents(client) {
       log.warn('bot', `Skipping event ${file}: missing "name"/"execute" or "register" export`);
       continue;
     }
-    if (mod.once) client.once(mod.name, (...args) => mod.execute(...args));
-    else client.on(mod.name, (...args) => mod.execute(...args));
+    if (mod.once) client.once(mod.name, (...args) => mod.execute(...args, client));
+    else client.on(mod.name, (...args) => mod.execute(...args, client));
   }
 }
 
 /**
- * Create the client, load everything, register commands, and log in.
- * Resolves once login is initiated; the "ready" event finishes the handshake.
- * @returns {Promise<import('discord.js').Client>}
+ * Create the client, load everything, and log in. Resolves once login is
+ * initiated; the "ready" event finishes the handshake.
+ * @returns {Promise<import('@fluxerjs/core').Client>}
  */
 export async function startBot() {
   const client = new Client({
-    intents: buildIntents(),
+    ...clientInstanceOptions(),
     // Internal sharding — every shard runs in this process, sharing one cache
     // and one DB connection. 'auto' stays at 1 shard until ~2,500+ guilds.
-    ...resolveShardOptions(config.discordShardCount),
-    // Needed to receive reaction/message events for messages not in cache.
-    partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User],
+    ...resolveShardOptions(config.fluxerShardCount),
+    // Emit Ready only after every guild has arrived, so startup work (member
+    // priming, invite caches, presence counts) sees the full guild list.
+    waitForGuilds: true,
+    // Replies don't ping the author unless a command asks for it.
+    defaultReplyPing: false,
   });
 
   const commands = await loadCommands();
@@ -72,30 +60,10 @@ export async function startBot() {
 
   // Surface library-level errors on the dashboard instead of letting them bubble.
   client.on('error', (err) => log.error('bot', 'gateway client error', err));
-  client.on('shardError', (err) => log.error('bot', 'shard error', err));
+  client.on('shardError', (id, err) => log.error('bot', `shard ${id} error`, err));
   client.on('shardReady', (id) => log.info('bot', `shard ${id} connected`));
 
-  try {
-    await registerCommands(commands);
-  } catch (err) {
-    // Non-fatal: the bot can still run with previously-registered commands.
-    log.error('bot', 'Slash command registration failed:', err.message);
-  }
-
-  try {
-    await client.login(config.discordToken);
-  } catch (err) {
-    if (err?.code === 'DisallowedIntents' || /disallowed intents/i.test(err?.message ?? '')) {
-      log.error(
-        'bot',
-        'Login failed: this bot requests privileged intents that are not enabled. ' +
-          'Enable "Server Members Intent" and "Message Content Intent" on the Discord Developer ' +
-          'Portal (Bot page) for this application — verified bots may also need Discord approval. ' +
-          'To run without them for now, set INTENT_GUILD_MEMBERS=false and/or INTENT_MESSAGE_CONTENT=false.'
-      );
-    }
-    throw err;
-  }
+  await client.login(config.fluxerToken);
   setClient(client);
   return client;
 }

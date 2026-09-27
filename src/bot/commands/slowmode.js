@@ -1,12 +1,6 @@
 // /slowmode <seconds> [channel] — set per-user rate limit on a text channel.
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  InteractionContextType,
-  MessageFlags,
-  ChannelType,
-  EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
+import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR } from '../lib/moderation.js';
 import { postModLog } from '../lib/modlog.js';
 import { formatDuration } from '../lib/duration.js';
@@ -30,15 +24,10 @@ export const data = new SlashCommandBuilder()
     o
       .setName('channel')
       .setDescription('Target channel (defaults to here)')
-      .addChannelTypes(
-        ChannelType.GuildText,
-        ChannelType.GuildAnnouncement,
-        ChannelType.PublicThread,
-        ChannelType.PrivateThread
-      )
+      .addChannelTypes(ChannelType.GuildText)
   );
 
-/** @param {import('discord.js').ChatInputCommandInteraction} interaction */
+/** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {
   const seconds = interaction.options.getInteger('seconds', true);
   const channel = interaction.options.getChannel('channel') ?? interaction.channel;

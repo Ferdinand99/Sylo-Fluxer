@@ -1,17 +1,16 @@
-// Discover and load every slash command module in ./commands.
-// Each command module must export `data` (a SlashCommandBuilder) and
-// `execute(interaction)`. Shared by the bot runtime and the standalone
-// registration script.
+// Discover and load every command module in ./commands.
+// Each command module must export `data` (a CommandBuilder) and
+// `execute(interaction)` — see src/bot/framework/.
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Collection } from 'discord.js';
+import { Collection } from '../platform/index.js';
 import { log } from '../lib/log.js';
 
 const commandsDir = join(dirname(fileURLToPath(import.meta.url)), 'commands');
 
 /**
- * @returns {Promise<Collection<string, { data: import('discord.js').SlashCommandBuilder, execute: Function }>>}
+ * @returns {Promise<Collection<string, { data: import('./framework/CommandBuilder.js').CommandBuilder, execute: Function }>>}
  */
 export async function loadCommands() {
   const commands = new Collection();

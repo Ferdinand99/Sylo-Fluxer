@@ -5,7 +5,7 @@
 // getGuild, requireGuildAdmin) — none of them are modified by this file.
 import { createRequire } from 'node:module';
 import { Router, raw } from 'express';
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from '../../platform/index.js';
 import {
   requireGuildAdmin,
   requireOwner,
@@ -17,7 +17,7 @@ import {
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { getGuild, baseContext, assignableRoles } from '../lib/guildContext.js';
-import { guildTextChannels, guildVoiceChannels, guildCategories, resolveUserTags } from '../lib/discord.js';
+import { guildTextChannels, guildVoiceChannels, guildCategories, resolveUserTags } from '../lib/platform.js';
 import { buildOverview } from '../lib/overviewSummary.js';
 import { getDashboardVersion, setDashboardVersion, DASHBOARD_VERSIONS } from '../../db/userPrefs.js';
 import {
@@ -86,18 +86,10 @@ import {
 import { GITHUB_EVENT_TYPES, sanitiseGithubEvents } from '../../modules/githubAlerts.js';
 import { normaliseTempVoiceConfig } from '../../modules/tempVoice.js';
 import { normaliseStarboard, rescanBoard } from '../../modules/starboard.js';
-import {
-  normaliseAutomodConfig,
-  AUTOMOD_RULES,
-  AUTOMOD_ACTIONS,
-  NATIVE_MAPPABLE,
-  PRESET_KEYS,
-} from '../../modules/automod.js';
+import { normaliseAutomodConfig, AUTOMOD_RULES, AUTOMOD_ACTIONS } from '../../modules/automod.js';
 import { normaliseHoneypotConfig, HONEYPOT_ACTIONS, ensureHoneypotMessages } from '../../modules/honeypot.js';
 import { recentHoneypotCatches } from '../../db/honeypotCatches.js';
 import { primeGuild as primeInviteCache } from '../../modules/inviteTracker.js';
-import { syncGuildAutomod } from '../../bot/lib/automodSync.js';
-import { syncGuildCustomCommands } from '../../bot/lib/customCommandSync.js';
 import { WELCOME_PLACEHOLDERS } from '../../modules/welcome.js';
 import { normaliseBirthdaysConfig } from '../../modules/birthdays.js';
 import { normaliseAppealsConfig } from '../../modules/appeals.js';
@@ -162,7 +154,7 @@ import {
   guildEmbedColor,
 } from '../../db/guildSettings.js';
 import { recordAudit } from '../../db/audit.js';
-import { runtime, uptimeSeconds, isDiscordReady, guildCount } from '../../runtime.js';
+import { runtime, uptimeSeconds, isBotReady, guildCount } from '../../runtime.js';
 import {
   getPresenceConfig,
   setPresenceConfig,
@@ -187,6 +179,7 @@ import { MODULES, getModule } from '../../modules/registry.js';
 import { timeAgo, formatUptime, formatBytes } from '../lib/format.js';
 import { log } from '../../lib/log.js';
 import { sendDevLogTest } from '../../lib/devLog.js';
+import { fetchGuildChannel } from '../../platform/channels.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../../package.json');
@@ -291,8 +284,7 @@ router.get(
 
 // Toggle a module on/off — mirrors guilds.js:2671-2721 (minus the htmx
 // branch, this is a plain JSON API). Same per-module side effects on
-// enable/disable as V1: re-sync custom commands, prime the invite-tracker
-// cache, push/tear down automod's native Discord AutoMod rules.
+// enable/disable as V1: prime the invite-tracker cache.
 router.post(
   '/guilds/:guildId/modules/:moduleId',
   asyncHandler(async (req, res) => {
@@ -305,21 +297,9 @@ router.post(
       action: `module:${mod.id}`,
       detail: enabled ? 'enabled' : 'disabled',
     });
-    if (mod.id === 'custom-commands') {
-      syncGuildCustomCommands(req.guild).catch((err) =>
-        log.error('custom-commands', 'sync after toggle failed:', err.message)
-      );
-    }
     if (mod.id === 'invite-tracker' && enabled) {
       primeInviteCache(req.guild).catch((err) =>
         log.error('invite-tracker', 'cache prime after enable failed:', err.message)
-      );
-    }
-    if (mod.id === 'automod') {
-      const cfg = normaliseAutomodConfig((await getGuildModule(req.guild.id, 'automod')).config);
-      const target = enabled ? cfg : { ...cfg, native: { ...cfg.native, enabled: false } };
-      syncGuildAutomod(req.guild, target).catch((err) =>
-        log.error('automod', 'native sync after toggle failed:', err.message)
       );
     }
     res.json({ enabled });
@@ -811,8 +791,6 @@ router.get(
       channels: guildTextChannels(req.guild),
       automodRules: AUTOMOD_RULES,
       automodActions: AUTOMOD_ACTIONS,
-      nativeMappable: NATIVE_MAPPABLE,
-      presetKeys: PRESET_KEYS,
       modlogChannelId: settings?.modlog_channel_id || '',
     });
   })
@@ -829,30 +807,16 @@ router.post(
       timeoutMinutes: req.body.timeoutMinutes,
       exemptChannels: req.body.exemptChannels,
       exemptRoles: prev.exemptRoles ?? [],
-      native: req.body.native,
       rules: req.body.rules,
     });
     await setGuildModule(req.guild.id, 'automod', { config });
-
-    let nativeNote = '';
-    let nativeWarned = false;
-    const r = await syncGuildAutomod(req.guild, config);
-    if (r.skipped === 'missing-permission') {
-      nativeNote = 'native rules skipped: Sylo needs the Manage Server permission';
-      nativeWarned = true;
-    } else if (r.skipped === 'fetch-failed' || r.errors.length) {
-      nativeNote = 'some native rules could not be updated';
-      nativeWarned = true;
-    } else if (r.created || r.edited || r.removed) {
-      nativeNote = `native rules +${r.created} ~${r.edited} -${r.removed}`;
-    }
 
     await recordAudit(req.guild.id, {
       actor: moderatorDisplayName(req),
       action: 'module:automod',
       detail: 'settings saved',
     });
-    res.json({ config, nativeNote, nativeWarned });
+    res.json({ config });
   })
 );
 
@@ -1586,7 +1550,8 @@ router.post(
     if (!rec) return res.status(404).json({ error: 'Not found' });
     if (rec.message_id) {
       try {
-        const ch = guild.channels.cache.get(rec.channel_id) ?? (await guild.channels.fetch(rec.channel_id));
+        const ch =
+          guild.channels.cache.get(rec.channel_id) ?? (await fetchGuildChannel(guild, rec.channel_id));
         await ch.messages.delete(rec.message_id);
       } catch {
         /* already gone */
@@ -1611,7 +1576,8 @@ router.post(
     if (rec) {
       if (rec.message_id) {
         try {
-          const ch = guild.channels.cache.get(rec.channel_id) ?? (await guild.channels.fetch(rec.channel_id));
+          const ch =
+            guild.channels.cache.get(rec.channel_id) ?? (await fetchGuildChannel(guild, rec.channel_id));
           await ch.messages.delete(rec.message_id);
         } catch {
           /* already gone */
@@ -2016,7 +1982,7 @@ router.get(
       .sort((a, b) => b.guilds - a.guilds);
 
     const dbInfo = await dbFileInfo();
-    const ready = isDiscordReady();
+    const ready = isBotReady();
 
     res.json({
       ready,
@@ -2993,9 +2959,6 @@ router.post(
       action: 'module:custom-commands',
       detail: `${existing ? 'updated' : 'created'} /${name}`,
     });
-    await syncGuildCustomCommands(req.guild).catch((err) =>
-      log.error('custom-commands', 'sync after save failed:', err.message)
-    );
     res.json({ command: config.commands.find((c) => c.id === id) });
   })
 );
@@ -3013,9 +2976,6 @@ router.post(
       action: 'module:custom-commands',
       detail: 'deleted a command',
     });
-    await syncGuildCustomCommands(req.guild).catch((err) =>
-      log.error('custom-commands', 'sync after delete failed:', err.message)
-    );
     res.json({ ok: true });
   })
 );

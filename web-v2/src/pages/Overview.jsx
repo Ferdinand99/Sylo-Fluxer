@@ -74,24 +74,17 @@ function ModuleRow({ card, guildId, busy, onToggle }) {
     );
   }
 
-  const blocked = card.missingIntents.length > 0;
-
   return (
     <div className="v2-row">
       <div className="v2-row-main">
         <ModuleTitle card={card} guildId={guildId} />
         <p>{card.description}</p>
-        {blocked ? (
-          <p className="v2-row-warn">
-            Needs the {card.missingIntents.join(', ')} intent — see docs/self-hosting.md.
-          </p>
-        ) : null}
       </div>
       <button
         type="button"
         className={`v2-toggle${card.enabled ? ' is-on' : ''}`}
         aria-label={card.enabled ? 'Enabled — click to disable' : 'Disabled — click to enable'}
-        disabled={busy || blocked}
+        disabled={busy}
         onClick={() => onToggle(card.id, !card.enabled)}
       />
     </div>
