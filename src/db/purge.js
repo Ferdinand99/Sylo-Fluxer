@@ -50,6 +50,7 @@ import './birthdays.js';
 import './insights.js';
 import './channelCleanup.js';
 import './honeypotCatches.js';
+import './messageRoleReactions.js';
 
 // Tables keyed directly by guild_id. A test in test/guildTables.test.js checks
 // this stays in sync with the schema so new guild data can't escape /forget or
