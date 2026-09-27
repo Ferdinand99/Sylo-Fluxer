@@ -8,8 +8,9 @@
 #  - Named volume, not ./data: a bind-mount source path is resolved on the client
 #    and would be meaningless on the remote daemon.
 #  - The same host also runs the original (Discord) Sylo and Sylo-Test, so every
-#    name here — service, container, image, volume — is prefixed sylo-fluxer and
-#    the host port is 3011 (Sylo uses 3000, Sylo-Test 3010).
+#    name here — service, container, image, volume — is prefixed sylo-fluxer.
+#    Host port 3013: 3010 is Sylo-Test and 3011/3012 are taken by other
+#    containers on that host.
 services:
   sylo-fluxer-test:
     build: .
@@ -22,7 +23,7 @@ services:
       # regardless of what .env.test says.
       WEB_PORT: '3000'
     ports:
-      - '3011:3000'
+      - '3013:3000'
     volumes:
       - sylo-fluxer-test-data:/app/data
     healthcheck:

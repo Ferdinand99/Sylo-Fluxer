@@ -11,6 +11,7 @@
 // version is pinned exactly in package.json; test/platformCompat.test.js
 // asserts every alias is installed against the real classes.
 import {
+  ChannelManager,
   Client,
   Guild,
   GuildChannel,
@@ -25,6 +26,7 @@ import {
   MessageReactionManager,
   OverwriteType,
   PermissionOverwriteManager,
+  PartialMessage,
   PermissionsBitField,
   Role,
   User,
@@ -75,11 +77,58 @@ function overwriteTypeFor(channel, id) {
   return OverwriteType.Member;
 }
 
+// --- REST messages and guild_id ------------------------------------------------
+
+/** The guild a channel belongs to, from the client's caches. */
+function guildIdOfChannel(client, channelId) {
+  const cached = client?.channels.get(channelId)?.guildId;
+  if (cached) return cached;
+  for (const guild of client?.guilds.values() ?? []) if (guild.channels.has(channelId)) return guild.id;
+  return null;
+}
+
+/**
+ * Fluxer's REST message payloads (GET /channels/:id/messages…) omit
+ * `guild_id`, so a fetched Message has `guildId === null` and `message.guild`
+ * / `message.member` come back null even in a guild channel — unlike messages
+ * from the gateway. Fill it in from the channel. Accepts a Message, an array or
+ * a Collection of them; returns its input.
+ */
+export function withGuildId(client, value) {
+  const fill = (m) => {
+    if (m && m.guildId == null && m.channelId) {
+      const gid = guildIdOfChannel(client, m.channelId);
+      if (gid) m.guildId = gid;
+    }
+  };
+  if (value instanceof Map) for (const m of value.values()) fill(m);
+  else if (Array.isArray(value)) value.forEach(fill);
+  else fill(value);
+  return value;
+}
+
+/** Wrap an SDK method that returns fetched message(s) so they carry guildId. */
+function fillGuildIdOn(proto, name) {
+  const native = proto[name];
+  if (typeof native !== 'function')
+    throw new TypeError(`compat: ${proto.constructor.name}.${name} is missing`);
+  proto[name] = async function (...args) {
+    return withGuildId(this.client, await native.apply(this, args));
+  };
+}
+
 // --- install ------------------------------------------------------------------
 
 export function installCompat() {
   if (installed) return;
   installed = true;
+
+  // Every way Sylo fetches messages over REST.
+  fillGuildIdOn(MessageManager.prototype, 'fetch');
+  fillGuildIdOn(ChannelManager.prototype, 'fetchMessage');
+  fillGuildIdOn(MessageReaction.prototype, 'fetchMessage');
+  fillGuildIdOn(Message.prototype, 'fetch');
+  fillGuildIdOn(PartialMessage.prototype, 'fetch');
 
   // Collection: discord.js has hasAny/hasAll on its Collection.
   define(
