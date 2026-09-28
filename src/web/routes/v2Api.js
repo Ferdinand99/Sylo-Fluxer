@@ -234,7 +234,9 @@ router.get('/csrf', (req, res) => {
 router.get(
   '/prefs',
   asyncHandler(async (req, res) => {
-    res.json({ dashboardVersion: await getDashboardVersion(req.session.user.id) });
+    // Open mode has no account to key the preference on — report the default.
+    const userId = req.session?.user?.id;
+    res.json({ dashboardVersion: userId ? await getDashboardVersion(userId) : 'v1' });
   })
 );
 
@@ -247,7 +249,10 @@ router.post(
         .status(400)
         .json({ error: `dashboardVersion must be one of ${DASHBOARD_VERSIONS.join(', ')}` });
     }
-    const dashboardVersion = await setDashboardVersion(req.session.user.id, requested);
+    const userId = req.session?.user?.id;
+    if (!userId)
+      return res.status(400).json({ error: 'Saving a dashboard preference needs a logged-in account.' });
+    const dashboardVersion = await setDashboardVersion(userId, requested);
     res.json({ dashboardVersion });
   })
 );
