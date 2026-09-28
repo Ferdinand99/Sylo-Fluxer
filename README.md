@@ -56,10 +56,6 @@ GitHub alerts
 
 What is known **not** to work as expected yet:
 
-- **Dashboard login.** "Log in with Fluxer" is not finished — the OAuth code
-  still points at Discord. Leave `FLUXER_CLIENT_SECRET` unset: the dashboard
-  then runs in **open mode** (no login, full access for anyone who can reach it),
-  so only expose it on `localhost` or a trusted LAN.
 - **Discord wording.** Parts of the dashboard, the V2 dashboard and the docs
   under [`docs/`](docs/) still talk about Discord, slash commands and buttons.
   They're being rewritten.
@@ -71,7 +67,8 @@ What is known **not** to work as expected yet:
   every Fluxer client renders it is not confirmed. Set `FLUXER_TIMESTAMPS=text`
   for plain UTC times if they show up raw.
 - **Most modules haven't been exercised on Fluxer yet.** Verification, temporary
-  voice channels and the dashboard have been checked on a live community; the
+  voice channels, the dashboard and "Log in with Fluxer" have been checked on a
+  live community; the
   commands and the other modules are covered by the test suite but not yet used
   for real.
 - **The Fluxer SDK is young.** It's pinned to an exact version (`3.1.0`) and
@@ -205,8 +202,9 @@ cp .env.example .env      # set FLUXER_TOKEN and FLUXER_CLIENT_ID
 docker compose up -d --build
 ```
 
-The dashboard listens on port 3000. It runs in **open mode** (no login) — see
-[Beta status](#beta-status) — so keep it on `localhost` or a trusted LAN.
+The dashboard listens on port 3000. Until you set up
+[dashboard login](#3-dashboard-login) it runs in **open mode** — no login, full
+access for anyone who can reach it — so keep it on `localhost` or a trusted LAN.
 
 Or run the prebuilt multi-arch image (`linux/amd64` + `linux/arm64`) with the
 same `.env` and a volume for `/app/data`:
@@ -215,6 +213,24 @@ same `.env` and a volume for `/app/data`:
 | --- | --- |
 | `ghcr.io/ferdinand99/sylo-fluxer:latest`, `:X.Y.Z`, `:X.Y` | Releases |
 | `ghcr.io/ferdinand99/sylo-fluxer:main`, `:sha-<short>` | Rolling build of `main` |
+
+### 3. Dashboard login
+
+"Log in with Fluxer" restricts the dashboard to people who own or manage
+(Administrator or Manage Server) a community the bot is in. Set it up before
+you expose the dashboard beyond your LAN:
+
+1. In the same Fluxer application, copy *Secrets & tokens* → **Client secret**.
+2. Add a **Redirect URI**: `<your dashboard URL>/auth/fluxer/callback`, e.g.
+   `https://sylo.example.com/auth/fluxer/callback`. It must match exactly.
+3. Set these in `.env` and restart:
+
+| Variable | Value |
+| --- | --- |
+| `FLUXER_CLIENT_SECRET` | The client secret — turns login on |
+| `DASHBOARD_URL` | The public URL, e.g. `https://sylo.example.com` (behind a reverse proxy this also makes the session cookie Secure) |
+| `SESSION_SECRET` | Any long random string, so sessions survive restarts (`openssl rand -hex 32`) |
+| `OWNER_IDS` | Your Fluxer user id(s) — only they can open the Health page and its backups |
 
 ### Unraid
 

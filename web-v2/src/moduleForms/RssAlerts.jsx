@@ -51,7 +51,7 @@ export default function RssAlerts() {
       <p className="v2-state">
         {notAuthed ? (
           <>
-            Your session expired — <a href="/auth/discord/login">log in again</a>.
+            Your session expired — <a href="/auth/fluxer/login">log in again</a>.
           </>
         ) : (
           `Couldn't load RSS alerts settings (${error.message}).`

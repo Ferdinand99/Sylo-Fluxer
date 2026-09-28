@@ -21,7 +21,7 @@ export async function requireTicketAccess(req, res, next) {
   const userId = req.session?.user?.id;
   if (!userId) {
     req.session.returnTo = req.originalUrl;
-    return res.redirect('/auth/discord/login');
+    return res.redirect('/auth/fluxer/login');
   }
   const guildId = req.params.guildId;
   if (adminGuildIds(req).has(guildId)) return next();
