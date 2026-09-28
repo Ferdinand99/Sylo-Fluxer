@@ -17,6 +17,9 @@ export class VoiceState {
     this.guildId = guildId;
     this.id = data.user_id;
     this.channelId = data.channel_id ?? null;
+    // Fluxer allows several voice connections per user; moving / disconnecting
+    // a member targets one connection, so keep its id.
+    this.connectionId = data.connection_id ?? null;
     this.mute = Boolean(data.mute);
     this.deaf = Boolean(data.deaf);
     this.selfMute = Boolean(data.self_mute);
