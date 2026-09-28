@@ -71,7 +71,7 @@
        forgot: 'Member data deleted. Sylo DM\'d the member a confirmation of what was removed.',
        'forgot-nodm': 'Member data deleted, but Sylo could not DM the member (no shared server or their DMs are closed) — let them know directly.',
        noconfirm: 'Tick the confirmation box to delete the member\'s data.',
-       'md-baduser': 'Enter a valid Discord user ID or @mention.',
+       'md-baduser': 'Enter a valid user ID or @mention.',
      };
      const ok = ['saved', 'cleared', 'warned', 'unbanned', 'locked-all', 'unlocked-all', 'unlocked-one', 'warn-removed', 'warn-cleared', 'bulk-on', 'bulk-off', 'test-sent', 'count-set', 'count-reset', 'count-unbenched', 'gh-resecret', 'lvl-set', 'lvl-reset', 'appeal-accepted', 'appeal-denied', 'wc-published', 'wc-channel', 'wc-unpub', 'sb-saved', 'vanity-set', 'vanity-cleared', 'forgot'].includes(msg);
      const cls = ok ? 'ok' : (msg === 'warned-nolog' || msg === 'forgot-nodm' || /^appeal-(accepted|denied)-nodm$/.test(msg) ? 'info' : 'bad');
@@ -401,7 +401,7 @@
       </form>
 
       <% if (lookup && lookup.error === 'notanid') { %>
-        <div class="banner bad u-mt-3">“<%= lookup.raw %>” is not a valid Discord user ID or mention.</div>
+        <div class="banner bad u-mt-3">“<%= lookup.raw %>” is not a valid user ID or mention.</div>
       <% } else if (lookup && lookup.data) { %>
         <section class="card u-mt-3">
           <div class="guild-head">

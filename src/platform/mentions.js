@@ -19,8 +19,17 @@ function parser(re) {
   };
 }
 
-/** Id from `<@id>`, `<@!id>` or a bare id; null otherwise. */
-export const parseUserId = parser(USER_RE);
+/**
+ * Id from `<@id>`, `<@!id>`, `@id` or a bare id; null otherwise. The `@id`
+ * form is what people type when they copy an id and prefix it by hand.
+ */
+const parseUserMention = parser(USER_RE);
+export const parseUserId = (token) =>
+  parseUserMention(
+    String(token ?? '')
+      .trim()
+      .replace(/^@(?=\d)/, '')
+  );
 /** Id from `<@&id>` or a bare id; null otherwise. */
 export const parseRoleId = parser(ROLE_RE);
 /** Id from `<#id>` or a bare id; null otherwise. */
