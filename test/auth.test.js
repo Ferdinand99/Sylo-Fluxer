@@ -1,5 +1,5 @@
 // Regression coverage for the cookie-session size bug (issue #163): an
-// account managing enough Discord guilds pushed the signed, base64 session
+// account managing enough guilds pushed the signed, base64 session
 // cookie past the ~4093-byte limit browsers accept, silently dropping
 // `session.user` on every subsequent request and looping the OAuth login
 // forever. The fix stores only the ids of guilds the user actually manages
@@ -11,8 +11,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 
-const { adminGuildIds, adminGuildIdsFromOAuth, MAX_STORED_GUILDS } =
+const { adminGuildIds, adminGuildIdsFromOAuth, adminGuildIdsFromBot, MAX_STORED_GUILDS, LOGIN_PATH } =
   await import('../src/web/middleware/auth.js');
+const { PermissionsBitField } = await import('../src/platform/index.js');
 const { runtime } = await import('../src/runtime.js');
 
 // Mirrors keygrip's default signing (sha1, used by `cookies`/`cookie-session`
@@ -108,4 +109,63 @@ test('adminGuildIds(req): no session / no guilds → empty set, never throws', (
   assert.deepEqual([...adminGuildIds({})], []);
   assert.deepEqual([...adminGuildIds({ session: {} })], []);
   assert.deepEqual([...adminGuildIds({ session: { guilds: [] } })], []);
+});
+
+test('adminGuildIdsFromBot: owner or Administrator / Manage Server, as the bot sees the member', async (t) => {
+  const U = '700000000000000100';
+  const member = (perms) => ({ id: U, permissions: new PermissionsBitField(perms) });
+  const guild = (id, { ownerId = 'someone-else', m = null } = {}) => ({
+    id,
+    ownerId,
+    members: { get: () => m, fetch: async () => m },
+  });
+  const savedClient = runtime.client;
+  runtime.client = {
+    guilds: new Map([
+      ['owned', guild('owned', { ownerId: U })],
+      ['admin', guild('admin', { m: member(['Administrator']) })],
+      ['manage', guild('manage', { m: member(['ManageGuild']) })],
+      ['member', guild('member', { m: member(['SendMessages']) })],
+      ['not-a-member', guild('not-a-member')],
+    ]),
+  };
+  t.after(() => {
+    runtime.client = savedClient;
+  });
+
+  const ids = await adminGuildIdsFromBot(U, [
+    'owned',
+    'admin',
+    'manage',
+    'member',
+    'not-a-member',
+    'bot-not-in',
+  ]);
+  assert.deepEqual(ids, ['owned', 'admin', 'manage']);
+});
+
+test('GET /auth/fluxer/login redirects to Fluxer’s authorize page; the old Discord path forwards', async (t) => {
+  const { createApp } = await import('../src/web/server.js');
+  const server = await new Promise((resolve) => {
+    const s = createApp().listen(0, () => resolve(s));
+  });
+  t.after(() => {
+    server.closeAllConnections?.();
+    server.close();
+  });
+  const base = `http://127.0.0.1:${server.address().port}`;
+
+  const res = await fetch(`${base}${LOGIN_PATH}`, { redirect: 'manual' });
+  assert.equal(res.status, 302);
+  const url = new URL(res.headers.get('location'));
+  assert.equal(`${url.origin}${url.pathname}`, 'https://web.fluxer.app/oauth2/authorize');
+  assert.equal(url.searchParams.get('response_type'), 'code');
+  assert.equal(url.searchParams.get('scope'), 'identify guilds');
+  assert.ok(url.searchParams.get('client_id'));
+  assert.ok(url.searchParams.get('state'));
+  assert.match(url.searchParams.get('redirect_uri'), /\/auth\/fluxer\/callback$/);
+
+  const legacy = await fetch(`${base}/auth/discord/login`, { redirect: 'manual' });
+  assert.equal(legacy.status, 302);
+  assert.equal(legacy.headers.get('location'), LOGIN_PATH);
 });

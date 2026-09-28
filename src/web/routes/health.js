@@ -76,7 +76,7 @@ router.get(
 
     if (config.authEnabled && !req.session?.user) {
       if (req.session) req.session.returnTo = req.originalUrl;
-      return res.redirect('/auth/discord/login');
+      return res.redirect('/auth/fluxer/login');
     }
     if (config.authEnabled && !isOwner(req.session.user.id)) {
       return forbidOwner(res);

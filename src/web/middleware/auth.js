@@ -1,6 +1,7 @@
-// Dashboard authentication: "Log in with Discord", gated to guild admins.
+// Dashboard authentication: "Log in with Fluxer" (OAuth2), gated to community
+// admins.
 //
-// Enabled when DISCORD_CLIENT_SECRET is set. Otherwise the dashboard runs in
+// Enabled when FLUXER_CLIENT_SECRET is set. Otherwise the dashboard runs in
 // "open mode" — every guard passes through — which is only safe on localhost or
 // a trusted LAN. A banner in the UI makes the mode obvious.
 import { randomUUID } from 'node:crypto';
@@ -13,9 +14,14 @@ import { buildSidebar } from '../lib/sidebarNav.js';
 import { getBotMasterRoles } from '../../db/guildSettings.js';
 import { rateLimit } from './rateLimit.js';
 import { log } from '../../lib/log.js';
+import { PermissionFlagsBits } from '../../platform/index.js';
+import { API_BASE, OAUTH_AUTHORIZE_URL, OAUTH_TOKEN_URL, avatarUrl } from '../../platform/urls.js';
 
-const DISCORD_API = 'https://discord.com/api/v10';
 const OAUTH_SCOPES = 'identify guilds';
+
+/** Where the dashboard sends a browser to log in. The V2 SPA links here too. */
+export const LOGIN_PATH = '/auth/fluxer/login';
+const CALLBACK_PATH = '/auth/fluxer/callback';
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -30,7 +36,7 @@ function safeReturnTo(path) {
 }
 // req.session.guilds is a snapshot from login, not live — a server added or
 // left after that point won't show up until it's refreshed. Past this age, a
-// guild-list page transparently round-trips through Discord's OAuth again
+// guild-list page transparently round-trips through Fluxer's OAuth again
 // instead of waiting for the user to notice and log out/in themselves.
 const GUILDS_TTL_MS = 10 * 60 * 1000;
 
@@ -50,27 +56,28 @@ const GUILDS_TTL_MS = 10 * 60 * 1000;
 // actual byte-budget check.
 export const MAX_STORED_GUILDS = 100;
 
-// "Add new server" bot-invite link. Scopes + a permission set that covers every
-// module: moderation (kick/ban/timeout), roles, channels & webhooks, reactions,
+// "Add new server" bot-invite link. A permission set that covers every module:
+// moderation (kick/ban/timeout), roles, channels & webhooks, reactions,
 // invites, audit log, nickname management and voice moves for temp channels.
-const BOT_INVITE_SCOPES = 'bot applications.commands';
+// Fluxer's permission bits match these positions.
+const BOT_INVITE_SCOPES = 'bot';
 const BOT_INVITE_PERMISSIONS = [0, 1, 2, 4, 6, 7, 10, 11, 13, 14, 15, 16, 20, 24, 27, 28, 29, 40]
   .reduce((acc, bit) => acc | (1n << BigInt(bit)), 0n)
   .toString();
 
-/** Discord bot-invite URL for adding Sylo to another server. */
+/** Fluxer bot-invite URL for adding Sylo to another community. */
 export function botInviteUrl() {
   const params = new URLSearchParams({
-    client_id: config.discordClientId,
+    client_id: config.fluxerClientId,
     scope: BOT_INVITE_SCOPES,
     permissions: BOT_INVITE_PERMISSIONS,
   });
-  return `https://discord.com/oauth2/authorize?${params}`;
+  return `${OAUTH_AUTHORIZE_URL}?${params}`;
 }
 
-// Permission bits (Discord). Admin or Manage Server, or being the owner, counts.
-const PERM_ADMINISTRATOR = 1n << 3n;
-const PERM_MANAGE_GUILD = 1n << 5n;
+// Admin or Manage Server, or being the owner, counts.
+const PERM_ADMINISTRATOR = PermissionFlagsBits.Administrator;
+const PERM_MANAGE_GUILD = PermissionFlagsBits.ManageGuild;
 
 function hasAdminPerms(permissionsString) {
   try {
@@ -96,6 +103,32 @@ export function adminGuildIdsFromOAuth(guilds) {
   return guilds.filter((g) => g.owner || hasAdminPerms(g.permissions)).map((g) => g.id);
 }
 
+/**
+ * Communities (that Sylo is in) where `userId` is the owner or has
+ * Administrator / Manage Server, as the bot sees it. Fluxer's
+ * /users/@me/guilds may omit `owner` / `permissions` (both are optional in its
+ * API), so for those entries the bot checks the member itself — the more
+ * reliable source anyway, since it's what the bot will enforce.
+ * @param {string} userId
+ * @param {string[]} guildIds  candidate communities (the user is a member of these)
+ * @returns {Promise<string[]>}
+ */
+export async function adminGuildIdsFromBot(userId, guildIds) {
+  const out = [];
+  for (const id of guildIds) {
+    const guild = runtime.client?.guilds.get(id);
+    if (!guild) continue;
+    if (guild.ownerId === userId) {
+      out.push(id);
+      continue;
+    }
+    const member = guild.members.get(userId) ?? (await guild.members.fetch(userId).catch(() => null));
+    const perms = member?.permissions;
+    if (perms && (perms.has(PERM_ADMINISTRATOR) || perms.has(PERM_MANAGE_GUILD))) out.push(id);
+  }
+  return out;
+}
+
 /** Public base URL for building the OAuth redirect URI. */
 function baseUrl(req) {
   if (config.dashboardUrl) return config.dashboardUrl;
@@ -116,7 +149,7 @@ export function currentUser(req) {
   return {
     id: u.id,
     name: u.global_name || u.username,
-    avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64` : null,
+    avatar: u.avatar ? avatarUrl(u.id, u.avatar, 64) : null,
     open: false,
   };
 }
@@ -151,17 +184,17 @@ export function adminGuildIds(req) {
 }
 
 /**
- * Send the browser to /auth/discord/login. An hx-boost navigation fetches
- * with `fetch()`, which silently fails on a cross-origin redirect (Discord's
+ * Send the browser to the login route. An hx-boost navigation fetches with
+ * `fetch()`, which silently fails on a cross-origin redirect (Fluxer's
  * authorize page sends no CORS headers) — so a boosted request gets an
  * `HX-Redirect` response instead, which htmx turns into a real top-level
  * `window.location` navigation rather than an AJAX swap.
  */
 function redirectToLogin(req, res) {
   if (req.get('HX-Request')) {
-    res.set('HX-Redirect', '/auth/discord/login').status(204).end();
+    res.set('HX-Redirect', LOGIN_PATH).status(204).end();
   } else {
-    res.redirect('/auth/discord/login');
+    res.redirect(LOGIN_PATH);
   }
 }
 
@@ -218,7 +251,7 @@ export function forbidOwner(res) {
     heading: 'Not an operator',
     message: config.ownerIds.length
       ? "This page is restricted to Sylo's operators."
-      : 'OWNER_IDS is not set, so no account is authorized for this page. Set it to your Discord user id.',
+      : 'OWNER_IDS is not set, so no account is authorized for this page. Set it to your Fluxer user id.',
   });
 }
 
@@ -239,9 +272,9 @@ export function requireOwner(req, res, next) {
 }
 
 /**
- * Require a real, non-synthetic signed-in Discord user id — stricter than
+ * Require a real, non-synthetic signed-in Fluxer user id — stricter than
  * requireAuth, which passes through unconditionally in open mode (no
- * DISCORD_CLIENT_SECRET, self-hosted default). For actions that attribute
+ * FLUXER_CLIENT_SECRET, self-hosted default). For actions that attribute
  * authorship to a specific account (e.g. a roadmap vote or suggestion) where
  * there's no real per-user identity to attach in open mode.
  */
@@ -250,7 +283,7 @@ export function requireRealUser(req, res, next) {
   res
     .status(400)
     .type('text/plain')
-    .send('This action needs a real Discord login — not available in open/self-hosted mode.');
+    .send('This action needs a real Fluxer login — not available in open/self-hosted mode.');
 }
 
 /**
@@ -273,11 +306,11 @@ export function mountAuth(app) {
   }
 
   // A guild-list page with a stale snapshot silently round-trips through
-  // Discord's OAuth to refresh it, instead of making the user log out/in
+  // Fluxer's OAuth to refresh it, instead of making the user log out/in
   // themselves. Scoped to the pages that actually read the guild list — not
   // every route, so a logged-in operator clicking a public link (leaderboard,
-  // verify, appeal) never sees an unexpected redirect through discord.com.
-  // Rate-limited even though the redirect target (/auth/discord) already is —
+  // verify, appeal) never sees an unexpected redirect through fluxer.app.
+  // Rate-limited even though the redirect target (/auth/fluxer) already is —
   // this runs ahead of every other limiter in the chain (before requireAuth's
   // own 300/min, mounted later in server.js), so it shouldn't be bare.
   app.use(rateLimit({ windowMs: 60_000, max: 120 }));
@@ -323,54 +356,62 @@ export function mountAuth(app) {
   const router = Router();
 
   // Throttle the OAuth endpoints (state-token guessing / callback hammering).
-  router.use('/discord', rateLimit({ windowMs: 60_000, max: 20 }));
+  router.use('/fluxer', rateLimit({ windowMs: 60_000, max: 20 }));
 
-  router.get('/discord/login', (req, res) => {
+  router.get('/fluxer/login', (req, res) => {
     if (!config.authEnabled) return res.redirect('/');
     const state = randomUUID();
     req.session.oauthState = state;
     const params = new URLSearchParams({
-      client_id: config.discordClientId,
-      redirect_uri: `${baseUrl(req)}/auth/discord/callback`,
+      client_id: config.fluxerClientId,
+      redirect_uri: `${baseUrl(req)}${CALLBACK_PATH}`,
       response_type: 'code',
       scope: OAUTH_SCOPES,
       state,
     });
-    res.redirect(`https://discord.com/oauth2/authorize?${params}`);
+    res.redirect(`${OAUTH_AUTHORIZE_URL}?${params}`);
   });
 
-  router.get('/discord/callback', async (req, res, next) => {
+  router.get('/fluxer/callback', async (req, res, next) => {
     if (!config.authEnabled) return res.redirect('/');
     try {
-      const { code, state } = req.query;
-      if (!code || !state || state !== req.session.oauthState) {
+      const { code, state, error } = req.query;
+      if (error || !code || !state || state !== req.session.oauthState) {
         return res.status(400).render('error', {
           title: 'Login failed',
           heading: 'Login failed',
-          message: 'The login response was invalid or expired. Please try again.',
+          message:
+            error === 'access_denied'
+              ? 'Login was cancelled on Fluxer.'
+              : 'The login response was invalid or expired. Please try again.',
         });
       }
       req.session.oauthState = undefined;
 
-      const tokenRes = await fetch(`${DISCORD_API}/oauth2/token`, {
+      const tokenRes = await fetch(OAUTH_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: config.discordClientId,
-          client_secret: config.discordClientSecret,
+          client_id: config.fluxerClientId,
+          client_secret: config.fluxerClientSecret,
           grant_type: 'authorization_code',
           code: String(code),
-          redirect_uri: `${baseUrl(req)}/auth/discord/callback`,
+          redirect_uri: `${baseUrl(req)}${CALLBACK_PATH}`,
         }),
       });
-      if (!tokenRes.ok) throw new Error(`token exchange failed: ${tokenRes.status}`);
+      if (!tokenRes.ok) {
+        const detail = await tokenRes.text().catch(() => '');
+        throw new Error(`token exchange failed: ${tokenRes.status} ${detail.slice(0, 200)}`);
+      }
       const token = await tokenRes.json();
 
       const headers = { Authorization: `Bearer ${token.access_token}` };
-      const [user, guilds] = await Promise.all([
-        fetch(`${DISCORD_API}/users/@me`, { headers }).then((r) => r.json()),
-        fetch(`${DISCORD_API}/users/@me/guilds`, { headers }).then((r) => r.json()),
-      ]);
+      const getJson = async (path) => {
+        const r = await fetch(`${API_BASE}${path}`, { headers });
+        if (!r.ok) throw new Error(`GET ${path} failed: ${r.status}`);
+        return r.json();
+      };
+      const [user, guilds] = await Promise.all([getJson('/users/@me'), getJson('/users/@me/guilds')]);
 
       req.session.user = {
         id: user.id,
@@ -378,7 +419,11 @@ export function mountAuth(app) {
         global_name: user.global_name,
         avatar: user.avatar,
       };
-      const adminIds = adminGuildIdsFromOAuth(guilds);
+      // Trust owner / permissions where Fluxer sent them; for the rest, ask the bot.
+      const list = Array.isArray(guilds) ? guilds : [];
+      const fromOAuth = adminGuildIdsFromOAuth(list);
+      const unknown = list.filter((g) => g.owner === undefined && g.permissions == null).map((g) => g.id);
+      const adminIds = [...new Set([...fromOAuth, ...(await adminGuildIdsFromBot(user.id, unknown))])];
       if (adminIds.length > MAX_STORED_GUILDS) {
         log.warn(
           'auth',
@@ -392,9 +437,13 @@ export function mountAuth(app) {
       req.session.returnTo = undefined;
       res.redirect(dest);
     } catch (err) {
+      log.error('auth', 'Fluxer login failed:', err.message);
       next(err);
     }
   });
+
+  // Links saved from the Discord era (bookmarks, an old V2 build) still land here.
+  router.get('/discord/login', (req, res) => res.redirect(LOGIN_PATH));
 
   router.post('/logout', (req, res) => {
     req.session = null;

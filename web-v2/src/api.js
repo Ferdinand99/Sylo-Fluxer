@@ -1,5 +1,5 @@
 // Thin fetch wrapper for /api/v2/*. Same-origin, so the existing cookie-
-// session from V1's Discord login is sent automatically — no separate V2
+// session from V1's Fluxer login is sent automatically — no separate V2
 // auth. requireGuildAdmin's failure paths are shared, unmodified V1 code
 // and render an HTML redirect/error page rather than JSON, so this checks
 // content-type/redirect status before parsing instead of assuming JSON.
@@ -30,7 +30,7 @@ export async function apiFetch(path, options = {}) {
   }
   const res = await fetch(path, { ...options, headers, credentials: 'same-origin' });
 
-  if (res.redirected && res.url.includes('/auth/discord/login')) {
+  if (res.redirected && res.url.includes('/auth/fluxer/login')) {
     throw new ApiError('Not signed in', { status: 401, notAuthenticated: true });
   }
 
