@@ -14,7 +14,6 @@ on:
       - '**.md'
       - 'docs/**'
       - 'unraid/**'
-      - 'ca_profile.xml'
       - 'LICENSE'
   pull_request:
     branches: [main]

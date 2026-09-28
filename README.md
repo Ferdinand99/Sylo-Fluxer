@@ -234,9 +234,12 @@ you expose the dashboard beyond your LAN:
 
 ### Unraid
 
-Sylo-Fluxer is not in Community Applications yet. Add the template by URL
-(**Docker → Template repositories**):
-`https://raw.githubusercontent.com/Ferdinand99/Sylo-Fluxer/main/unraid/sylo.xml`.
+The Unraid template lives in
+[Ferdinand99/unraid-templates](https://github.com/Ferdinand99/unraid-templates)
+together with Sylo's. Search for **Sylo-Fluxer** in **Apps** (Community
+Applications); until it's listed there, add
+`https://github.com/Ferdinand99/unraid-templates` under
+**Docker → Template repositories** and pick it from **Add Container**.
 Keep the data directory on a real local disk (e.g. `/mnt/cache/appdata/sylo-fluxer`),
 not `/mnt/user` — SQLite in WAL mode needs working file locks. If you also run
 the Discord Sylo on the same server, the template already uses different names,
