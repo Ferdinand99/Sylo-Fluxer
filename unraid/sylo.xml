@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Sylo-Fluxer</Name>
+  <Beta>true</Beta>
   <Repository>ghcr.io/ferdinand99/sylo-fluxer:latest</Repository>
   <Registry>https://github.com/Ferdinand99/Sylo-Fluxer/pkgs/container/sylo-fluxer</Registry>
   <Network>bridge</Network>
@@ -9,11 +10,13 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/Ferdinand99/Sylo-Fluxer/issues</Support>
   <Project>https://github.com/Ferdinand99/Sylo-Fluxer</Project>
-  <Overview>Sylo-Fluxer is a multi-function bot for Fluxer (https://fluxer.app) with a web dashboard - a port of Sylo. It has a per-community module system: moderation with warning thresholds and a numbered case log, server logging, tickets/modmail answered from the dashboard, reaction roles &amp; autoroles, verification (react to verify, or a Cloudflare Turnstile captcha), welcome/leave messages, birthdays, sticky messages, auto-moderation, counting, custom commands, an autoresponder, reminders, leveling (text + voice XP), AFK, server statistics, server insights, free games, ban appeals, temporary voice channels, a starboard, an invite tracker, polls, giveaways, game stats, Twitch / YouTube / Kick / RSS alerts, scheduled channel cleanup and a message/embed creator. Commands are typed with a prefix (! by default, changeable per community). State is stored in a single SQLite file under /app/data and survives updates; it is snapshotted automatically into /app/data/backups.
+  <Overview>BETA: Sylo-Fluxer runs on Fluxer and every module is ported, but it started life as a Discord bot and some features don't work as expected yet - see "Beta status" in the project README before relying on it.
+
+Sylo-Fluxer is a multi-function bot for Fluxer (https://fluxer.app) with a web dashboard - a port of Sylo. It has a per-community module system: moderation with warning thresholds and a numbered case log, server logging, tickets/modmail answered from the dashboard, reaction roles &amp; autoroles, verification (react to verify, or a Cloudflare Turnstile captcha), welcome/leave messages, birthdays, sticky messages, auto-moderation, counting, custom commands, an autoresponder, reminders, leveling (text + voice XP), AFK, server statistics, server insights, free games, ban appeals, temporary voice channels, a starboard, an invite tracker, polls, giveaways, game stats, Twitch / YouTube / Kick / RSS alerts, scheduled channel cleanup and a message/embed creator. Commands are typed with a prefix (! by default, changeable per community). State is stored in a single SQLite file under /app/data and survives updates; it is snapshotted automatically into /app/data/backups.
 
 Setup: in the Fluxer app open User Settings -> Developer -> Applications, create an application, then set FLUXER_TOKEN (Bot token) and FLUXER_CLIENT_ID (Application ID). Invite the bot with https://web.fluxer.app/oauth2/authorize?client_id=YOUR_APPLICATION_ID&amp;scope=bot&amp;permissions=1100469103831
 
-Dashboard: runs open by default (use only on a trusted LAN). To require "Log in with Fluxer" for community admins, set FLUXER_CLIENT_SECRET and add http://[UNRAID-IP]:[HOST-PORT]/auth/fluxer/callback to the application's Redirect URIs.</Overview>
+Dashboard: runs open (no login) until you turn on "Log in with Fluxer" - use it only on a trusted LAN until then. To restrict it to community owners / admins, set FLUXER_CLIENT_SECRET (Client secret, same page), DASHBOARD_URL (the URL you open the dashboard on), SESSION_SECRET and OWNER_IDS, and add DASHBOARD_URL/auth/fluxer/callback to the application's Redirect URIs.</Overview>
   <Category>Tools: Network:Messenger</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/Ferdinand99/Sylo-Fluxer/main/unraid/sylo.xml</TemplateURL>
@@ -24,7 +27,8 @@ Dashboard: runs open by default (use only on a trusted LAN). To require "Log in 
   <DateInstalled/>
   <DonateText/>
   <DonateLink/>
-  <Requires/>
+  <Requires>A Fluxer application with a bot (User Settings -&gt; Developer -&gt; Applications in the Fluxer app): its Bot token and Application ID.</Requires>
+  <Changes>Release notes: https://github.com/Ferdinand99/Sylo-Fluxer/releases</Changes>
   <Config
     Name="WebUI Port"
     Target="3000"
@@ -109,10 +113,46 @@ Dashboard: runs open by default (use only on a trusted LAN). To require "Log in 
     Required="false"
     Mask="false"/>
   <Config
+    Name="SESSION_SECRET"
+    Target="SESSION_SECRET"
+    Default=""
+    Description="Recommended with FLUXER_CLIENT_SECRET. Any long random string (e.g. from 'openssl rand -hex 32') that signs dashboard sessions. If blank a random one is generated at start, so everyone is logged out on every restart."
+    Type="Variable"
+    Display="always"
+    Required="false"
+    Mask="true"/>
+  <Config
+    Name="OWNER_IDS"
+    Target="OWNER_IDS"
+    Default=""
+    Description="Recommended with FLUXER_CLIENT_SECRET. Your Fluxer user id(s), comma-separated. Only these accounts can open the Health page (status, error log, database backup / restore) once login is on."
+    Type="Variable"
+    Display="always"
+    Required="false"
+    Mask="false"/>
+  <Config
+    Name="DEV_LOG_CHANNEL_ID"
+    Target="DEV_LOG_CHANNEL_ID"
+    Default=""
+    Description="Optional. A Fluxer channel id where Sylo posts its own errors and warnings. Sylo must be in that community and able to send embeds there."
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false"/>
+  <Config
+    Name="FLUXER_TIMESTAMPS"
+    Target="FLUXER_TIMESTAMPS"
+    Default="native"
+    Description="How times render in bot messages: native (the &lt;t:...&gt; markup, shown in each reader's timezone) or text (plain UTC). Use text if times show up as raw markup."
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false">native</Config>
+  <Config
     Name="TURNSTILE_SITE_KEY"
     Target="TURNSTILE_SITE_KEY"
     Default=""
-    Description="Optional. Cloudflare Turnstile site key — enables the Verification module's captcha mode. Free at dash.cloudflare.com -&gt; Turnstile. Needs both keys and DASHBOARD_URL set; otherwise captcha mode falls back to a plain Verify button."
+    Description="Optional. Cloudflare Turnstile site key — enables the Verification module's captcha mode. Free at dash.cloudflare.com -&gt; Turnstile. Needs both keys and DASHBOARD_URL set; otherwise captcha mode falls back to reacting with ✅ to verify."
     Type="Variable"
     Display="advanced"
     Required="false"
