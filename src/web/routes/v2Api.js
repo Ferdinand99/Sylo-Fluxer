@@ -180,6 +180,7 @@ import { timeAgo, formatUptime, formatBytes } from '../lib/format.js';
 import { log } from '../../lib/log.js';
 import { sendDevLogTest } from '../../lib/devLog.js';
 import { fetchGuildChannel } from '../../platform/channels.js';
+import { parseUserId } from '../../platform/mentions.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../../package.json');
@@ -199,15 +200,6 @@ const router = Router();
 // "actor" strings, same convention V1 uses.
 function moderatorDisplayName(req) {
   return currentUser(req)?.open ? 'Dashboard' : `${currentUser(req).name} (dashboard)`;
-}
-
-// Mirrors guilds.js's private parseUserId() — a raw snowflake or an
-// `<@id>`/`<@!id>` mention, as pasted straight out of Discord.
-function parseUserId(raw) {
-  const m = String(raw ?? '')
-    .trim()
-    .match(/^<@!?(\d{17,20})>$|^(\d{17,20})$/);
-  return m ? m[1] || m[2] : null;
 }
 
 // Mirrors guilds.js's private clampDays() — a "delete after N days" field

@@ -153,6 +153,7 @@ import {
 } from '../../db/githubWatches.js';
 import { GITHUB_EVENT_TYPES, sanitiseGithubEvents } from '../../modules/githubAlerts.js';
 import { hxTrigger } from '../lib/htmx.js';
+import { parseUserId } from '../../platform/mentions.js';
 
 const router = Router();
 
@@ -203,12 +204,6 @@ function webModeratorId(req) {
 }
 function moderatorDisplayName(req) {
   return currentUser(req)?.open ? 'Dashboard' : `${currentUser(req).name} (dashboard)`;
-}
-function parseUserId(raw) {
-  const m = String(raw ?? '')
-    .trim()
-    .match(/^<@!?(\d{17,20})>$|^(\d{17,20})$/);
-  return m ? m[1] || m[2] : null;
 }
 // A data-retention "delete after N days" field: 0 (or junk) means keep forever.
 function clampDays(raw) {
