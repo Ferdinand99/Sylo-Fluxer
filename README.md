@@ -91,6 +91,14 @@ Found something broken? [Open an issue](https://github.com/Ferdinand99/Sylo-Flux
 | Gateway intents | Server Members / Message Content toggles | None — Fluxer has no intents |
 | Hosted instance | [sylobot.com](https://sylobot.com) | None yet — self-host only |
 
+Several of these are Fluxer gaps rather than design choices. Fluxer's
+[2026 roadmap](https://fluxer.app/blog/roadmap-2026) plans **slash commands,
+modals, buttons and other components, and interactions** (#7), and **threads
+and forums** (#6). Sylo-Fluxer keeps its command definitions in the
+slash-command shape (options, types, choices, default permissions) precisely so
+it can move to native slash commands — and back to buttons and menus — once
+Fluxer ships them.
+
 ## Commands
 
 Commands start with `!` by default. Change it per community with
