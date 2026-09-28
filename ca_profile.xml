@@ -5,6 +5,8 @@ Sylo-Fluxer is a multi-function bot for Fluxer (https://fluxer.app) with a MEE6-
 
 It has a per-community module system — moderation with warning thresholds and a numbered case log, server logging, tickets/modmail answered from the dashboard, reaction roles &amp; autoroles, verification (react to verify, or a Cloudflare Turnstile captcha), welcome/leave messages, birthdays, sticky messages, auto-moderation, a counting game, custom commands, an autoresponder, recurring reminders, leveling (text + voice XP), AFK, server-stat voice channels, server insights, a free-games notifier, ban appeals, temporary voice channels, a starboard, an invite tracker, polls, giveaways, game stats, Twitch / YouTube / Kick / RSS alerts, scheduled channel cleanup, and a message/embed creator. Commands are typed with a prefix (! by default).
 
+Sylo-Fluxer is in beta: every module is ported, but some features don't work as expected yet — see "Beta status" in the README.
+
 Optional "Log in with Fluxer" gates the dashboard to community admins. State lives in a single SQLite file on a mounted volume, snapshotted automatically and restorable from the dashboard. A Prometheus /metrics endpoint is included. One Node 22 process, one container, no build step.
 
 **Support:** open an issue at https://github.com/Ferdinand99/Sylo-Fluxer/issues
