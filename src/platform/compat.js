@@ -343,8 +343,9 @@ export function installCompat() {
         selfMute: state?.selfMute ?? false,
         deaf: state?.deaf ?? false,
         mute: state?.mute ?? false,
-        setChannel: (channel) => member.move(idOf(channel)),
-        disconnect: () => member.move(null),
+        // Pass the connection being moved — Fluxer supports several per user.
+        setChannel: (channel) => member.move(idOf(channel), state?.connectionId ?? undefined),
+        disconnect: () => member.move(null, state?.connectionId ?? undefined),
       };
     })
   );

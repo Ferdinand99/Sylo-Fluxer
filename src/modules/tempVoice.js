@@ -41,6 +41,8 @@ const MAX_BITRATE = 384_000;
 const DEFAULT_NAME = "#{index} - {username}'s Channel";
 const SWEEP_MS = 60 * 1000;
 const CREATE_DEBOUNCE_MS = 3000;
+// How long a member Sylo couldn't move has to join their new channel themselves.
+const JOIN_GRACE_MS = 2 * 60 * 1000;
 const P = PermissionFlagsBits;
 
 const clampInt = (v, min, max, dflt) => {
@@ -188,7 +190,16 @@ async function handleJoin(guild, member, hub) {
   const prior = await findUserHubChannel(guild.id, hub.hubChannelId, member.id);
   if (prior) {
     const ch = guild.channels.cache.get(prior.channel_id);
-    if (ch) return void member.voice.setChannel(ch).catch(() => {});
+    if (ch) {
+      await member.voice
+        .setChannel(ch)
+        .catch(() =>
+          member.user
+            .send(`You already have a voice channel in **${guild.name}** — join it here: <#${ch.id}>`)
+            .catch(() => {})
+        );
+      return;
+    }
     await removeTempChannel(prior.channel_id);
   }
 
@@ -272,12 +283,10 @@ async function handleJoin(guild, member, hub) {
   const moved = await member.voice
     .setChannel(channel)
     .then(() => true)
-    .catch(() => false);
-  if (!moved) {
-    await channel.delete('Temp voice: member never joined').catch(() => {});
-    if (textChannelId) await deleteGuildChannel(guild, textChannelId).catch(() => {});
-    return;
-  }
+    .catch((err) => {
+      log.warn('temp-voice', `could not move ${member.id} into ${channel.id}:`, err.message);
+      return false;
+    });
   await addTempChannel({
     channelId: channel.id,
     guildId: guild.id,
@@ -286,6 +295,16 @@ async function handleJoin(guild, member, hub) {
     name,
     textChannelId,
   });
+  if (!moved) {
+    // Fluxer refuses some moves — notably it never lets anyone (bots included)
+    // act on the server owner. Keep the channel and let the member join it
+    // themselves: an empty_since in the future gives them JOIN_GRACE_MS before
+    // the sweep treats it as empty, and joining clears it.
+    await setTempEmptySince(channel.id, Date.now() + JOIN_GRACE_MS);
+    await member.user
+      .send(`Your voice channel **${name}** in **${guild.name}** is ready — join it here: <#${channel.id}>`)
+      .catch(() => {});
+  }
 }
 
 // --- cleanup + ownership transfer -----------------------------------
