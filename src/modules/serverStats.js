@@ -1,6 +1,7 @@
 // Server statistics: keeps chosen voice channels named with a live count
 // (e.g. "Members: 1,234"). Not event-driven — a slow refresh loop, because
-// Discord rate-limits channel renames hard (~2 per 10 minutes per channel).
+// channel renames are rate-limited (Discord: ~2 per 10 minutes per channel;
+// Fluxer's limits aren't published, so the same pacing is kept).
 import { runtime } from '../runtime.js';
 import { getGuildModule } from '../db/modules.js';
 import { log } from '../lib/log.js';
@@ -18,8 +19,8 @@ export const STAT_TYPES = [
 const VALID = new Set(STAT_TYPES.map(([t]) => t));
 const NEEDS_MEMBERS = new Set(['humans', 'bots']);
 
-// Discord rate-limits channel renames to ~2 per 10 minutes per channel, so a
-// sustained refresh faster than every 5 minutes just builds a 429 backlog.
+// Channel renames are rate-limited per channel, so a sustained refresh faster
+// than every 5 minutes just builds a 429 backlog.
 export const REFRESH_MIN_MINUTES = 5;
 export const REFRESH_MAX_MINUTES = 60;
 export const REFRESH_DEFAULT_MINUTES = 10;
@@ -58,7 +59,7 @@ function computeCount(guild, type, members) {
     case 'channels':
       return guild.channels.cache.size;
     case 'boosts':
-      return guild.premiumSubscriptionCount ?? 0;
+      return guild.premiumSubscriptionCount ?? 0; // Fluxer has no boosts: always 0
     case 'humans':
       return members ? members.filter((m) => !m.user.bot).size : (guild.memberCount ?? 0);
     case 'bots':
@@ -76,11 +77,25 @@ async function refreshGuild(guild, cfg) {
 
   for (const stat of cfg.channels) {
     const channel = guild.channels.cache.get(stat.channelId);
-    if (!channel?.manageable) continue;
+    if (!channel) {
+      log.warn('server-stats', `channel ${stat.channelId} in ${guild.id} no longer exists — skipped`);
+      continue;
+    }
+    if (!channel.manageable) {
+      log.warn(
+        'server-stats',
+        `can't rename #${channel.name} (${channel.id}) in ${guild.id}: Sylo needs View Channel + Manage Channels there`
+      );
+      continue;
+    }
     const count = computeCount(guild, stat.type, members).toLocaleString('en');
     const desired = stat.template.replaceAll('{count}', count).slice(0, 100);
     if (channel.name !== desired) {
-      await channel.setName(desired, 'Server stats refresh').catch(() => {});
+      await channel
+        .setName(desired, 'Server stats refresh')
+        .catch((err) =>
+          log.warn('server-stats', `rename of ${channel.id} in ${guild.id} failed:`, err.message)
+        );
     }
   }
 }
