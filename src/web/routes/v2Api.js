@@ -1883,68 +1883,6 @@ router.get(
 );
 
 router.post(
-  '/personalizer/identity',
-  asyncHandler(async (req, res) => {
-    const u = runtime.client?.user;
-    if (!u) return res.status(503).json({ error: 'The bot is not connected yet — try again in a moment.' });
-
-    const isHttps = (s) => /^https:\/\/\S+$/i.test(s);
-    const done = [];
-    const failed = [];
-
-    const name = String(req.body.username || '').trim();
-    if (name && name !== u.username) {
-      if (name.length < 2 || name.length > 32) failed.push('username (2–32 characters)');
-      else {
-        try {
-          await u.setUsername(name);
-          done.push('username');
-        } catch (e) {
-          failed.push(`username (${e.message || 'rejected — Discord limits this to ~2 changes/hour'})`);
-        }
-      }
-    }
-
-    if (req.body.resetAvatar) {
-      try {
-        await u.setAvatar(null);
-        done.push('avatar reset to default');
-      } catch {
-        failed.push('avatar reset');
-      }
-    } else {
-      const avatar = String(req.body.avatarUrl || '').trim();
-      if (avatar) {
-        if (!isHttps(avatar)) failed.push('avatar (must be an https image URL)');
-        else {
-          try {
-            await u.setAvatar(avatar);
-            done.push('avatar');
-          } catch (e) {
-            failed.push(`avatar (${e.message || 'could not load that image'})`);
-          }
-        }
-      }
-    }
-
-    const banner = String(req.body.bannerUrl || '').trim();
-    if (banner) {
-      if (!isHttps(banner)) failed.push('banner (must be an https image URL)');
-      else {
-        try {
-          await u.setBanner(banner);
-          done.push('banner');
-        } catch (e) {
-          failed.push(`banner (${e.message || 'not available for this bot'})`);
-        }
-      }
-    }
-
-    res.json({ done, failed });
-  })
-);
-
-router.post(
   '/personalizer/presence',
   asyncHandler(async (req, res) => {
     const presence = await setPresenceConfig({

@@ -6,6 +6,7 @@ import {
   ChannelManager,
   Guild,
   GuildChannel,
+  GuildEmoji,
   GuildMember,
   Message,
   MessageManager,
@@ -61,10 +62,17 @@ test('REST message fetchers are wrapped to fill guildId', () => {
 
 test('discord.js-shaped aliases exist on the SDK classes', () => {
   for (const [cls, names] of [
-    [Guild, ['bans', 'invites', 'voiceStates']],
-    [GuildChannel, ['guild', 'permissionsFor', 'setName', 'setRateLimitPerUser', 'members', 'rawPosition']],
-    [GuildMember, ['setNickname', 'voice', 'communicationDisabledUntilTimestamp']],
-    [Role, ['comparePositionTo', 'editable', 'guild']],
+    [
+      Guild,
+      ['bans', 'invites', 'voiceStates', 'systemChannel', 'rulesChannel', 'afkChannel', 'fetchVanityData'],
+    ],
+    [
+      GuildChannel,
+      ['guild', 'permissionsFor', 'setName', 'setRateLimitPerUser', 'setUserLimit', 'members', 'rawPosition'],
+    ],
+    [GuildMember, ['nickname', 'setNickname', 'voice', 'communicationDisabledUntilTimestamp']],
+    [GuildEmoji, ['imageURL']],
+    [Role, ['comparePositionTo', 'editable', 'guild', 'hexColor']],
     [User, ['tag']],
     [Message, ['inGuild', 'url', 'createdTimestamp']],
     [MessageReaction, ['users', 'remove', 'partial']],
@@ -124,4 +132,25 @@ test('message.deletable: own messages always, others with Manage Messages', () =
   assert.equal(deletable.call(msg('bot', channelWith())), true);
   assert.equal(deletable.call(msg('user', channelWith('ManageMessages'))), true);
   assert.equal(deletable.call(msg('user', channelWith('SendMessages'))), false);
+});
+
+test('guild.systemChannel / rulesChannel resolve the stored ids from the channel cache', () => {
+  const channel = { id: C };
+  const guild = { systemChannelId: C, rulesChannelId: null, channels: new Collection([[C, channel]]) };
+  assert.equal(getter(Guild, 'systemChannel').call(guild), channel);
+  assert.equal(getter(Guild, 'rulesChannel').call(guild), null);
+});
+
+test('member.nickname reads Fluxer’s nick; role.hexColor pads the colour', () => {
+  assert.equal(getter(GuildMember, 'nickname').call({ nick: 'Ferdi' }), 'Ferdi');
+  assert.equal(getter(GuildMember, 'nickname').call({ nick: undefined }), null);
+  assert.equal(getter(Role, 'hexColor').call({ color: 0x00ff }), '#0000ff');
+  assert.equal(getter(Role, 'hexColor').call({ color: 0 }), '#000000');
+});
+
+test('channel.setUserLimit edits userLimit', async () => {
+  let edited;
+  const channel = { edit: async (o) => (edited = o) };
+  await GuildChannel.prototype.setUserLimit.call(channel, 5);
+  assert.equal(edited.userLimit, 5);
 });

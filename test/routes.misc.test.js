@@ -79,23 +79,16 @@ test('POST /health/backups creates a snapshot', async () => {
 
 // --- /settings (Bot Personalizer) -----------------------------------------
 
-test('GET /settings renders the identity + presence forms', async () => {
+test('GET /settings renders the identity card + presence form', async () => {
   const res = await get('/settings');
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.match(html, /Bot Personalizer|Identity|Presence/i);
 });
 
-test('POST /settings/identity with no changes says "nothing to change"', async () => {
-  const res = await post(app.base, '/settings/identity', {});
-  assert.equal(res.status, 302);
-  assert.match(res.headers.get('location'), /ok=1/);
-});
-
-test('POST /settings/identity rejects a 1-character username', async () => {
-  const res = await post(app.base, '/settings/identity', { username: 'x' });
-  assert.equal(res.status, 302);
-  assert.match(res.headers.get('location'), /ok=0/);
+test('POST /settings/identity is gone — Fluxer refuses bot profile edits', async () => {
+  const res = await post(app.base, '/settings/identity', { username: 'Sylo' });
+  assert.equal(res.status, 404);
 });
 
 test('POST /settings/presence saves', async () => {

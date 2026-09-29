@@ -1,8 +1,8 @@
 <%- include('partials/header', { title: 'Sylo — Bot Personalizer' }) %>
 
 <h1 class="page-title">Bot Personalizer</h1>
-<p class="muted">Change the bot's username, avatar, banner and activity. These are bot-wide — they apply in
-  every server<% if (bot) { %> (currently <strong><%= bot.tag %></strong>)<% } %>.</p>
+<p class="muted">Set the bot's activity. It is bot-wide — it applies in every server<% if (bot) { %>
+  (currently <strong><%= bot.tag %></strong>)<% } %>.</p>
 
 <% if (typeof m !== 'undefined' && m) { %>
   <div class="banner banner-flash <%= ok ? 'ok' : 'bad' %>"><%= m %></div>
@@ -14,28 +14,16 @@
 
 <section class="card">
   <h2>Identity</h2>
-  <form method="POST" action="/settings/identity" class="stack u-mw-lg">
-    <div class="bp-identity">
-      <div class="bp-avatar">
-        <img src="<%= bot.avatar %>" alt="bot avatar" />
-      </div>
-      <div class="stack" style="flex:1;gap:8px">
-        <label class="small">Avatar image URL <span class="muted">— https, PNG/JPG/GIF, ≤ 10 MB</span></label>
-        <input type="url" name="avatarUrl" placeholder="https://…/avatar.png" />
-        <label class="checkline"><input type="checkbox" name="resetAvatar" /> Reset avatar to the default Discord icon</label>
-      </div>
+  <div class="bp-identity">
+    <div class="bp-avatar">
+      <img src="<%= bot.avatar %>" alt="bot avatar" />
     </div>
-
-    <label class="small u-mt-2">Banner image URL <span class="muted">— optional; not all bots can set one</span></label>
-    <input type="url" name="bannerUrl" placeholder="https://…/banner.png" />
-    <% if (bot.banner) { %><img src="<%= bot.banner %>" alt="current banner" class="bp-banner" /><% } %>
-
-    <label class="small u-mt-2">Username</label>
-    <input type="text" name="username" maxlength="32" value="<%= bot.username %>" />
-    <p class="muted small">Discord only allows about <strong>2 username changes per hour</strong>. Leave it as-is to skip.</p>
-
-    <div class="u-mt-3"><button type="submit">Save identity</button></div>
-  </form>
+    <div class="stack" style="flex:1;gap:8px">
+      <strong><%= bot.username %></strong>
+      <p class="muted small">Fluxer doesn't let bots change their own profile. Change the name, avatar and banner in
+        the bot's application settings in Fluxer.</p>
+    </div>
+  </div>
 </section>
 
 <% } %>
@@ -43,7 +31,7 @@
 <section class="card">
   <h2>Presence / activity</h2>
   <p class="muted small">
-    What shows under the bot's name in Discord. <code>{servers}</code> and <code>{members}</code>
+    What shows under the bot's name in Fluxer. <code>{servers}</code> and <code>{members}</code>
     are replaced with live counts and refreshed every 10 minutes.
   </p>
 

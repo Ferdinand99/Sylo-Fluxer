@@ -16,6 +16,7 @@ import {
   Guild,
   GuildChannel,
   GuildBan,
+  GuildEmoji,
   GuildMember,
   GuildMemberManager,
   GuildMemberRoleManager,
@@ -171,6 +172,27 @@ export function installCompat() {
   );
 
   // Guild ----------------------------------------------------------------------
+  // discord.js channel getters over the ids Fluxer stores.
+  for (const [name, key] of [
+    ['systemChannel', 'systemChannelId'],
+    ['rulesChannel', 'rulesChannelId'],
+    ['afkChannel', 'afkChannelId'],
+  ]) {
+    define(
+      Guild.prototype,
+      name,
+      getter(function () {
+        return this[key] ? (this.channels.get(this[key]) ?? null) : null;
+      })
+    );
+  }
+  define(
+    Guild.prototype,
+    'fetchVanityData',
+    method(function () {
+      return this.fetchVanityURL();
+    })
+  );
   define(
     Guild.prototype,
     'bans',
@@ -278,6 +300,13 @@ export function installCompat() {
       return this.edit({ rateLimitPerUser: seconds, reason });
     })
   );
+  define(
+    GuildChannel.prototype,
+    'setUserLimit',
+    method(function (userLimit, reason) {
+      return this.edit({ userLimit, reason });
+    })
+  );
   // Voice channels: who is connected (from the voice-state tracker).
   define(
     GuildChannel.prototype,
@@ -350,6 +379,13 @@ export function installCompat() {
   );
   define(
     GuildMember.prototype,
+    'nickname',
+    getter(function () {
+      return this.nick ?? null;
+    })
+  );
+  define(
+    GuildMember.prototype,
     'setNickname',
     method(function (nick, reason) {
       return this.edit({ nick, reason });
@@ -414,6 +450,21 @@ export function installCompat() {
   );
 
   // Roles -----------------------------------------------------------------------
+  define(
+    Role.prototype,
+    'hexColor',
+    getter(function () {
+      return `#${(this.color ?? 0).toString(16).padStart(6, '0')}`;
+    })
+  );
+  // Custom emojis: discord.js imageURL() over Fluxer's `url` getter.
+  define(
+    GuildEmoji.prototype,
+    'imageURL',
+    method(function () {
+      return this.url;
+    })
+  );
   define(
     Role.prototype,
     'comparePositionTo',
