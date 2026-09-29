@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  getPersonalizer,
-  getPersonalizerPresence,
-  savePersonalizerIdentity,
-  savePersonalizerPresence,
-  ApiError,
-} from '../api.js';
+import { getPersonalizer, getPersonalizerPresence, savePersonalizerPresence, ApiError } from '../api.js';
 
 export default function Personalizer() {
   const [state, setState] = useState({
@@ -15,12 +9,6 @@ export default function Personalizer() {
     types: [],
     statuses: [],
     error: null,
-  });
-  const [identity, setIdentity] = useState({
-    username: '',
-    avatarUrl: '',
-    bannerUrl: '',
-    resetAvatar: false,
   });
   const [presence, setPresence] = useState({ status: 'online', type: 'Listening', text: '' });
   const [saving, setSaving] = useState(false);
@@ -32,7 +20,6 @@ export default function Personalizer() {
       .then(([p, pr]) => {
         if (cancelled) return;
         setState({ loading: false, ...p, ...pr, error: null });
-        setIdentity({ username: p.bot?.username ?? '', avatarUrl: '', bannerUrl: '', resetAvatar: false });
         setPresence(pr.presence);
       })
       .catch((error) => {
@@ -58,27 +45,6 @@ export default function Personalizer() {
         )}
       </p>
     );
-  }
-
-  async function onSaveIdentity(e) {
-    e.preventDefault();
-    setSaving(true);
-    setNotice(null);
-    try {
-      const { done, failed } = await savePersonalizerIdentity(identity);
-      setNotice(
-        [
-          done.length ? `Updated ${done.join(', ')}.` : '',
-          failed.length ? `Failed: ${failed.join('; ')}.` : '',
-        ]
-          .filter(Boolean)
-          .join(' ') || 'Nothing to change.'
-      );
-    } catch (err) {
-      setNotice(err.message);
-    } finally {
-      setSaving(false);
-    }
   }
 
   async function onSavePresence(e) {
@@ -107,57 +73,15 @@ export default function Personalizer() {
           <img src={state.bot.avatar} alt="" />
           <div>
             <h2>{state.bot.tag}</h2>
-            <p>Bot-wide identity — affects every server Sylo is in.</p>
+            <p>
+              Fluxer doesn't let bots change their own profile — change the name, avatar and banner in the
+              bot's application settings in Fluxer.
+            </p>
           </div>
         </div>
       )}
 
       {notice ? <p className="v2-note">{notice}</p> : null}
-
-      <form onSubmit={onSaveIdentity}>
-        <div className="v2-field">
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            type="text"
-            value={identity.username}
-            onChange={(e) => setIdentity((f) => ({ ...f, username: e.target.value }))}
-          />
-          <p className="v2-field-hint">2–32 characters. Discord limits this to ~2 changes/hour.</p>
-        </div>
-        <div className="v2-field">
-          <label htmlFor="avatarUrl">Avatar URL</label>
-          <input
-            id="avatarUrl"
-            type="url"
-            placeholder="https://…"
-            value={identity.avatarUrl}
-            disabled={identity.resetAvatar}
-            onChange={(e) => setIdentity((f) => ({ ...f, avatarUrl: e.target.value }))}
-          />
-          <label className="v2-field-hint">
-            <input
-              type="checkbox"
-              checked={identity.resetAvatar}
-              onChange={(e) => setIdentity((f) => ({ ...f, resetAvatar: e.target.checked }))}
-            />{' '}
-            Reset avatar to Discord's default instead
-          </label>
-        </div>
-        <div className="v2-field">
-          <label htmlFor="bannerUrl">Banner URL</label>
-          <input
-            id="bannerUrl"
-            type="url"
-            placeholder="https://…"
-            value={identity.bannerUrl}
-            onChange={(e) => setIdentity((f) => ({ ...f, bannerUrl: e.target.value }))}
-          />
-        </div>
-        <button type="submit" className="v2-btn-primary" disabled={saving}>
-          {saving ? 'Saving…' : 'Save identity'}
-        </button>
-      </form>
 
       <h2 className="v2-group-title v2-section-gap">Presence</h2>
       <form onSubmit={onSavePresence}>

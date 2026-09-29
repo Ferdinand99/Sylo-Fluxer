@@ -104,7 +104,6 @@ export const saveGuildSettings = (guildId, body) => postJson(`/api/v2/guilds/${g
 
 export const getPersonalizer = () => apiFetch('/api/v2/personalizer');
 export const getPersonalizerPresence = () => apiFetch('/api/v2/personalizer/presence');
-export const savePersonalizerIdentity = (body) => postJson('/api/v2/personalizer/identity', body);
 export const savePersonalizerPresence = (body) => postJson('/api/v2/personalizer/presence', body);
 
 export const getHealth = () => apiFetch('/api/v2/health');

@@ -78,10 +78,10 @@ on('logging', 'guildBanAdd', async (ban, config, guildId) => {
   let reason = ban.reason;
   if (!reason) {
     const entry = await ban.guild
-      .fetchAuditLogs({ type: AuditLogEvent.MemberBanAdd, limit: 1 })
-      .then((l) => l.entries.first())
+      .fetchAuditLogs({ actionType: AuditLogEvent.MemberBanAdd, limit: 1 })
+      .then((l) => l.entries[0])
       .catch(() => null);
-    if (entry?.target?.id === ban.user.id) reason = entry.reason;
+    if (entry?.targetId === ban.user.id) reason = entry.reason;
   }
   return log(
     guildId,
