@@ -235,6 +235,35 @@ export function installCompat() {
       return this.position ?? 0;
     })
   );
+  // discord.js permission shortcuts for what the bot itself may do. Fluxer's
+  // classes have none of them, and code like `if (!channel.manageable)
+  // continue` or `if (message.deletable) …` then silently never acts.
+  const botPermsIn = (channel) => {
+    const me = channel?.guild?.members.me;
+    return me && channel ? me.permissionsIn(channel) : null;
+  };
+  define(
+    GuildChannel.prototype,
+    'viewable',
+    getter(function () {
+      return Boolean(botPermsIn(this)?.has('ViewChannel'));
+    })
+  );
+  define(
+    GuildChannel.prototype,
+    'manageable',
+    getter(function () {
+      const perms = botPermsIn(this);
+      return Boolean(perms?.has('ViewChannel') && perms.has('ManageChannels'));
+    })
+  );
+  define(
+    GuildChannel.prototype,
+    'deletable',
+    getter(function () {
+      return this.manageable;
+    })
+  );
   define(
     GuildChannel.prototype,
     'setName',
@@ -305,6 +334,20 @@ export function installCompat() {
     }
     return out;
   };
+  // Can the bot change this member (nickname, roles)? Not the owner, not
+  // itself, and ranked strictly below the bot's highest role.
+  define(
+    GuildMember.prototype,
+    'manageable',
+    getter(function () {
+      const guild = this.guild;
+      const me = guild?.members.me;
+      if (!me || this.id === guild.ownerId) return false;
+      if (this.id === me.id) return false;
+      if (guild.ownerId === me.id) return true;
+      return (me.roles.highest?.position ?? 0) > (this.roles.highest?.position ?? 0);
+    })
+  );
   define(
     GuildMember.prototype,
     'setNickname',
@@ -430,6 +473,23 @@ export function installCompat() {
     method(async function (message) {
       const msg = typeof message === 'string' ? await this.fetch(message) : message;
       return msg.delete();
+    })
+  );
+  // The bot may delete its own messages anywhere, and others' with Manage Messages.
+  define(
+    Message.prototype,
+    'deletable',
+    getter(function () {
+      if (this.author?.id && this.author.id === this.client.user?.id) return true;
+      const channel = this.channel ?? this.client.channels.get(this.channelId);
+      return Boolean(channel?.guildId && botPermsIn(channel)?.has('ManageMessages'));
+    })
+  );
+  define(
+    Message.prototype,
+    'editable',
+    getter(function () {
+      return Boolean(this.author?.id && this.author.id === this.client.user?.id);
     })
   );
   define(

@@ -86,3 +86,42 @@ test('mergeLegacyOverwrite maps true / false / null onto allow / deny bits', () 
   assert.equal(cleared.allow, 0n);
   assert.equal(cleared.deny, 0n);
 });
+
+const getter = (cls, name) => Object.getOwnPropertyDescriptor(cls.prototype, name).get;
+const perms = (...names) => ({ has: (n) => names.includes(n) });
+
+test('channel.manageable / viewable follow the bot’s own permissions in that channel', () => {
+  const channelWith = (...names) => ({
+    guild: { members: { me: { permissionsIn: () => perms(...names) } } },
+  });
+  const manageable = getter(GuildChannel, 'manageable');
+  const viewable = getter(GuildChannel, 'viewable');
+  assert.equal(manageable.call(channelWith('ViewChannel', 'ManageChannels')), true);
+  assert.equal(manageable.call(channelWith('ViewChannel')), false);
+  assert.equal(viewable.call(channelWith('ViewChannel')), true);
+  assert.equal(manageable.call({ guild: { members: { me: null } } }), false, 'bot member not fetched');
+});
+
+test('member.manageable: not the owner, not the bot, and below the bot’s highest role', () => {
+  const manageable = getter(GuildMember, 'manageable');
+  const me = { id: 'bot', roles: { highest: { position: 10 } } };
+  const guild = { ownerId: 'owner', members: { me } };
+  const member = (id, position) => ({ id, guild, roles: { highest: { position } } });
+  assert.equal(manageable.call(member('u1', 5)), true);
+  assert.equal(manageable.call(member('u2', 10)), false, 'equal rank');
+  assert.equal(manageable.call(member('owner', 1)), false, 'owner');
+  assert.equal(manageable.call(member('bot', 1)), false, 'itself');
+});
+
+test('message.deletable: own messages always, others with Manage Messages', () => {
+  const deletable = getter(Message, 'deletable');
+  const channelWith = (...names) => ({
+    guildId: '1',
+    guild: { members: { me: { permissionsIn: () => perms(...names) } } },
+  });
+  const client = { user: { id: 'bot' }, channels: new Collection() };
+  const msg = (authorId, channel) => ({ author: { id: authorId }, channel, client });
+  assert.equal(deletable.call(msg('bot', channelWith())), true);
+  assert.equal(deletable.call(msg('user', channelWith('ManageMessages'))), true);
+  assert.equal(deletable.call(msg('user', channelWith('SendMessages'))), false);
+});
