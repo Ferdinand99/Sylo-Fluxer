@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ChannelManager,
+  EmbedBuilder,
   Guild,
   GuildChannel,
   GuildEmoji,
@@ -153,4 +154,17 @@ test('channel.setUserLimit edits userLimit', async () => {
   const channel = { edit: async (o) => (edited = o) };
   await GuildChannel.prototype.setUserLimit.call(channel, 5);
   assert.equal(edited.userLimit, 5);
+});
+
+test('EmbedBuilder.addFields takes an array as well as spread fields', () => {
+  const embed = new EmbedBuilder()
+    .addFields([
+      { name: 'a', value: '1' },
+      { name: 'b', value: '2', inline: true },
+    ])
+    .addFields({ name: 'c', value: '3' });
+  assert.deepEqual(
+    embed.toJSON().fields.map((f) => f.name),
+    ['a', 'b', 'c']
+  );
 });

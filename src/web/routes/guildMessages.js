@@ -17,6 +17,7 @@ import {
 } from '../../db/composedMessages.js';
 import { sendComposed, editComposed } from '../../modules/messageCreator.js';
 import { fetchGuildChannel } from '../../platform/channels.js';
+import { log } from '../../lib/log.js';
 
 const router = Router({ mergeParams: true });
 
@@ -72,6 +73,7 @@ async function renderBuilder(req, res, rec) {
     channels: guildTextChannels(req.guild),
     roles: assignableRoles(req.guild),
     guildId: req.guild.id,
+    msg: typeof req.query.msg === 'string' ? req.query.msg : null,
     isNew: !rec,
     rec: rec || {
       id: '',
@@ -152,7 +154,8 @@ router.post(
         res.redirect(`${dest}?msg=sent`);
       }
     } catch (err) {
-      res.redirect(`${dest}?msg=${encodeURIComponent(err.message).slice(0, 120)}`);
+      log.warn('messages', `publish ${rec.id} in ${req.guild.id} failed: ${err.message}`);
+      res.redirect(`${dest}?msg=${encodeURIComponent(err.message.slice(0, 120))}`);
     }
   })
 );

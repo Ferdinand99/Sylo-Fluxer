@@ -180,6 +180,16 @@ test('POST /guilds/:id/messages/new saves a draft', async () => {
   assert.match(res.headers.get('location'), /\/messages\/\d+\?msg=saved/);
 });
 
+test('the embed builder shows the ?msg= result banner', async () => {
+  const res = await post(app.base, `/guilds/${GID}/messages/new`, {
+    name: 'Banner draft',
+    action: 'save',
+    spec: JSON.stringify({ content: 'hi' }),
+  });
+  const page = await get(`${new URL(res.headers.get('location'), app.base).pathname}?msg=sent`);
+  assert.match(await page.text(), /Published to the channel\./);
+});
+
 test('POST /guilds/:id/tickets/:id/close on an unknown ticket bounces to the list', async () => {
   const res = await post(app.base, `/guilds/${GID}/tickets/999999/close`, {});
   assert.equal(res.status, 302);

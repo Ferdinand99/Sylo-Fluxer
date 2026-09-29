@@ -13,6 +13,7 @@
 import {
   ChannelManager,
   Client,
+  EmbedBuilder,
   Guild,
   GuildChannel,
   GuildBan,
@@ -146,6 +147,13 @@ export function installCompat() {
       return keys.flat().every((k) => this.has(k));
     })
   );
+
+  // EmbedBuilder: discord.js takes addFields(a, b) and addFields([a, b]);
+  // Fluxer's only takes the spread form and crashes on an array.
+  const nativeAddFields = EmbedBuilder.prototype.addFields;
+  EmbedBuilder.prototype.addFields = function (...fields) {
+    return nativeAddFields.apply(this, fields.flat());
+  };
 
   // Client: gateway latency lives on the websocket manager.
   define(
