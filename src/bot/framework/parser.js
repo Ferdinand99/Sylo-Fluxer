@@ -15,6 +15,8 @@
 //   5. The last free-text string option takes the rest of the text verbatim,
 //      minus trailing tokens that clearly fit later typed options
 //      (`!poll "Pick one" "A | B" 1h` → the duration is peeled off the end).
+//   6. A choice whose name has spaces may span several tokens, unquoted:
+//      `!stats Battlefield 6 PC name` picks "Battlefield 6". The longest match wins.
 import { OptionType } from './CommandBuilder.js';
 
 const TRUE_WORDS = new Set(['yes', 'y', 'true', 'on', '1', 'ja', 'enable', 'enabled']);
@@ -82,13 +84,42 @@ export function tokenize(text) {
 
 const isFreeText = (opt) => opt.type === OptionType.String && !opt.choices?.length && !opt.pattern;
 
-/** Match a token to a choice by value or name (case-insensitive). */
+/**
+ * Match text to a choice by name or value (case-insensitive). A namespaced
+ * value also matches by its last part, so `bf6` finds `battlefield:bf6`.
+ */
 function matchChoice(opt, raw) {
   const lower = raw.toLowerCase();
-  return opt.choices.find(
-    (c) => String(c.value).toLowerCase() === lower || String(c.name).toLowerCase() === lower
-  );
+  return opt.choices.find((c) => {
+    const value = String(c.value).toLowerCase();
+    return value === lower || value.split(':').pop() === lower || String(c.name).toLowerCase() === lower;
+  });
 }
+
+const MAX_CHOICE_WORDS = 4;
+
+/**
+ * How many unquoted tokens from `ti` spell one of `opt`'s choices, taking the
+ * longest match ("Battlefield 6" over a lone "Battlefield"). Choice names have
+ * spaces ("PlayStation 5", "Old School RuneScape") but tokens don't. Returns
+ * 0 when nothing longer than one token matches — single tokens go through
+ * accepts() as before.
+ */
+function choiceRun(opt, tokens, ti) {
+  if (!opt.choices?.length) return 0;
+  for (let k = Math.min(MAX_CHOICE_WORDS, tokens.length - ti); k > 1; k--) {
+    const run = tokens.slice(ti, ti + k);
+    if (run.some((t) => t.quoted)) continue;
+    if (matchChoice(opt, run.map((t) => t.value).join(' '))) return k;
+  }
+  return 0;
+}
+
+const joinRun = (tokens, ti, k) =>
+  tokens
+    .slice(ti, ti + k)
+    .map((t) => t.value)
+    .join(' ');
 
 /**
  * Does `raw` fit `opt`? `strict` is used for look-ahead and peeling, where only
@@ -264,26 +295,47 @@ export function parseArgs(text, schema) {
     }
 
     if (isFreeText(opt)) {
-      // Look ahead: a later typed option this token clearly fits takes it.
+      // Look ahead: a later typed option this token (or a multi-word choice
+      // starting here) clearly fits takes it.
       const later = options
         .slice(cursor + 1)
-        .find((o) => !values.has(o.name) && !isFreeText(o) && accepts(o, tok.value, true));
+        .find(
+          (o) =>
+            !values.has(o.name) &&
+            !isFreeText(o) &&
+            (accepts(o, tok.value, true) || choiceRun(o, tokens, ti) > 1)
+        );
       if (later && !tok.quoted) {
-        set(later, tok.value);
+        const run = choiceRun(later, tokens, ti);
+        if (run > 1) {
+          set(later, joinRun(tokens, ti, run));
+          ti += run - 1;
+        } else set(later, tok.value);
         continue;
       }
       if (opt === lastFree) {
-        // Swallow the rest, peeling trailing tokens that fit later typed options.
+        // Swallow the rest, peeling trailing tokens (or a trailing multi-word
+        // choice) that fit later typed options.
         let rest = tokens.slice(ti);
         const after = options.slice(cursor + 1).filter((o) => !isFreeText(o));
         while (rest.length > 1) {
-          const tail = rest[rest.length - 1];
-          const fit = tail.quoted
-            ? null
-            : after.find((o) => !values.has(o.name) && accepts(o, tail.value, true));
-          if (!fit) break;
-          set(fit, tail.value);
-          rest = rest.slice(0, -1);
+          let peeled = 0;
+          for (let k = Math.min(MAX_CHOICE_WORDS, rest.length - 1); k >= 1 && !peeled; k--) {
+            const tail = rest.slice(-k);
+            if (tail.some((t) => t.quoted)) continue;
+            const raw = tail.map((t) => t.value).join(' ');
+            const fit = after.find(
+              (o) =>
+                !values.has(o.name) &&
+                (k > 1 ? o.choices?.length && matchChoice(o, raw) : accepts(o, raw, true))
+            );
+            if (fit) {
+              set(fit, raw);
+              peeled = k;
+            }
+          }
+          if (!peeled) break;
+          rest = rest.slice(0, -peeled);
         }
         const raw =
           rest.length === 1 && rest[0].quoted
@@ -297,7 +349,14 @@ export function parseArgs(text, schema) {
       continue;
     }
 
-    // Typed option at the cursor.
+    // Typed option at the cursor — a multi-word choice first, then one token.
+    const run = choiceRun(opt, tokens, ti);
+    if (run > 1) {
+      set(opt, joinRun(tokens, ti, run));
+      ti += run - 1;
+      cursor++;
+      continue;
+    }
     if (accepts(opt, tok.value, false)) {
       set(opt, tok.value);
       cursor++;
