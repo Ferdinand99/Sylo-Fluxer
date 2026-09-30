@@ -2,7 +2,7 @@
 // appeal form on the dashboard. Staff accept or deny it (with a reason) from the
 // Appeals tab; the bot then DMs the outcome and, on accept, lifts the ban.
 //
-// The link is DM'd *before* the ban is carried out (from /ban and the
+// The link is DM'd *before* the ban is carried out (from !ban and the
 // warn-threshold flow) because a bot can't DM a user it no longer shares a
 // guild with. The guildBanAdd handler is only a fallback for bans made outside
 // Sylo (a manual Discord ban, another bot).
@@ -130,7 +130,7 @@ function banAppealEmbed(guildName, reason, link, cfg) {
   return embed;
 }
 
-// Sylo's own /ban and warn-threshold flows DM the link *before* the ban lands
+// Sylo's own !ban and warn-threshold flows DM the link *before* the ban lands
 // (you can't DM a user you no longer share a guild with). This short-lived map
 // lets the guildBanAdd handler below skip a doomed second attempt.
 const preBanDmed = new Map(); // `${guildId}:${userId}` -> { expires, sent }

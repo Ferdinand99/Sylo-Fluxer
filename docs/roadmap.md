@@ -1,5 +1,10 @@
 # Roadmap — the 3.6 line (complete)
 
+> **Inherited from Sylo (the Discord bot).** This is Sylo's own planning record, kept here
+> because code comments point into it. It describes the Discord version — slash
+> commands, buttons, Discord's AutoMod and intents — not Sylo-Fluxer. See the
+> [README](../README.md) for how the Fluxer port differs.
+
 The post-3.5.0 backlog, run as one branch/PR per workstream into `main`. It
 shipped across **3.6.0 → 3.11.1** and is done. This file is now the record: what
 shipped, and the design decisions and deviations behind each piece. New work

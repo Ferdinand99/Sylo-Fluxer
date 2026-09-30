@@ -1,4 +1,4 @@
-// /stats — game statistics lookups, gated by the "Game stats" module.
+// !stats — game statistics lookups, gated by the "Game stats" module.
 //
 // One flat command: pick the game from the `game` dropdown, give a `username`,
 // and (for Battlefield) a `platform` — or (for RuneScape) an optional account

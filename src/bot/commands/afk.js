@@ -1,4 +1,4 @@
-// /afk — mark yourself away; Sylo replies to anyone who mentions you.
+// !afk — mark yourself away; Sylo replies to anyone who mentions you.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';

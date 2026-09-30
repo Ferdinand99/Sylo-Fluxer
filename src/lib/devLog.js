@@ -38,7 +38,7 @@ function throttled(key) {
  * swallowed by the fire-and-forget notifyDevLog() path below).
  */
 async function resolveChannel(channelId) {
-  if (!runtime.client?.isReady()) throw new Error('Discord client is not connected yet.');
+  if (!runtime.client?.isReady()) throw new Error('Fluxer client is not connected yet.');
   const channel = await runtime.client.channels.fetch(channelId);
   if (!channel) throw new Error('No channel with that id — check DEV_LOG_CHANNEL_ID.');
   if (!channel.isTextBased()) throw new Error('That channel is not a text channel.');

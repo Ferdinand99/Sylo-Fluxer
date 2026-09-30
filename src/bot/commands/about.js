@@ -1,4 +1,4 @@
-// /about — version plus uptime and runtime info, in an embed.
+// !about — version plus uptime and runtime info, in an embed.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { EmbedBuilder } from '../../platform/index.js';
 import { BUILD, REPO_URL } from '../lib/buildInfo.js';
@@ -18,7 +18,7 @@ export async function execute(interaction) {
   const embed = new EmbedBuilder()
     .setColor(0x5b7cfa)
     .setAuthor({ name: `Sylo v${BUILD.version}`, iconURL: client.user.displayAvatarURL() })
-    .setDescription('Multi-function Discord bot with a web dashboard.')
+    .setDescription('Multi-function Fluxer bot with a web dashboard.')
     .addFields(
       { name: 'Version', value: `\`${BUILD.version}\``, inline: true },
       { name: 'Uptime', value: formatDuration(uptimeSeconds() * 1000) || '0s', inline: true },

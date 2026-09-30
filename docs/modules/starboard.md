@@ -7,7 +7,6 @@ Supports multiple independent boards.
 
 ## Needs
 
-- **Message Content** intent (`INTENT_MESSAGE_CONTENT`) to copy message text.
 - **Send Messages**, **Embed Links** in the board channel; **Add Reactions** for
   auto-react.
 

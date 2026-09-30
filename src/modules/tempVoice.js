@@ -1,7 +1,7 @@
 // Temporary voice channels ("join to create"), MEE6-style "Hubs". A member joins
 // a hub VC; Sylo spins up a personal voice channel (optionally with a paired
 // text channel), moves them in, and cleans it up after everyone leaves — after
-// an optional keep-alive delay. The /voice-* commands let the owner and
+// an optional keep-alive delay. The !voice-* commands let the owner and
 // moderators lock/hide/ban/rename/transfer it.
 //
 // config shape (per hub):
@@ -165,7 +165,7 @@ export function buildOverwrites(guild, hub, ownerId, { forText = false } = {}) {
   }
 
   overwrites.push({ id: ownerId, allow: forText ? [P.ViewChannel, P.SendMessages] : ownerAllowBits(hub) });
-  // Sylo keeps full control so /voice-* always works.
+  // Sylo keeps full control so !voice-* always works.
   if (guild.members.me) {
     overwrites.push({
       id: guild.members.me.id,

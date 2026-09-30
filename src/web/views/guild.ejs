@@ -323,7 +323,7 @@
       <% var lbPeriod = typeof leaderboardPeriod !== 'undefined' ? leaderboardPeriod : 'all'; %>
       <div class="ins-range u-mb-2">
         <% [['all','All time'],['week','This week'],['month','This month']].forEach(function (p) { %>
-          <a class="pill <%= lbPeriod === p[0] ? 'on' : '' %>" href="/guilds/<%= guild.id %>/leaderboard?period=<%= p[0] %>"><%= p[1] %></a>
+          <a class="pill <%= lbPeriod === p[0] ? 'on' : '' %>" href="/guilds/<%= guild.id %>!leaderboard?period=<%= p[0] %>"><%= p[1] %></a>
         <% }) %>
       </div>
       <h3 class="u-mb-2">Top members <span class="muted small">(<%= board.total %> tracked)</span></h3>

@@ -1,6 +1,6 @@
 # Game stats
 
-Player stat lookups via `/stats`. Pick a game from the `game` dropdown:
+Player stat lookups via `!stats`. Name the game first (e.g. `!stats Battlefield 6 PC <name>`):
 
 - **Battlefield** — BF1, BF3, BF4, BFV and Hardline are fully supported;
   BF2042 and BF6 are best-effort. Data from the
@@ -14,7 +14,6 @@ Player stat lookups via `/stats`. Pick a game from the `game` dropdown:
 ## Needs
 
 - **Send Messages**, **Embed Links**.
-- No privileged intents.
 - Battlefield data comes from `GAMETOOLS_API_BASE` (overridable); RuneScape data
   from `secure.runescape.com`. Responses are cached for
   `STATS_CACHE_TTL_MINUTES` (default 5).
@@ -23,7 +22,7 @@ Player stat lookups via `/stats`. Pick a game from the `game` dropdown:
 
 | Command | |
 |---|---|
-| `/stats game:… username:… [platform:…]` | Returns a stats embed. Battlefield needs `platform`; RuneScape uses it for the Ironman account type (default: normal). |
+| `!stats game:… username:… [platform:…]` | Returns a stats embed. Battlefield needs `platform`; RuneScape uses it for the Ironman account type (default: normal). |
 
 ## Notes
 

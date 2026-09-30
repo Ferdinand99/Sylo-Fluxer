@@ -54,7 +54,7 @@ export default function FreeGames() {
       <p className="v2-field-hint">
         Sylo checks hourly and posts an embed when a game becomes free to claim — from the Epic Games Store,
         plus Steam / GOG / Fanatical / Humble and more when an <code>ITAD_API_KEY</code> is set. DLC is
-        filtered out of announcements; <code>/freegames dlc:true</code> shows free DLC on demand.
+        filtered out of announcements; <code>!freegames dlc:true</code> shows free DLC on demand.
       </p>
 
       <form onSubmit={onSave}>

@@ -14,7 +14,6 @@ of Sylo polling on a timer.
   able to reach Sylo to deliver events. This only works on a deployment that's
   actually exposed to the internet (like the hosted instance); a self-host
   behind a private LAN with no reverse proxy can't use this module.
-- No privileged intents.
 
 ## Settings
 

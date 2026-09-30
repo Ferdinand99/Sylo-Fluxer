@@ -10,9 +10,6 @@ Moderator page).
 
 - **View Audit Log** for accurate "who did it" attribution on bans, kicks and
   role changes.
-- **Server Members** intent (`INTENT_GUILD_MEMBERS`) for join/leave/nick/role
-  events; **Message Content** intent (`INTENT_MESSAGE_CONTENT`) for message
-  delete/edit content.
 
 ## Settings
 
@@ -23,7 +20,7 @@ Moderator page).
 
 ## Notes
 
-- Deleted-message logging can only show content Discord still had cached; very
+- Deleted-message logging can only show content Sylo still had cached (the last 50 messages per channel since it started); very
   old messages log as "content unavailable".
 - This is separate from the **mod-log** (moderation actions Sylo itself takes),
   which is set under *General*.

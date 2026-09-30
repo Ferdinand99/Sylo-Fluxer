@@ -29,7 +29,10 @@ router.get(
     const { guildId } = req.params;
     const parsed = verifyVerifyToken(req.query.t);
     if (!parsed || parsed.guildId !== guildId) {
-      return fail(res, 'This verification link is invalid or has expired. Click Verify again in Discord.');
+      return fail(
+        res,
+        'This verification link is invalid or has expired. React ✅ on the verify message again.'
+      );
     }
     if (!config.turnstileEnabled) {
       return fail(res, 'The captcha is not configured on this server. Ask an admin.');
@@ -52,7 +55,10 @@ router.post('/:guildId', async (req, res, next) => {
     const { guildId } = req.params;
     const parsed = verifyVerifyToken(req.body.t);
     if (!parsed || parsed.guildId !== guildId) {
-      return fail(res, 'This verification link is invalid or has expired. Click Verify again in Discord.');
+      return fail(
+        res,
+        'This verification link is invalid or has expired. React ✅ on the verify message again.'
+      );
     }
     if (!config.turnstileEnabled) return fail(res, 'The captcha is not configured.');
 

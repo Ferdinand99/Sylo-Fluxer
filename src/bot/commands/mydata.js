@@ -1,5 +1,5 @@
-// /mydata — self-service export of the data Sylo stores about the caller in the
-// current guild (GDPR access + portability). Read only; use /forget to delete.
+// !mydata — self-service export of the data Sylo stores about the caller in the
+// current guild (GDPR access + portability). Read only; use !forget to delete.
 // The caller gets a readable summary embed plus the full copy as a JSON file,
 // by DM — or on the ephemeral reply if their DMs are closed.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
@@ -106,7 +106,7 @@ export async function execute(interaction) {
   const fileObj = {
     about:
       `Data Sylo stores about ${interaction.user.username} in "${guildName}" as of ${dump.generatedAt}. ` +
-      `Same scope as /forget. Does not include messages you posted in channels.`,
+      `Same scope as !forget. Does not include messages you posted in channels.`,
     server: guildName,
     guildId: dump.guildId,
     userId: dump.userId,
@@ -137,7 +137,7 @@ export async function execute(interaction) {
     .setTitle(`Your data in ${guildName}`)
     .setDescription(
       `Everything Sylo keeps about you here, as of ${time(Math.floor(now / 1000), 'f')}. ` +
-        `This is what \`/forget\` deletes — messages you posted in channels aren't included.`
+        `This is what \`!forget\` deletes — messages you posted in channels aren't included.`
     )
     .addFields({
       name: `${plural(dump.total, 'row')} · ${plural(lines.length, 'category', 'categories')}`,

@@ -1,4 +1,4 @@
-// /rank — show a member's leveling progress as an image card (falls back to a
+// !rank — show a member's leveling progress as an image card (falls back to a
 // text embed if the image renderer is unavailable).
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { EmbedBuilder, AttachmentBuilder, MessageFlags } from '../../platform/index.js';

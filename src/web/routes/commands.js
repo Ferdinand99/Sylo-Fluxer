@@ -1,4 +1,4 @@
-// GET /commands — lists the slash commands the bot currently has loaded.
+// GET /commands — lists the commands the bot currently has loaded.
 // The list is derived from the live command collection, so it always matches
 // what is actually registered.
 import { Router } from 'express';
@@ -53,7 +53,7 @@ function describeCommands(collection) {
     if (subs.length === 0) {
       const options = (json.options ?? []).map(mapOption);
       rows.push({
-        signature: `/${json.name}${options.length ? ` ${usage(options)}` : ''}`,
+        signature: `!${json.name}${options.length ? ` ${usage(options)}` : ''}`,
         description: json.description,
         permissions,
         options,
@@ -64,7 +64,7 @@ function describeCommands(collection) {
     for (const sub of subs) {
       const options = (sub.options ?? []).map(mapOption);
       rows.push({
-        signature: `/${json.name} ${sub.name}${options.length ? ` ${usage(options)}` : ''}`,
+        signature: `!${json.name} ${sub.name}${options.length ? ` ${usage(options)}` : ''}`,
         description: sub.description,
         permissions,
         options,

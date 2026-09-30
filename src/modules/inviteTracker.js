@@ -102,7 +102,7 @@ on('invite-tracker', 'guildMemberAdd', async (member, rawConfig, guildId) => {
   if (before && after) {
     for (const [c, data] of after.codes) {
       if (data.uses > (before.codes.get(c)?.uses ?? 0)) {
-        // A link Sylo minted for a member via /invites credits that member,
+        // A link Sylo minted for a member via !invites credits that member,
         // not the bot that technically created it.
         inviterId = (await personalCodeOwner(guildId, c)) ?? data.inviterId;
         code = c;

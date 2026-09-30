@@ -11,10 +11,9 @@
 %>
 
 <p class="muted small">
-  Each command is a <code>/slash</code> command that runs an ordered list of actions —
-  reply in the channel, post to another channel, or add / remove a role. Commands sync to
-  Discord on save. Placeholders: <% ccPlaceholders.forEach(function (p) { %><code><%= p %></code> <% }) %>
-  (<code>{args}</code> becomes a <code>text:</code> option).
+  Each command is a <code>!name</code> command that runs an ordered list of actions —
+  reply in the channel, post to another channel, or add / remove a role. Changes apply as soon as you save. Placeholders: <% ccPlaceholders.forEach(function (p) { %><code><%= p %></code> <% }) %>
+  (<code>{args}</code> is the text typed after the command).
 </p>
 
 <div class="rr-list-head">
@@ -29,7 +28,7 @@
     <div class="cmd-override">
       <div class="cmd-override-head">
         <span>
-          <strong>/<%= c.name %></strong>
+          <strong>!<%= c.name %></strong>
           <span class="muted small">
             · <%= (c.actions || []).map(actionLabel).join(' → ') || 'no actions' %>
             <% if (c.cooldownSeconds) { %> · <%= c.cooldownSeconds %>s cooldown<% } %>
@@ -41,7 +40,7 @@
       <div class="btn-row">
         <a class="plugin-btn" href="/guilds/<%= guild.id %>/m/custom-commands/cmd/<%= c.id %>">Edit</a>
         <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>/m/custom-commands/cmd/<%= c.id %>/delete">
-          <button type="submit" class="danger" data-confirm="Delete /<%= c.name %>? It is removed from Discord too.">Delete</button>
+          <button type="submit" class="danger" data-confirm="Delete /<%= c.name %>?">Delete</button>
         </form>
       </div>
     </div>

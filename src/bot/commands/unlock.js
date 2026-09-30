@@ -1,4 +1,4 @@
-// /unlock [channel] [reason] — undo /lock, restoring the prior @everyone
+// !unlock [channel] [reason] — undo !lock, restoring the prior @everyone
 // overwrite exactly.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';

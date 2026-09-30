@@ -7,7 +7,6 @@ Announce in a channel when a [Kick.com](https://kick.com) streamer goes live.
 ## Needs
 
 - **Send Messages**, **Embed Links** in the alert channels.
-- No privileged intents.
 - `KICK_CLIENT_ID` / `KICK_CLIENT_SECRET` — a free app under
   [kick.com/settings/developer](https://kick.com/settings/developer). Sylo uses
   the OAuth2 client-credentials flow (an app access token, no user login). When

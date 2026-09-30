@@ -237,7 +237,7 @@ export default function TempVoice() {
                   checked={h.ownershipLock}
                   onChange={(e) => updateHub(h.key, { ownershipLock: e.target.checked })}
                 />
-                Ownership lock — don't auto-transfer if the owner leaves (they can /voice-claim it back)
+                Ownership lock — don't auto-transfer if the owner leaves (they can !voice-claim it back)
               </label>
             </div>
 
@@ -287,7 +287,7 @@ export default function TempVoice() {
 
             <div className="v2-field">
               <label>
-                Ignored roles <span className="v2-field-hint">— not affected by /voice-*</span>
+                Ignored roles <span className="v2-field-hint">— not affected by !voice-*</span>
               </label>
               <ChipPicker
                 kind="role"
@@ -299,7 +299,7 @@ export default function TempVoice() {
 
             <div className="v2-field">
               <label>
-                Moderator roles <span className="v2-field-hint">— can run /voice-* on any temp channel</span>
+                Moderator roles <span className="v2-field-hint">— can run !voice-* on any temp channel</span>
               </label>
               <ChipPicker
                 kind="role"
@@ -335,8 +335,8 @@ export default function TempVoice() {
               {[
                 ['enabled', 'Create a paired temporary text channel'],
                 ['restrict', 'Only connected members (and mods) can read it'],
-                ['pinUsages', 'Pin a message listing the /voice-* commands'],
-                ['restrictCommands', 'Only allow /voice-* in this text channel'],
+                ['pinUsages', 'Pin a message listing the !voice-* commands'],
+                ['restrictCommands', 'Only allow !voice-* in this text channel'],
               ].map(([key, label]) => (
                 <label className="v2-check" key={key}>
                   <input

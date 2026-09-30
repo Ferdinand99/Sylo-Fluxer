@@ -27,7 +27,7 @@ export function offsiteBackupConfigured() {
 export function offsiteBackupStatus() {
   const to = [];
   if (config.backupWebdavUrl) to.push('WebDAV');
-  if (config.backupWebhookUrl) to.push('Discord webhook');
+  if (config.backupWebhookUrl) to.push('webhook');
   return to.length ? to.join(' + ') : null;
 }
 

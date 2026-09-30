@@ -1,5 +1,10 @@
 # Dashboard modernization plan
 
+> **Inherited from Sylo (the Discord bot).** This is Sylo's own planning record for the
+> dashboard, kept for reference. It describes the Discord version — slash
+> commands, buttons, Discord's AutoMod and intents — not Sylo-Fluxer. See the
+> [README](../README.md) for how the Fluxer port differs.
+
 Status: **Phase 0 done** · Owner: Ferdinand99 · Created 2026-09-01 (Sylo 3.0.0)
 
 Branch: `feat/dashboard-htmx-alpine`.

@@ -1,4 +1,4 @@
-// /inviter [user] — who invited a member.
+// !inviter [user] — who invited a member.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';

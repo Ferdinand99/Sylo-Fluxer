@@ -1,4 +1,4 @@
-// /warn add|list|remove|clear — lightweight warning records per member.
+// !warn add|list|remove|clear — lightweight warning records per member.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, INFO_COLOR, notifyTarget, resultEmbed } from '../lib/moderation.js';
@@ -31,7 +31,7 @@ export const data = new SlashCommandBuilder()
       .setName('remove')
       .setDescription('Delete one warning by its ID.')
       .addIntegerOption((o) =>
-        o.setName('id').setDescription('Warning ID (from /warn list)').setRequired(true).setMinValue(1)
+        o.setName('id').setDescription('Warning ID (from !warn list)').setRequired(true).setMinValue(1)
       )
   )
   .addSubcommand((s) =>

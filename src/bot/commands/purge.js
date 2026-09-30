@@ -1,4 +1,4 @@
-// /purge <amount> [user] — bulk-delete recent messages in the current channel.
+// !purge <amount> [user] — bulk-delete recent messages in the current channel.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR } from '../lib/moderation.js';

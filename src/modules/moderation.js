@@ -108,7 +108,7 @@ export async function applyWarnThresholds(guild, targetUser, warnCount, moderato
 
 // --- temporary-ban expiry loop ------------------------------------------
 // Mirrors the giveaways expiry loop: a slow tick that lifts bans whose
-// `unban_at` has passed. /ban duration:… schedules the rows (src/db/tempBans.js).
+// `unban_at` has passed. !ban duration:… schedules the rows (src/db/tempBans.js).
 
 const TEMP_BAN_TICK_MS = 30_000;
 

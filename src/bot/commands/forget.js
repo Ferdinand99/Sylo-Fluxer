@@ -1,4 +1,4 @@
-// /forget — self-service deletion of the data Sylo stores about the caller in
+// !forget — self-service deletion of the data Sylo stores about the caller in
 // the current guild (warnings, leveling XP, ticket history, ban appeals, invite
 // records, AFK status, giveaway entries).
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
@@ -32,7 +32,7 @@ export async function execute(interaction) {
         `**invite records**, **AFK status**, **saved birthday** and **giveaway entries** in **${interaction.guild.name}**. ` +
         `Messages already posted to channels, a completed giveaway's winner list, and the server's ` +
         `config-change log are not affected, and Sylo will still store new data going forward.` +
-        `\n\nRun \`/forget confirm:True\` to proceed.`,
+        `\n\nRun \`!forget confirm:True\` to proceed.`,
     });
   }
 

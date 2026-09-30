@@ -230,7 +230,7 @@ function CommandForm({ initial, channels, roles, placeholders, onSave, onCancel,
       <div className="v2-field">
         <label>Name</label>
         <div className="v2-field-row" style={{ alignItems: 'center', marginBottom: 0 }}>
-          <span className="v2-field-hint">/</span>
+          <span className="v2-field-hint">!</span>
           <input
             type="text"
             maxLength={32}
@@ -241,12 +241,14 @@ function CommandForm({ initial, channels, roles, placeholders, onSave, onCancel,
             required
           />
         </div>
-        <p className="v2-field-hint">Lowercase letters, numbers, - and _. This is the slash command.</p>
+        <p className="v2-field-hint">
+          Lowercase letters, numbers, - and _. This is the command name: members run it as !name.
+        </p>
       </div>
 
       <div className="v2-field">
         <label>
-          Description <span className="v2-field-hint">— shown in Discord's command list</span>
+          Description <span className="v2-field-hint">— a note for your own reference on the dashboard</span>
         </label>
         <input
           type="text"
@@ -408,7 +410,8 @@ export default function CustomCommands() {
     <>
       <h1 className="v2-section-title">Custom commands</h1>
       <p className="v2-field-hint">
-        Build /slash commands from an ordered list of actions: reply, post to a channel, add or remove a role.
+        Build your own !commands from an ordered list of actions: reply, post to a channel, add or remove a
+        role.
       </p>
 
       {notice ? <p className="v2-row-warn">{notice}</p> : null}
@@ -422,7 +425,7 @@ export default function CustomCommands() {
             {d.commands.map((c) => (
               <div className="v2-row" key={c.id}>
                 <div className="v2-row-main">
-                  <h3>/{c.name}</h3>
+                  <h3>!{c.name}</h3>
                   <p>
                     {c.description || 'No description'} · {c.actions.length} action(s)
                     {c.allowedRoles.length || c.allowedChannels.length ? ' · restricted' : ''}

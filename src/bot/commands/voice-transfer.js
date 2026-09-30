@@ -1,4 +1,4 @@
-// /voice-transfer — hand ownership of your temporary voice channel to someone.
+// !voice-transfer — hand ownership of your temporary voice channel to someone.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 import { transferTemp } from '../../modules/tempVoice.js';

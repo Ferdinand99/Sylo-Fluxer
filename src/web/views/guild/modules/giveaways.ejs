@@ -6,17 +6,17 @@
 <% function rel(ms) { var s = Math.round((ms - Date.now()) / 1000); var a = Math.abs(s); var u = a < 60 ? [a, 's'] : a < 3600 ? [Math.round(a/60), 'm'] : a < 86400 ? [Math.round(a/3600), 'h'] : [Math.round(a/86400), 'd']; return (s < 0 ? '' : 'in ') + u[0] + u[1] + (s < 0 ? ' ago' : ''); } %>
 
 <p class="muted small">
-  Staff start giveaways with <code>/giveaway start</code>; members join by clicking the <strong>🎉 Enter</strong>
-  button. Winners are drawn automatically at the end time — no reactions, no Message Content intent.
+  Staff start giveaways with <code>!giveaway start</code>; members join by reacting <strong>🎉</strong>
+  on the giveaway message. Winners are drawn automatically at the end time.
 </p>
 
 <section class="card">
   <h3 class="u-m0 u-mb-2">Commands</h3>
   <ul class="muted small u-list">
-    <li><code>/giveaway start prize:… duration:30m</code> — plus optional <code>winners:</code> and <code>required_role:</code>.</li>
-    <li><code>/giveaway end id:…</code> — draw the winners now.</li>
-    <li><code>/giveaway reroll id:… [count:]</code> — pick new winners for a finished giveaway (excludes the previous ones).</li>
-    <li><code>/giveaway list</code> — the active giveaways and their ids.</li>
+    <li><code>!giveaway start prize:… duration:30m</code> — plus optional <code>winners:</code> and <code>required_role:</code>.</li>
+    <li><code>!giveaway end id:…</code> — draw the winners now.</li>
+    <li><code>!giveaway reroll id:… [count:]</code> — pick new winners for a finished giveaway (excludes the previous ones).</li>
+    <li><code>!giveaway list</code> — the active giveaways and their ids.</li>
   </ul>
 </section>
 
@@ -39,7 +39,7 @@
 <section class="card">
   <h3 class="u-m0 u-mb-2">Active giveaways <span class="muted small">(<%= active.length %>)</span></h3>
   <% if (!active.length) { %>
-    <p class="muted small">None running. Start one with <code>/giveaway start</code>.</p>
+    <p class="muted small">None running. Start one with <code>!giveaway start</code>.</p>
   <% } else { %>
     <div class="stack">
       <% active.forEach(function (g) { %>

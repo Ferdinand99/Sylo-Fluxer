@@ -18,8 +18,8 @@
 </form>
 <p class="muted small">
   Every moderation action (warn, note, timeout, kick, ban, …) lands here as a numbered case.
-  In Discord: <code>/history @user</code>, <code>/case view #</code>, <code>/case reason # …</code>,
-  <code>/case delete #</code>, <code>/case note @user …</code>.
+  In chat: <code>!history @user</code>, <code>!case view #</code>, <code>!case reason # …</code>,
+  <code>!case delete #</code>, <code>!case note @user …</code>.
 </p>
 
 <% if (cases.length === 0) { %>
@@ -40,7 +40,7 @@
             <% if (c.active) { %>
               <form class="u-inline" method="POST"
                     action="/guilds/<%= guild.id %>/cases/<%= c.caseNumber %>/delete"
-                    data-confirm="Delete case #<%= c.caseNumber %>? (kept for audit, hidden from /history)">
+                    data-confirm="Delete case #<%= c.caseNumber %>? (kept for audit, hidden from !history)">
                 <button type="submit" class="link-btn">delete</button>
               </form>
             <% } else { %>
@@ -53,7 +53,7 @@
       <% }) %>
     </tbody>
   </table>
-  <p class="muted small">Deleting is soft — the case stays for audit but drops out of <code>/history</code> and the warn count.</p>
+  <p class="muted small">Deleting is soft — the case stays for audit but drops out of <code>!history</code> and the warn count.</p>
 <% } %>
 
 <h2 class="u-mt-6">Bans <span class="muted">(<%= bansShown %><%= bansTotal > bansShown ? ` of ${bansTotal}, first ${banLimit}` : '' %>)</span></h2>
@@ -71,7 +71,7 @@
           <td class="mono"><%= b.id %></td>
           <td><%= b.reason %></td>
           <td class="num">
-            <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>/unban" data-confirm="Unban <%= b.tag %>?">
+            <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>!unban" data-confirm="Unban <%= b.tag %>?">
               <input type="hidden" name="userId" value="<%= b.id %>" />
               <button type="submit" class="link-btn">unban</button>
             </form>
@@ -85,8 +85,8 @@
 <h2 class="u-mt-6">Channel locks</h2>
 <p class="muted small">
   A lock denies @everyone the send-message permissions on a channel; unlocking restores the exact
-  overwrite that was there before. Also available as <code>/lock</code>, <code>/unlock</code> and
-  <code>/lockdown</code>.
+  overwrite that was there before. Also available as <code>!lock</code>, <code>!unlock</code> and
+  <code>!lockdown</code>.
 </p>
 <div class="row-form">
   <% if (lockdownActive) { %>
@@ -112,7 +112,7 @@
           <td><%= l.name ? '#' + l.name : '(deleted)' %> <span class="muted mono"><%= l.channelId %></span></td>
           <td><%= l.lockedBy %></td>
           <td class="muted"><%= l.ago %></td>
-          <td class="muted"><%= l.lockdown ? 'lockdown' : '/lock' %></td>
+          <td class="muted"><%= l.lockdown ? 'lockdown' : '!lock' %></td>
           <td class="num">
             <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>/moderation/unlock-channel">
               <input type="hidden" name="channelId" value="<%= l.channelId %>" />
@@ -127,7 +127,7 @@
 
 <h2 class="u-mt-6">Scheduled temporary bans</h2>
 <% if (tempBans.length === 0) { %>
-  <p class="muted">No temporary bans are pending. Use <code>/ban duration:…</code> to set one.</p>
+  <p class="muted">No temporary bans are pending. Use <code>!ban duration:…</code> to set one.</p>
 <% } else { %>
   <table>
     <thead><tr><th>User</th><th>ID</th><th>Reason</th><th>Unbans in</th><th></th></tr></thead>
@@ -139,7 +139,7 @@
           <td><%= t.reason %></td>
           <td class="muted"><%= t.remaining %></td>
           <td class="num">
-            <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>/unban"
+            <form class="u-inline" method="POST" action="/guilds/<%= guild.id %>!unban"
                   data-confirm="Lift the ban on <%= t.tag %> now?">
               <input type="hidden" name="userId" value="<%= t.userId %>" />
               <button type="submit" class="link-btn">lift now</button>

@@ -1,4 +1,4 @@
-// /leaderboard — top members by leveling XP as an image card (falls back to a
+// !leaderboard — top members by leveling XP as an image card (falls back to a
 // text embed), plus a link to the web leaderboard.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { EmbedBuilder, AttachmentBuilder, MessageFlags } from '../../platform/index.js';

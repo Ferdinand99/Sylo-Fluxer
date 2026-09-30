@@ -9,7 +9,6 @@ deletes its old copy and re-posts the sticky.
 
 - **Send Messages**, **Manage Messages** (to delete the previous copy),
   **Embed Links**.
-- No privileged intents.
 
 ## Settings
 

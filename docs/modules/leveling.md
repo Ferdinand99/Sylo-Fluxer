@@ -8,8 +8,7 @@ multipliers, no-XP lists, and a public leaderboard.
 ## Needs
 
 - **Manage Roles** (above the reward roles) for level rewards.
-- **Attach Files** for the `/rank` and `/leaderboard` image cards.
-- **Server Members** intent (`INTENT_GUILD_MEMBERS`).
+- **Attach Files** for the `!rank` and `!leaderboard` image cards.
 
 ## Settings
 
@@ -32,8 +31,8 @@ multipliers, no-XP lists, and a public leaderboard.
 
 | Command | |
 |---|---|
-| `/rank [member]` | Your (or another member's) level, rank and progress, as a card. Shows the chat / voice XP split when any voice XP has been earned. |
-| `/leaderboard` | Top members by XP, as a card, with a link to the web leaderboard. |
+| `!rank [member]` | Your (or another member's) level, rank and progress, as a card. Shows the chat / voice XP split when any voice XP has been earned. |
+| `!leaderboard` | Top members by XP, as a card, with a link to the web leaderboard. |
 
 ## Notes
 
@@ -45,4 +44,4 @@ multipliers, no-XP lists, and a public leaderboard.
   ~6 months, then pruned); the all-time totals in `leveling` are never reset by
   a period roll.
 - Member XP can be set or reset per server from the Leaderboard page.
-- `/forget` removes a member's leveling record (all-time and per-period).
+- `!forget` removes a member's leveling record (all-time and per-period).

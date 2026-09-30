@@ -6,7 +6,6 @@ Automatically reply when a message matches a trigger phrase.
 
 ## Needs
 
-- **Message Content** intent (`INTENT_MESSAGE_CONTENT`).
 - **Send Messages** (and **Embed Links** for embed replies).
 
 ## Settings

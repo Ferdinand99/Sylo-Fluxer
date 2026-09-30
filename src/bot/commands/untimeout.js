@@ -1,4 +1,4 @@
-// /untimeout <user> [reason] — clear an active timeout.
+// !untimeout <user> [reason] — clear an active timeout.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { resultEmbed, NO_REASON } from '../lib/moderation.js';

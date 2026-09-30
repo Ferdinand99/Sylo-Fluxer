@@ -1,4 +1,4 @@
-// Birthdays: members set their birthday with /birthday; a daily tick posts a
+// Birthdays: members set their birthday with !birthday; a daily tick posts a
 // greeting in a configured channel and (optionally) gives them a role for the
 // day. Cross-guild, so the tick runs once per day guarded by an app-setting.
 //

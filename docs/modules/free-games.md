@@ -9,7 +9,6 @@ stores.
 ## Needs
 
 - **Send Messages**, **Embed Links**.
-- No privileged intents.
 - Optional: `ITAD_API_KEY` (IsThereAnyDeal) adds non-Epic stores.
 
 ## Settings
@@ -21,7 +20,7 @@ stores.
 
 | Command | |
 |---|---|
-| `/freegames` | Show what's currently free (works without the module on). |
+| `!freegames` | Show what's currently free (works without the module on). |
 
 ## Notes
 

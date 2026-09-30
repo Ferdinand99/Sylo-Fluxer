@@ -1,6 +1,6 @@
-// Polls: members create polls with /poll and vote by reacting with the letter
+// Polls: members create polls with !poll and vote by reacting with the letter
 // emoji for their choice. A background loop closes polls at their end time; a
-// results embed is posted when a poll ends (via the loop, /poll-end, or hitting
+// results embed is posted when a poll ends (via the loop, !poll-end, or hitting
 // the max-votes cap).
 //
 // config shape:

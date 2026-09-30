@@ -1,4 +1,4 @@
-// /poll-end — close a poll early and post its results.
+// !poll-end — close a poll early and post its results.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { MessageFlags, PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';

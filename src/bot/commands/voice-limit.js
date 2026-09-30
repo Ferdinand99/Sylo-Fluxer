@@ -1,4 +1,4 @@
-// /voice-limit — set the user limit of your temporary voice channel.
+// !voice-limit — set the user limit of your temporary voice channel.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, canControl, ephemeral } from '../lib/tempVoiceCmd.js';
 

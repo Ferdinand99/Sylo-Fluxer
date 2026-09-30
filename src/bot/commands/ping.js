@@ -1,4 +1,4 @@
-// /ping — basic health check. Reports gateway heartbeat and round-trip latency.
+// !ping — basic health check. Reports gateway heartbeat and round-trip latency.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 

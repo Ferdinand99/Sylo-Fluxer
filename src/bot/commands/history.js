@@ -1,4 +1,4 @@
-// /history <user> [page] — a member's moderation case log, newest first.
+// !history <user> [page] — a member's moderation case log, newest first.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { listUserCases } from '../../db/modCases.js';

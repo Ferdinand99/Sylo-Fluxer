@@ -41,7 +41,7 @@ export const WC_PRESETS = [
       color: BRAND,
       title: '📋 Server rules',
       description:
-        '**1.** Be respectful to everyone.\n**2.** No spam or unsolicited self-promotion.\n**3.** Keep content in the right channels.\n**4.** Follow the Discord Community Guidelines.',
+        '**1.** Be respectful to everyone.\n**2.** No spam or unsolicited self-promotion.\n**3.** Keep content in the right channels.\n**4.** Follow the Fluxer Community Guidelines.',
     }),
   },
   {

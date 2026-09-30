@@ -9,7 +9,6 @@ only messages older than a configured age — not a full wipe.
 
 - **View Channel**, **Manage Messages**, **Read Message History** in the target
   channel.
-- No privileged intents.
 
 ## Settings (per schedule)
 
@@ -26,7 +25,7 @@ only messages older than a configured age — not a full wipe.
 - A background tick checks every 5 minutes for schedules due to run, and fires
   each at most once per day.
 - Deletion paginates back through the channel (up to 1,000 messages per run),
-  bulk-deleting whatever Discord allows (messages under 14 days old) and
+  bulk-deleting messages under 14 days old and
   individually deleting a capped number of older messages so one run can't
   turn into a long rate-limited loop against a large backlog — any remainder
   is picked up on the next scheduled run.

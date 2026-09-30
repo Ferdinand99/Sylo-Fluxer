@@ -280,7 +280,7 @@ async function moduleLines(id, guild, cfg) {
     case 'game-stats': {
       const cached = (await recentLookups(50)).length;
       return [
-        neutral('Command', '/stats battlefield'),
+        neutral('Command', '!stats Battlefield 6 PC <name>'),
         cached ? on('Cached lookups', String(cached)) : neutral('Cached lookups', '0'),
       ];
     }
@@ -435,7 +435,7 @@ async function commandsCard(guild) {
     id: 'commands',
     name: 'Commands',
     icon: moduleIcon('commands'),
-    description: 'Enable, disable or restrict slash commands per server.',
+    description: 'Enable, disable or restrict commands per server.',
     hasToggle: false,
     enabled: null,
     status: 'link',

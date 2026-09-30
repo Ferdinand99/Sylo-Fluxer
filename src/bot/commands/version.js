@@ -1,4 +1,4 @@
-// /version — report the release of Sylo this instance is running.
+// !version — report the release of Sylo this instance is running.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 import { BUILD } from '../lib/buildInfo.js';

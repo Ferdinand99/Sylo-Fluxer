@@ -1,4 +1,4 @@
-// /voice-clean — delete every empty temporary voice channel in the server.
+// !voice-clean — delete every empty temporary voice channel in the server.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';

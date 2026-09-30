@@ -1,4 +1,4 @@
-// /invites-leaderboard — top inviters in this server.
+// !invites-leaderboard — top inviters in this server.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { EmbedBuilder, MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
