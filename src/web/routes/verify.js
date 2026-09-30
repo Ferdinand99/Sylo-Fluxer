@@ -7,7 +7,12 @@ import { runtime } from '../../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';
 import { log } from '../../lib/log.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { verifyVerifyToken, normaliseVerificationConfig, grantVerified } from '../../modules/verification.js';
+import {
+  verifyVerifyToken,
+  normaliseVerificationConfig,
+  grantVerified,
+  fillVerifyText,
+} from '../../modules/verification.js';
 
 const router = Router();
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -82,16 +87,19 @@ router.post('/:guildId', async (req, res, next) => {
     log.info('verification', `web verify ${parsed.userId} in ${guildId} -> ${result}`);
 
     if (result === 'ok' || result === 'already') {
-      if (result === 'ok') {
-        // Let them know back in Discord too (the interaction token is long gone).
-        guild.client.users
-          .fetch(parsed.userId)
-          .then((u) => u.send({ content: `${cfg.successMessage}\n*(${guild.name})*` }))
+      const user = await guild.client.users.fetch(parsed.userId).catch(() => null);
+      if (result === 'ok' && user) {
+        // Let them know back in Fluxer too, by DM.
+        user
+          .send({ content: `${fillVerifyText(cfg.successMessage, guild, user)}\n*(${guild.name})*` })
           .catch(() => {});
       }
       return res.render('verify', {
         state: 'done',
-        message: result === 'already' ? 'You were already verified.' : cfg.successMessage,
+        message:
+          result === 'already'
+            ? 'You were already verified.'
+            : fillVerifyText(cfg.successMessage, guild, user, { mention: false }),
         siteKey: null,
         token: null,
         guildId,

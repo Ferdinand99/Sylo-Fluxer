@@ -6,6 +6,7 @@ import {
   signVerifyToken,
   verifyVerifyToken,
   effectiveMode,
+  fillVerifyText,
 } from '../src/modules/verification.js';
 
 const G = '111111111111111111';
@@ -43,4 +44,21 @@ test('verify token: rejects tampering and garbage', () => {
   assert.equal(verifyVerifyToken(token.slice(0, -3) + 'aaa'), null);
   assert.equal(verifyVerifyToken('not.a.token'), null);
   assert.equal(verifyVerifyToken(''), null);
+});
+
+test('fillVerifyText: {server} everywhere, {user…} only with a user', () => {
+  const guild = { name: 'Opland' };
+  const user = { id: U, username: 'ferdi' };
+  assert.equal(fillVerifyText('Welcome to {server}!', guild), 'Welcome to Opland!');
+  assert.equal(fillVerifyText('Hi {user}', guild), 'Hi {user}', 'no user: left as typed');
+  assert.equal(
+    fillVerifyText('{user} ({user.name}, {user.id}) verified at {server}', guild, user),
+    `<@${U}> (ferdi, ${U}) verified at Opland`
+  );
+  assert.equal(
+    fillVerifyText('Hi {user}', guild, user, { mention: false }),
+    'Hi ferdi',
+    'web page: no mention'
+  );
+  assert.equal(fillVerifyText('At {server}', null), 'At the server');
 });

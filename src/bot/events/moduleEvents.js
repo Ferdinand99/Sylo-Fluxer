@@ -5,16 +5,19 @@
 // the SDK's differing event signatures are adapted here, not in each module.
 import { Events } from '../../platform/index.js';
 import { trackVoiceStates } from '../../platform/voiceStates.js';
+import { withGuildId } from '../../platform/compat.js';
 import { dispatch } from '../../modules/dispatch.js';
 import { handleRoleReaction } from '../../modules/messageCreator.js';
 import '../../modules/index.js'; // side-effect: registers module handlers
 
 /**
- * A reaction whose `message` is guaranteed to be a full Message: Fluxer's
- * `reaction.message` reads the message cache and is null for uncached messages.
+ * A reaction whose `message` is guaranteed to be a full Message with its
+ * guildId: Fluxer's `reaction.message` reads the message cache and is null for
+ * uncached messages, and a message the bot sent itself is cached from the REST
+ * response, which carries no guild_id — so `message.guild` would be null.
  */
-async function withMessage(reaction, message) {
-  const msg = message ?? reaction.message ?? (await reaction.fetchMessage());
+export async function withMessage(client, reaction, message) {
+  const msg = withGuildId(client, message ?? reaction.message ?? (await reaction.fetchMessage()));
   return Object.create(reaction, { message: { value: msg, enumerable: true } });
 }
 
@@ -74,7 +77,7 @@ export function register(client) {
     if (!guildId) return;
     let reaction;
     try {
-      reaction = await withMessage(payload.reaction, payload.message);
+      reaction = await withMessage(client, payload.reaction, payload.message);
     } catch {
       return; // message deleted or not visible to the bot
     }
