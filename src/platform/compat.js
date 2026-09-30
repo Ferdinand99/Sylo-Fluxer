@@ -11,6 +11,7 @@
 // version is pinned exactly in package.json; test/platformCompat.test.js
 // asserts every alias is installed against the real classes.
 import {
+  Channel,
   ChannelManager,
   Client,
   EmbedBuilder,
@@ -47,6 +48,9 @@ function define(proto, name, descriptor) {
 const getter = (fn) => ({ get: fn });
 const method = (fn) => ({ value: fn, writable: true });
 const idOf = (x) => (typeof x === 'string' ? x : x?.id);
+// Bulk delete skips anything older than this (discord.js's filterOld), less a
+// minute of slack so a message on the edge doesn't fail the whole request.
+const BULK_DELETE_MAX_AGE_MS = 14 * 86_400_000 - 60_000;
 
 // --- overwrite translation --------------------------------------------------
 
@@ -153,6 +157,33 @@ export function installCompat() {
   const nativeAddFields = EmbedBuilder.prototype.addFields;
   EmbedBuilder.prototype.addFields = function (...fields) {
     return nativeAddFields.apply(this, fields.flat());
+  };
+
+  // Channel.bulkDelete: discord.js takes a count, or a Collection / array of
+  // messages or ids, plus `filterOld` to skip messages older than 14 days, and
+  // resolves to a Collection of what it deleted. Fluxer's takes a count or an
+  // array of ids and resolves to an id array; spreading a Collection into it
+  // sends [id, Message] pairs, which fail to serialise (circular JSON).
+  const nativeBulkDelete = Channel.prototype.bulkDelete;
+  Channel.prototype.bulkDelete = async function (messages, filterOld = false) {
+    if (typeof messages === 'number') {
+      const ids = await nativeBulkDelete.call(this, messages);
+      return new Collection(ids.map((id) => [id, { id }]));
+    }
+    const list = messages instanceof Map ? [...messages.values()] : [...(messages ?? [])];
+    let entries = list.map((m) => (typeof m === 'string' ? { id: m } : m)).filter((m) => m?.id);
+    if (filterOld) {
+      const cutoff = Date.now() - BULK_DELETE_MAX_AGE_MS;
+      entries = entries.filter((m) => m.createdTimestamp == null || m.createdTimestamp > cutoff);
+    }
+    const ids = entries.length
+      ? await nativeBulkDelete.call(
+          this,
+          entries.map((m) => m.id)
+        )
+      : [];
+    const byId = new Map(entries.map((m) => [m.id, m]));
+    return new Collection(ids.map((id) => [id, byId.get(id) ?? { id }]));
   };
 
   // Client: gateway latency lives on the websocket manager.

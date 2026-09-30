@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  Channel,
   ChannelManager,
   EmbedBuilder,
   Guild,
@@ -167,4 +168,29 @@ test('EmbedBuilder.addFields takes an array as well as spread fields', () => {
     embed.toJSON().fields.map((f) => f.name),
     ['a', 'b', 'c']
   );
+});
+
+test('channel.bulkDelete takes a Collection of messages, filters old ones, returns a Collection', async () => {
+  let sent;
+  const channel = Object.create(Channel.prototype);
+  channel.client = {
+    rest: { post: async (_route, { body }) => (sent = body.message_ids) },
+    _removeMessageFromCache() {},
+  };
+  channel.id = '100000000000000002';
+  const now = Date.now();
+  const msgs = new Collection([
+    ['1', { id: '1', createdTimestamp: now - 1000 }],
+    ['2', { id: '2', createdTimestamp: now - 2000 }],
+    ['3', { id: '3', createdTimestamp: now - 20 * 86_400_000 }],
+  ]);
+  const deleted = await channel.bulkDelete(msgs, true);
+  assert.deepEqual(sent, ['1', '2'], 'ids only, the 20-day-old one skipped');
+  assert.equal(deleted.size, 2);
+  assert.equal(deleted.get('1'), msgs.get('1'), 'the deleted messages come back');
+
+  sent = null;
+  const none = await channel.bulkDelete(new Collection(), true);
+  assert.equal(none.size, 0);
+  assert.equal(sent, null, 'nothing to delete: no request');
 });

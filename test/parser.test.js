@@ -90,3 +90,64 @@ test('optional typed option that does not fit is skipped', () => {
   assert.equal(r.values.get('reason'), 'hello');
   assert.equal(r.values.has('duration'), false);
 });
+
+// !stats-shaped: a required choice, a free-text name, an optional choice —
+// with choice names that contain spaces.
+const stats = new CommandBuilder()
+  .setName('stats')
+  .setDescription('s')
+  .addStringOption((o) =>
+    o
+      .setName('game')
+      .setDescription('g')
+      .setRequired(true)
+      .addChoices(
+        { name: 'Battlefield 6', value: 'battlefield:bf6' },
+        { name: 'Battlefield V', value: 'battlefield:bfv' },
+        { name: 'Old School RuneScape', value: 'runescape:osrs' },
+        { name: 'RuneScape 3', value: 'runescape:rs3' }
+      )
+  )
+  .addStringOption((o) => o.setName('username').setDescription('u').setRequired(true))
+  .addStringOption((o) =>
+    o
+      .setName('platform')
+      .setDescription('p')
+      .addChoices({ name: 'PC', value: 'pc' }, { name: 'PlayStation 5', value: 'ps5' })
+  );
+
+test('multi-word choices: names with spaces span several tokens', () => {
+  const r = parseArgs('Battlefield 6 PC IWGamin', stats);
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.values.get('game'), 'battlefield:bf6');
+  assert.equal(r.values.get('platform'), 'pc');
+  assert.equal(r.values.get('username'), 'IWGamin');
+});
+
+test('multi-word choices: longest match, case-insensitive, any position', () => {
+  const a = parseArgs('old school runescape Zezima', stats);
+  assert.deepEqual(a.errors, []);
+  assert.equal(a.values.get('game'), 'runescape:osrs');
+  assert.equal(a.values.get('username'), 'Zezima');
+
+  const b = parseArgs('Battlefield 6 PlayStation 5 IWGamin', stats);
+  assert.deepEqual(b.errors, []);
+  assert.equal(b.values.get('platform'), 'ps5', 'multi-word choice ahead of the free text');
+  assert.equal(b.values.get('username'), 'IWGamin');
+
+  const c = parseArgs('Battlefield 6 Some Name PlayStation 5', stats);
+  assert.deepEqual(c.errors, []);
+  assert.equal(c.values.get('platform'), 'ps5', 'multi-word choice peeled off the end');
+  assert.equal(c.values.get('username'), 'Some Name');
+});
+
+test('choices: quoted names and the short value still work', () => {
+  const q = parseArgs('"Battlefield V" PC name', stats);
+  assert.deepEqual(q.errors, []);
+  assert.equal(q.values.get('game'), 'battlefield:bfv');
+  const s = parseArgs('bf6 pc name', stats);
+  assert.deepEqual(s.errors, []);
+  assert.equal(s.values.get('game'), 'battlefield:bf6', 'bf6 matches battlefield:bf6');
+  const bad = parseArgs('Battlefield PC name', stats);
+  assert.match(bad.errors[0], /`game` must be one of/);
+});
