@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getAfk, setAfk, clearAfk, clearGuildAfk } from '../src/db/afk.js';
 import { normaliseServerStats } from '../src/modules/serverStats.js';
+import { isAfkCommand } from '../src/modules/afk.js';
 
 const G = '111111111111111111';
 const U = '222222222222222222';
@@ -45,4 +46,20 @@ test('normaliseServerStats: refreshMinutes defaults to 10 and clamps to 5..60', 
   assert.equal(normaliseServerStats({ refreshMinutes: 999 }).refreshMinutes, 60);
   assert.equal(normaliseServerStats({ refreshMinutes: '15' }).refreshMinutes, 15);
   assert.equal(normaliseServerStats({ refreshMinutes: 'abc' }).refreshMinutes, 10);
+});
+
+test('isAfkCommand: the !afk command itself does not count as "back from AFK"', async () => {
+  const commands = new Map([
+    ['afk', { data: { name: 'afk' } }],
+    ['rank', { data: { name: 'rank', aliases: ['level'] } }],
+  ]);
+  const client = { user: { id: '999999999999999999' }, commands };
+  const msg = (content) => ({ content, client });
+  const G = '111111111111111111';
+  assert.equal(await isAfkCommand(msg('!afk'), G), true);
+  assert.equal(await isAfkCommand(msg('!afk gaming'), G), true);
+  assert.equal(await isAfkCommand(msg('<@999999999999999999> afk'), G), true, 'mentioning the bot');
+  assert.equal(await isAfkCommand(msg('!rank'), G), false, 'other commands still clear AFK');
+  assert.equal(await isAfkCommand(msg('hei alle'), G), false);
+  assert.equal(await isAfkCommand(msg('!afkish'), G), false);
 });

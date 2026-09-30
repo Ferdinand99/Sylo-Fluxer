@@ -1,17 +1,34 @@
-// AFK: members run /afk; Sylo replies to anyone who mentions them and clears
+// AFK: members run !afk; Sylo replies to anyone who mentions them and clears
 // the status when they next speak.
 //
 // config shape: { setNickname: bool, mentionReply: bool, ignoreChannels: [] }
 import { on } from './dispatch.js';
 import { getAfk, setAfk, clearAfk } from '../db/afk.js';
+import { getPrefix } from '../db/guildSettings.js';
+import { splitCommand, findCommand } from '../bot/framework/router.js';
 
 export { getAfk, setAfk, clearAfk };
 
 const RETURN_NOTICE_MS = 8000;
 
+/**
+ * Is this message the !afk command itself? Commands are plain messages on
+ * Fluxer, so without this check the module would clear the AFK the command is
+ * about to set ("Welcome back", then "You're now AFK").
+ */
+export async function isAfkCommand(message, guildId) {
+  const split = splitCommand(
+    message.content ?? '',
+    await getPrefix(guildId),
+    message.client?.user?.id ?? null
+  );
+  return Boolean(split && findCommand(message.client?.commands, split.name)?.data.name === 'afk');
+}
+
 on('afk', 'messageCreate', async (message, config, guildId) => {
   if (message.author?.bot || !message.member || !message.guild) return;
   if (Array.isArray(config.ignoreChannels) && config.ignoreChannels.includes(message.channelId)) return;
+  if (await isAfkCommand(message, guildId)) return;
 
   // The author is coming back from AFK.
   const own = await getAfk(guildId, message.author.id);
