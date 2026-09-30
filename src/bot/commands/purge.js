@@ -36,7 +36,10 @@ export async function execute(interaction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  let messages = await channel.messages.fetch({ limit: amount });
+  // Count back from the !purge message itself: it's a real message here (unlike
+  // a slash command), and the private-reply cleanup removes it along with the
+  // reply once the reply has been sent to it.
+  let messages = await channel.messages.fetch({ limit: amount, before: interaction.id });
   if (user) messages = messages.filter((m) => m.author.id === user.id);
 
   const deleted = await channel.bulkDelete(messages, true); // true = ignore messages older than 14 days
