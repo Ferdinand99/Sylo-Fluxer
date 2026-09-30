@@ -210,7 +210,13 @@ export class MessageInteraction {
         log.debug('commands', `DM to ${this.user.id} failed, replying in channel:`, err?.message);
       }
     }
-    const sent = await this.message.reply({ ...payload, ping: false });
+    // A plain channel message when the invoking message is gone (deleted by the
+    // command itself, a moderator or automod) — a reply to it would fail.
+    const sent = await this.message.reply({ ...payload, ping: false }).catch((err) => {
+      if (!this.channel) throw err;
+      log.debug('commands', `reply to ${this.message.id} failed, sending instead:`, err?.message);
+      return this.channel.send(payload);
+    });
     if (ephemeral) this._schedulePrivateCleanup(sent);
     return { sent, private: ephemeral };
   }
