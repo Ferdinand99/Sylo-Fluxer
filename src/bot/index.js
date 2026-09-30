@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 // Platform first: importing it installs the SDK compatibility aliases.
 import { Client } from '../platform/index.js';
-import { clientInstanceOptions } from '../platform/urls.js';
+import { clientInstanceOptions, loadInstanceDiscovery } from '../platform/urls.js';
 import { config } from '../config.js';
 import { setClient } from '../runtime.js';
 import { loadCommands } from './loadCommands.js';
@@ -42,6 +42,13 @@ async function loadEvents(client) {
  * @returns {Promise<import('@fluxerjs/core').Client>}
  */
 export async function startBot() {
+  // Self-hosted: learn the instance's media / CDN / gateway hosts first.
+  await loadInstanceDiscovery().catch((err) =>
+    log.warn(
+      'bot',
+      `instance discovery failed, avatars and media will use hosted Fluxer's CDN: ${err.message}`
+    )
+  );
   const client = new Client({
     ...clientInstanceOptions(),
     // Internal sharding — every shard runs in this process, sharing one cache
