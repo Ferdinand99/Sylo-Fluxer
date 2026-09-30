@@ -8,7 +8,7 @@
 <p class="muted small">
   When a member is banned, Sylo DMs them a private link to an appeal form on this dashboard.
   Their answers show up on the <a href="/guilds/<%= guild.id %>/appeals">Appeals tab</a>. The decision (and,
-  on accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Discord
+  on accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Fluxer
   won't let a bot DM someone it no longer shares a server with, so the page is the reliable channel.
   <% if (!dashboardUrlSet) { %>
     <br /><span class="warn-text">Set <code>DASHBOARD_URL</code> to a URL your members can reach —
@@ -44,7 +44,7 @@
 
   <label class="small u-mt-2">Appeals server invite <span class="muted">— optional</span></label>
   <input type="text" name="appealServerInvite" maxlength="100" value="<%= cfg.appealServerInvite || '' %>"
-    placeholder="https://discord.gg/…" />
+    placeholder="https://fluxer.gg/…" />
   <span class="muted small">A permanent invite to another server Sylo is in. If the banned user joins it,
   Sylo shares a server with them and can also DM the decision.</span>
 

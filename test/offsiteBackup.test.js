@@ -28,7 +28,7 @@ test.after(() => rmSync(snap, { force: true }));
 
 test('config helpers reflect the env', () => {
   assert.equal(offsiteBackupConfigured(), true);
-  assert.equal(offsiteBackupStatus(), 'WebDAV + Discord webhook');
+  assert.equal(offsiteBackupStatus(), 'WebDAV + webhook');
 });
 
 test('shipOffsiteBackup PUTs to WebDAV (basic auth) and POSTs to the webhook', async () => {

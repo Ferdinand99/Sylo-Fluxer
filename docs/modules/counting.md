@@ -7,7 +7,6 @@ current number and the record.
 
 ## Needs
 
-- **Message Content** intent (`INTENT_MESSAGE_CONTENT`).
 - **Manage Messages** if you want wrong entries deleted.
 - **Add Reactions** for the confirmation tick.
 - **Manage Roles** if you use the penalty role (below), with Sylo's top role
@@ -25,14 +24,14 @@ current number and the record.
   role from them and gives it back after **Bench for (minutes)**. Point it at
   whatever role lets people type in the counting channel: everyone still *sees*
   the channel, but the offender can't post until the bench is up. This is **not**
-  a ban or a Discord timeout and creates no moderation case — only this one role
+  a ban or a timeout and creates no moderation case — only this one role
   is ever touched.
 
 ## Notes
 
 - The running number, record and last counter live in the database; correct it or
   reset to 0 from the dashboard.
-- `/forget` clears a member from the "last counter" slot.
+- `!forget` clears a member from the "last counter" slot.
 - Benched members are listed on the dashboard with a **Release now** button. A
   member who leaves the server forfeits any pending bench (the role is gone with
   them); rejoining does not restore it early.

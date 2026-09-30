@@ -1,4 +1,4 @@
-// /kick <user> [reason] — remove a member from the server.
+// !kick <user> [reason] — remove a member from the server.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';

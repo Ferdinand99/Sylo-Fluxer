@@ -119,8 +119,8 @@ export default function Polls() {
     <>
       <h1 className="v2-section-title">Polls</h1>
       <p className="v2-field-hint">
-        Members create polls with <code>/poll</code> and vote by reacting with the letter of their choice. A
-        poll closes on its timer, when it hits its vote cap, or when someone runs <code>/poll-end</code>.
+        Members create polls with <code>!poll</code> and vote by reacting with the letter of their choice. A
+        poll closes on its timer, when it hits its vote cap, or when someone runs <code>!poll-end</code>.
       </p>
 
       <form onSubmit={onSave}>

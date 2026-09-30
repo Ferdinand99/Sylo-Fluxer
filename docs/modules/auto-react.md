@@ -7,8 +7,6 @@ comes from a chosen user or role.
 
 ## Needs
 
-- No privileged intents — only the message author and their roles are read,
-  never the message content.
 - **Add Reactions** and **View Channel** in any channel it should react in.
 - **Manage Roles** (with Sylo's own role above the one being granted/removed)
   if a rule uses the "also change a role" option.

@@ -1,6 +1,6 @@
 # AFK
 
-Members run `/afk` to mark themselves away. Sylo replies to anyone who mentions
+Members run `!afk` to mark themselves away. Sylo replies to anyone who mentions
 them, and clears the status when they next speak.
 
 **Dashboard:** `/guilds/<id>/m/afk`.
@@ -8,7 +8,6 @@ them, and clears the status when they next speak.
 ## Needs
 
 - **Manage Nicknames** (optional) to prefix `[AFK]` on the member's nickname.
-- No privileged intents (the module reads mentions, not message content).
 
 ## Settings
 
@@ -20,8 +19,8 @@ them, and clears the status when they next speak.
 
 | Command | |
 |---|---|
-| `/afk [reason]` | Mark yourself away. |
+| `!afk [reason]` | Mark yourself away. |
 
 ## Notes
 
-- `/forget` clears a member's AFK status.
+- `!forget` clears a member's AFK status.

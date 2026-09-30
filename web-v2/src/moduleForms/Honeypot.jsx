@@ -262,7 +262,7 @@ export default function Honeypot() {
               <p className="v2-field-hint">
                 Live:{' '}
                 <a
-                  href={`https://discord.com/channels/${guildId}/${m.channelId}/${m.messageId}`}
+                  href={`${data.webUrl}/channels/${guildId}/${m.channelId}/${m.messageId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -9,7 +9,6 @@ interval. (The dashboard calls this "Reminders"; the older id is
 ## Needs
 
 - **Send Messages**, **Embed Links** in the target channel.
-- No privileged intents.
 
 ## Settings (per reminder)
 

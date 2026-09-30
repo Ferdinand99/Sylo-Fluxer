@@ -1,4 +1,4 @@
-// /unban <user_id> [reason] — lift a ban.
+// !unban <user_id> [reason] — lift a ban.
 import { SlashCommandBuilder, InteractionContextType, USER_ID } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { resultEmbed, NO_REASON } from '../lib/moderation.js';

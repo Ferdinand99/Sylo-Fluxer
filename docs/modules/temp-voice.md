@@ -2,7 +2,7 @@
 
 Join-to-create voice hubs: a member joins a **hub** channel and Sylo spawns a
 personal voice channel (and optional text channel) they own and control with
-`/voice-*` commands. Empty channels are cleaned up.
+`!voice-*` commands. Empty channels are cleaned up.
 
 **Dashboard:** `/guilds/<id>/m/temp-voice`.
 
@@ -10,7 +10,6 @@ personal voice channel (and optional text channel) they own and control with
 
 - **Manage Channels**, **Move Members**, and **Manage Roles** if you use
   role-based access.
-- No privileged intents.
 
 ## Settings (per hub)
 
@@ -21,10 +20,10 @@ personal voice channel (and optional text channel) they own and control with
 
 ## Commands
 
-Owner (or a voice moderator) controls: `/voice-rename`, `/voice-limit`,
-`/voice-lock` / `/voice-unlock`, `/voice-hide` / `/voice-reveal`, `/voice-kick`,
-`/voice-ban` / `/voice-unban`, `/voice-transfer`, `/voice-claim` (if the owner
-left), `/voice-owner`. `/voice-clean` deletes all empty temp channels.
+Owner (or a voice moderator) controls: `!voice-rename`, `!voice-limit`,
+`!voice-lock` / `!voice-unlock`, `!voice-hide` / `!voice-reveal`, `!voice-kick`,
+`!voice-ban` / `!voice-unban`, `!voice-transfer`, `!voice-claim` (if the owner
+left), `!voice-owner`. `!voice-clean` deletes all empty temp channels.
 
 ## Notes
 

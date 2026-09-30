@@ -98,8 +98,8 @@ export default function Giveaways() {
     <>
       <h1 className="v2-section-title">Giveaways</h1>
       <p className="v2-field-hint">
-        Staff start giveaways with <code>/giveaway start</code>; members join by clicking the 🎉 Enter button.
-        Winners are drawn automatically at the end time — no reactions, no Message Content intent.
+        Staff start giveaways with <code>!giveaway start</code>; members join by reacting 🎉 on the giveaway
+        message. Winners are drawn automatically at the end time.
       </p>
 
       <form onSubmit={onSave}>
@@ -138,7 +138,7 @@ export default function Giveaways() {
       <div className="v2-group v2-section-gap">
         <h2 className="v2-group-title">Active giveaways ({active.length})</h2>
         {active.length === 0 ? (
-          <p className="v2-field-hint">None running. Start one with /giveaway start.</p>
+          <p className="v2-field-hint">None running. Start one with !giveaway start.</p>
         ) : (
           <div className="v2-list">
             {active.map((g) => (

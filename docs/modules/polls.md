@@ -1,6 +1,6 @@
 # Polls
 
-Members create reaction polls with `/poll`. Polls close automatically on a timer
+Members create reaction polls with `!poll`. Polls close automatically on a timer
 or a vote cap, and Sylo posts the results.
 
 **Dashboard:** `/guilds/<id>/m/polls`.
@@ -9,7 +9,6 @@ or a vote cap, and Sylo posts the results.
 
 - **Send Messages**, **Embed Links**, **Add Reactions**, **Manage Messages** (to
   clear reactions on close).
-- No privileged intents.
 
 ## Settings
 
@@ -21,8 +20,8 @@ or a vote cap, and Sylo posts the results.
 
 | Command | |
 |---|---|
-| `/poll` | Create a poll: question, 2–N options, duration and/or vote cap. |
-| `/poll-end` | Close a poll now and post results. |
+| `!poll` | Create a poll: question, 2–N options, duration and/or vote cap. |
+| `!poll-end` | Close a poll now and post results. |
 
 ## Notes
 

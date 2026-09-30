@@ -175,7 +175,7 @@ export async function getFreeGames({ kind = 'game' } = {}) {
   return merged;
 }
 
-// Kept for the existing test / /freegames — thin wrapper.
+// Kept for the existing test / !freegames — thin wrapper.
 export async function fetchEpicFreeGames() {
   return fetchEpic();
 }

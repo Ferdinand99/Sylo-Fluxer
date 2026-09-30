@@ -64,7 +64,7 @@ export default function Appeals() {
       <p className="v2-field-hint">
         When a member is banned, Sylo DMs them a private link to an appeal form on this dashboard. Their
         answers show up on the <a href={`/guilds/${guildId}/appeals`}>Appeals tab</a>. The decision (and, on
-        accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Discord
+        accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Fluxer
         won't let a bot DM someone it no longer shares a server with, so the page is the reliable channel.
         {!data.dashboardUrlSet ? (
           <>
@@ -158,7 +158,7 @@ export default function Appeals() {
             id="appealServerInvite"
             type="text"
             maxLength={100}
-            placeholder="https://discord.gg/…"
+            placeholder="https://fluxer.gg/…"
             value={form.appealServerInvite}
             onChange={(e) => set({ appealServerInvite: e.target.value })}
           />

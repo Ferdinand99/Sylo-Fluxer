@@ -9,7 +9,7 @@ let canvasMod = null;
 try {
   canvasMod = await import('@napi-rs/canvas');
 } catch (err) {
-  log.warn('rank-card', 'canvas unavailable — /rank will use a text embed', err.message);
+  log.warn('rank-card', 'canvas unavailable — !rank will use a text embed', err.message);
 }
 
 export const rankCardAvailable = Boolean(canvasMod);

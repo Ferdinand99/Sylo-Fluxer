@@ -85,7 +85,7 @@ export const MODULES = [
     id: 'custom-commands',
     name: 'Custom commands',
     description:
-      'Build /slash commands from an ordered list of actions: reply, post to a channel, add or remove a role.',
+      'Build your own !commands from an ordered list of actions: reply, post to a channel, add or remove a role.',
     icon: '⌨️',
     defaultEnabled: false,
     configurable: true,
@@ -191,7 +191,7 @@ export const MODULES = [
     id: 'temp-voice',
     name: 'Temporary voice channels',
     description:
-      'MEE6-style hubs: join to spawn your own voice (and text) channel, controlled with /voice-* commands.',
+      'MEE6-style hubs: join to spawn your own voice (and text) channel, controlled with !voice-* commands.',
     icon: '🎙️',
     defaultEnabled: false,
     configurable: true,
@@ -215,7 +215,7 @@ export const MODULES = [
   {
     id: 'polls',
     name: 'Polls',
-    description: 'Members create reaction polls with /poll; they auto-close on a timer or vote cap.',
+    description: 'Members create reaction polls with !poll; they auto-close on a timer or vote cap.',
     icon: '🗳️',
     defaultEnabled: false,
     configurable: true,
@@ -272,7 +272,7 @@ export const MODULES = [
     id: 'game-stats',
     name: 'Game stats',
     description:
-      'Player stat lookups via /stats: the Battlefield series, Old School RuneScape and RuneScape 3.',
+      'Player stat lookups via !stats: the Battlefield series, Old School RuneScape and RuneScape 3.',
     icon: '🎯',
     defaultEnabled: false,
     configurable: true,

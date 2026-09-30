@@ -1,7 +1,7 @@
 // Locking a channel = denying the message-sending permissions for @everyone,
 // having first saved whatever @everyone overwrite was there before. Unlocking
 // restores that saved state exactly (or removes the overwrite if there wasn't
-// one). Shared by /lock, /unlock and /lockdown.
+// one). Shared by !lock, !unlock and !lockdown.
 import { PermissionFlagsBits } from '../../platform/index.js';
 import { recordChannelLock, getChannelLock, clearChannelLock } from '../../db/channelLocks.js';
 
@@ -9,7 +9,7 @@ import { recordChannelLock, getChannelLock, clearChannelLock } from '../../db/ch
 // channel can't be talked in sideways.
 export const LOCK_PERMS = ['SendMessages', 'AddReactions'];
 
-/** Channel types /lock and /lockdown can act on. */
+/** Channel types !lock and !lockdown can act on. */
 export function isLockableChannel(channel) {
   return Boolean(channel?.permissionOverwrites) && typeof channel.permissionOverwrites.edit === 'function';
 }

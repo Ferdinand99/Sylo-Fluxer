@@ -8,10 +8,6 @@ overview grid).
 
 ## Needs
 
-- No privileged intents. Message **counting** uses the `MessageCreate` gateway
-  event only — the Message Content intent is not required, since only the count,
-  author id and channel id are read, never the text. Voice tracking uses
-  `VoiceStateUpdate` (the `GuildVoiceStates` intent is always on).
 - **View Channel** on a channel for its name to show in the "top channels" lists
   (otherwise the id is shown).
 
@@ -30,7 +26,7 @@ per UTC **hour** in `guild_hourly` (kept ~3 days):
 
 **No message content and no per-user rows** are stored. Daily rows older than
 ~180 days and hourly rows older than ~3 days are pruned. Guild-leave and
-`/forget` remove a server's rows via `GUILD_TABLES`.
+`!forget` remove a server's rows via `GUILD_TABLES`.
 
 ## Notes
 

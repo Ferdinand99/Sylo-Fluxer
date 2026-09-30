@@ -10,7 +10,6 @@ messages.
 
 - **Send Messages**, **Embed Links**; **Manage Channels** to create the channel
   from the dashboard.
-- No privileged intents.
 
 ## Settings
 
@@ -24,4 +23,4 @@ messages.
 ## Notes
 
 - Editing the content and saving re-publishes to the same message. The stored
-  `messageId` tracks it; if the message is deleted in Discord, publish again.
+  `messageId` tracks it; if the message is deleted in Fluxer, publish again.

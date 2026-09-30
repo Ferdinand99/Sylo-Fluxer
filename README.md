@@ -56,9 +56,6 @@ GitHub alerts
 
 What is known **not** to work as expected yet:
 
-- **Discord wording.** Parts of the dashboard, the V2 dashboard and the docs
-  under [`docs/`](docs/) still talk about Discord, slash commands and buttons.
-  They're being rewritten.
 - **Temporary voice channels and the server owner.** Fluxer never lets a bot
   move the community owner between voice channels, so the owner is sent a DM
   with a link to their new channel instead of being moved. Other members are
@@ -245,9 +242,9 @@ not `/mnt/user` — SQLite in WAL mode needs working file locks. If you also run
 the Discord Sylo on the same server, the template already uses different names,
 paths and ports.
 
-The longer guide in [docs/self-hosting.md](docs/self-hosting.md) — reverse proxy,
-backups, upgrades, troubleshooting — is inherited from Sylo and still written
-for Discord; the operational parts apply unchanged.
+The longer guide in [docs/self-hosting.md](docs/self-hosting.md) covers every
+variable, a self-hosted Fluxer instance, the reverse proxy, backups, upgrades and
+troubleshooting.
 
 ## Local development
 
@@ -334,10 +331,9 @@ a throwaway database.
 ## Legal
 
 The [privacy policy](docs/privacy-policy.md) and
-[terms of service](docs/terms-of-service.md) in this repository are inherited
-from Sylo and describe the Discord instances; they haven't been adapted to
-Sylo-Fluxer yet. If you run your own instance you are its operator — publish
-your own.
+[terms of service](docs/terms-of-service.md) in this repository cover the
+instances Ferdinand99 operates. If you run your own instance you are its
+operator — publish your own.
 
 ## License
 

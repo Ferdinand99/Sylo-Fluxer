@@ -20,16 +20,16 @@
 %>
 
 <p class="muted small">
-  Members create polls with <code>/poll</code> and vote by reacting with the letter of their choice.
-  A poll closes on its timer, when it hits its vote cap, or when someone runs <code>/poll-end</code>.
+  Members create polls with <code>!poll</code> and vote by reacting with the letter of their choice.
+  A poll closes on its timer, when it hits its vote cap, or when someone runs <code>!poll-end</code>.
 </p>
 
 <section class="card">
   <h3 class="u-m0 u-mb-2">Commands</h3>
   <ul class="muted small u-list">
-    <li><code>/poll question:… choices:A | B | C</code> — plus optional <code>duration:</code> (e.g. <code>2h</code>),
+    <li><code>!poll question:… choices:A | B | C</code> — plus optional <code>duration:</code> (e.g. <code>2h</code>),
       <code>multiple:</code> (allow more than one vote) and <code>max_votes:</code>.</li>
-    <li><code>/poll-end [message]</code> — closes the latest poll in the channel (or a specific one) and posts results.
+    <li><code>!poll-end [message]</code> — closes the latest poll in the channel (or a specific one) and posts results.
       Creator or Manage Messages only.</li>
   </ul>
   <p class="small u-m0 u-mt-2">Votes are cast with these reactions:

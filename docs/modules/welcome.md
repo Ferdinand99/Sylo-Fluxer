@@ -9,7 +9,6 @@ attach a generated **welcome image**.
 
 - **Send Messages**, **Embed Links** in the target channel; **Attach Files** for
   the welcome image.
-- **Server Members** intent (`INTENT_GUILD_MEMBERS`).
 
 ## Settings
 

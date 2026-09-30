@@ -4,12 +4,12 @@
 <p class="muted small">
   A <strong>hub</strong> is a "Join to create" voice channel. When a member joins it, Sylo makes them a
   personal voice channel (optionally with a paired text channel), moves them in, and cleans it up after
-  everyone leaves. Owners and voice moderators control it with the <code>/voice-*</code> commands.
+  everyone leaves. Owners and voice moderators control it with the <code>!voice-*</code> commands.
   Sylo needs <strong>Manage Channels</strong> and <strong>Move Members</strong>.
 </p>
 
 <% if ((voiceChannels || []).length === 0) { %>
-  <div class="banner bad">This server has no voice channels — create the hub channel in Discord first.</div>
+  <div class="banner bad">This server has no voice channels — create the hub channel in Fluxer first.</div>
 <% } %>
 
 <div class="rr-list-head">
@@ -47,10 +47,10 @@
 <p class="muted small">Available to the channel owner and voice moderators. Restrict them per server on the
   <a href="/guilds/<%= guild.id %>/commands">Commands</a> page.</p>
 <ul class="muted small" style="columns:2; margin:0; padding-left:18px; line-height:1.8">
-  <li><code>/voice-lock</code> · <code>/voice-unlock</code></li>
-  <li><code>/voice-hide</code> · <code>/voice-reveal</code></li>
-  <li><code>/voice-limit</code> · <code>/voice-rename</code></li>
-  <li><code>/voice-kick</code> · <code>/voice-ban</code> · <code>/voice-unban</code></li>
-  <li><code>/voice-claim</code> · <code>/voice-transfer</code> · <code>/voice-owner</code></li>
-  <li><code>/voice-clean</code> <span class="muted">(mods)</span></li>
+  <li><code>!voice-lock</code> · <code>!voice-unlock</code></li>
+  <li><code>!voice-hide</code> · <code>!voice-reveal</code></li>
+  <li><code>!voice-limit</code> · <code>!voice-rename</code></li>
+  <li><code>!voice-kick</code> · <code>!voice-ban</code> · <code>!voice-unban</code></li>
+  <li><code>!voice-claim</code> · <code>!voice-transfer</code> · <code>!voice-owner</code></li>
+  <li><code>!voice-clean</code> <span class="muted">(mods)</span></li>
 </ul>

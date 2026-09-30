@@ -204,7 +204,7 @@ export default function Health() {
               <p>
                 {d.devLogConfigured
                   ? 'Sylo posts its own errors here — separate from any per-guild logging/modlog channel.'
-                  : 'Not set up — set DEV_LOG_CHANNEL_ID to a channel id to get a proactive Discord message whenever Sylo logs an error.'}
+                  : 'Not set up — set DEV_LOG_CHANNEL_ID to a channel id to get a proactive Fluxer message whenever Sylo logs an error.'}
               </p>
             </div>
             {d.devLogConfigured ? (

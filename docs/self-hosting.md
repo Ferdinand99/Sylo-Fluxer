@@ -1,18 +1,19 @@
-# Self-hosting Sylo
+# Self-hosting Sylo-Fluxer
 
 Everything needed to run your own instance: install, configuration, a reverse
 proxy, upgrades and rollback, and a troubleshooting table. For what each feature
 does, see [`docs/modules/`](modules/README.md).
 
-Sylo is a single Node 22 process — the Discord bot and the web dashboard in one.
-No build step. All state is one SQLite file under a mounted data directory by
-default — that's the right choice for nearly everyone; see
-[docs/postgres.md](postgres.md) if you're running at hosted scale and want
-the optional Postgres backend instead.
+Sylo-Fluxer is a single Node 22 process — the Fluxer bot and the web dashboard
+in one. No build step. All state is one SQLite file under a mounted data
+directory by default — that's the right choice for nearly everyone; see
+[docs/postgres.md](postgres.md) if you're running at hosted scale and want the
+optional Postgres backend instead.
 
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
-- [Discord application setup](#discord-application-setup)
+- [Fluxer application setup](#fluxer-application-setup)
+- [A self-hosted Fluxer instance](#a-self-hosted-fluxer-instance)
 - [Dashboard authentication](#dashboard-authentication)
 - [Behind a reverse proxy](#behind-a-reverse-proxy)
 - [Docker](#docker)
@@ -27,10 +28,10 @@ the optional Postgres backend instead.
 ## Quick start
 
 ```bash
-git clone https://github.com/Ferdinand99/Sylo.git
-cd Sylo
+git clone https://github.com/Ferdinand99/Sylo-Fluxer.git
+cd Sylo-Fluxer
 npm install
-cp .env.example .env        # fill in DISCORD_TOKEN and DISCORD_CLIENT_ID
+cp .env.example .env        # fill in FLUXER_TOKEN and FLUXER_CLIENT_ID
 npm start
 ```
 
@@ -39,111 +40,142 @@ Or with Docker:
 ```bash
 cp .env.example .env
 docker compose up -d --build
-docker compose logs -f sylo
+docker compose logs -f sylo-fluxer
 ```
 
 The dashboard is then on `http://<host>:${WEB_PORT:-3000}` and the database
 persists in `./data`.
 
-For fast iteration set `DISCORD_DEV_GUILD_IDS` to a test server's id — commands
-register to it instantly instead of taking up to ~1 hour globally. `npm run
-register` re-syncs commands without a restart.
+Commands are typed in chat with a prefix — `!` by default, changeable per
+server with `!prefix` or on the dashboard. Mentioning the bot works too
+(`@Sylo help`). There is nothing to register: new and changed commands work as
+soon as the process restarts.
 
 ---
 
 ## Environment variables
 
-Only `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` are required.
+Only `FLUXER_TOKEN` and `FLUXER_CLIENT_ID` are required.
+[`.env.example`](../.env.example) lists them all with comments.
 
 | Variable                  | Default                         | Description |
 |---------------------------|---------------------------------|-------------|
-| `DISCORD_TOKEN`           | —                               | Bot token (**required**) |
-| `DISCORD_CLIENT_ID`       | —                               | Application (client) id (**required**) |
-| `DISCORD_DEV_GUILD_IDS`   | —                               | Register commands instantly to one or more servers (comma/space-separated) instead of globally. Old name `DISCORD_GUILD_ID` still works (warns). |
-| `DISCORD_SHARD_COUNT`     | `auto`                          | Internal gateway shards for this one process. `auto` follows Discord's recommendation and stays at 1 below ~2,500 servers; pin an integer to override. Multi-process sharding is not supported. |
+| `FLUXER_TOKEN`            | —                               | Bot token (**required**) |
+| `FLUXER_CLIENT_ID`        | —                               | Application id (**required**) |
+| `FLUXER_SHARD_COUNT`      | `auto`                          | Internal gateway shards for this one process. `auto` stays at 1 below ~2,500 communities; pin an integer to override. Multi-process sharding is not supported. |
+| `FLUXER_API_URL`          | hosted Fluxer                   | A self-hosted instance's public API origin, e.g. `https://chat.example.com/api` — see [below](#a-self-hosted-fluxer-instance) |
+| `FLUXER_WEB_URL`          | hosted Fluxer                   | That instance's web app origin, e.g. `https://chat.example.com` |
+| `FLUXER_TIMESTAMPS`       | `native`                        | `native` (`<t:…>` markup, shown in each reader's timezone) or `text` (a plain UTC string) |
 | `WEB_PORT`                | `3000`                          | Dashboard HTTP port |
-| `DISCORD_CLIENT_SECRET`   | —                               | Set to require "Log in with Discord" on the dashboard |
+| `FLUXER_CLIENT_SECRET`    | —                               | Set to require "Log in with Fluxer" on the dashboard |
 | `SESSION_SECRET`          | random                          | Signs the session cookie; pin it so logins survive restarts |
-| `OWNER_IDS`               | —                               | Your Discord user id(s), comma/space-separated. Gates `/health` to just these accounts when `DISCORD_CLIENT_SECRET` is set — everyone else is blocked, not just non-admins |
-| `DEV_LOG_CHANNEL_ID`      | —                               | A channel id Sylo posts its own errors to — a "dev-log", separate from any per-guild logging/modlog channel. Optional; without it there's no proactive notification |
+| `OWNER_IDS`               | —                               | Your Fluxer user id(s), comma/space-separated. Gates `/health` to just these accounts when `FLUXER_CLIENT_SECRET` is set — everyone else is blocked, not just non-admins |
+| `DEV_LOG_CHANNEL_ID`      | —                               | A channel id Sylo posts its own errors to — a "dev-log", separate from any per-server logging/modlog channel. Optional |
 | `DASHBOARD_URL`           | derived                         | Public dashboard URL; needed behind a reverse proxy and for verification-captcha / ban-appeal links |
 | `TURNSTILE_SITE_KEY`      | —                               | Cloudflare Turnstile site key — enables the Verification captcha mode |
 | `TURNSTILE_SECRET_KEY`    | —                               | Cloudflare Turnstile secret key (pair with the site key) |
 | `ITAD_API_KEY`            | —                               | IsThereAnyDeal key — adds non-Epic stores to the Free games module |
-| `INTENT_GUILD_MEMBERS`    | `true`                          | Request the Server Members privileged intent |
-| `INTENT_MESSAGE_CONTENT`  | `true`                          | Request the Message Content privileged intent |
+| `TWITCH_CLIENT_ID` / `_SECRET` | —                          | Twitch app credentials for the Twitch alerts module |
+| `KICK_CLIENT_ID` / `_SECRET`   | —                          | Kick app credentials for the Kick alerts module |
 | `GAMETOOLS_API_BASE`      | `https://api.gametools.network` | Stats API base URL |
 | `STATS_CACHE_TTL_MINUTES` | `5`                             | How long stats lookups are cached |
 | `DATABASE_PATH`           | `./data/sylo.db`                | SQLite file path |
-| `DATABASE_URL`            | —                               | Optional: a `postgres://` URL to use Postgres instead of SQLite. Hosted-scale deployments only — see [docs/postgres.md](postgres.md). Unset (default) means nothing about the setup below changes. |
+| `DATABASE_URL`            | —                               | Optional: a `postgres://` URL to use Postgres instead of SQLite. Hosted-scale deployments only — see [docs/postgres.md](postgres.md) |
 | `BACKUP_INTERVAL_HOURS`   | `24`                            | Scheduled DB snapshot interval; `0` disables it (pre-migration + manual still run) |
 | `BACKUP_RETENTION`        | `14`                            | How many DB snapshots to keep in `<data>/backups` |
 | `BACKUP_DIR`              | `<db dir>/backups`              | Where DB snapshots are written |
 | `LOG_LEVEL`               | `info`                          | `debug` / `info` / `warn` / `error` |
-| `LOG_FORMAT`              | `text`                          | `text` or `json` (`LOG_JSON=1` = json) |
+| `LOG_FORMAT`              | `text`                          | `text` or `json` |
 | `NODE_ENV`                | `development`                   | Set to `production` in deployment |
+| `TZ`                      | system                          | Timezone for transcript timestamps (IANA name) |
 
-### Privileged intents
-
-Both privileged intents default **on**. Several modules need them:
-
-| Intent | Env var | Modules that need it |
-|---|---|---|
-| Server Members | `INTENT_GUILD_MEMBERS` | logging, roles, verification, welcome, leveling, server-stats, invite-tracker |
-| Message Content | `INTENT_MESSAGE_CONTENT` | logging, autoresponder, counting, automod, starboard |
-
-Enable them on the Discord Developer Portal (**Bot → Privileged Gateway
-Intents**). If you don't want those modules, set the env var to `false` and Sylo
-starts without requesting that intent. A verified bot (100+ servers) needs
-Discord's approval for Message Content.
+Fluxer has no gateway intents, so there is nothing to enable for modules that
+read members or message content.
 
 ---
 
-## Discord application setup
+## Fluxer application setup
 
-1. <https://discord.com/developers/applications> → **New Application**.
-2. **Bot** tab → **Reset Token** → copy into `DISCORD_TOKEN`. Enable the
-   privileged intents you need (see above).
-3. **General Information** → copy **Application ID** into `DISCORD_CLIENT_ID`.
-4. **OAuth2 → URL Generator** → scopes `bot` + `applications.commands`. Bot
-   permissions:
-   - **Send Messages**, **Embed Links** — always
+1. In the Fluxer app open **User Settings → Developer → Applications** and
+   create an application.
+2. *Secrets & tokens* → **Bot token** → copy into `FLUXER_TOKEN`.
+3. Copy the **Application ID** at the top of the page into `FLUXER_CLIENT_ID`.
+4. Invite the bot — the dashboard header has an **Invite** link once Sylo is
+   running, or open (replace the id):
+
+   ```
+   https://web.fluxer.app/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot&permissions=1100469103831
+   ```
+
+   That permission set covers:
+   - **View Channel**, **Send Messages**, **Embed Links**, **Add Reactions**,
+     **Read Message History** — always
    - **Attach Files** — welcome images, rank cards, leaderboard cards
-   - **Kick Members**, **Ban Members**, **Moderate Members**, **Manage Messages** — moderation
-   - **Manage Channels** — `/lock`, `/lockdown`, `/slowmode`, temporary voice
+   - **Kick Members**, **Ban Members**, **Moderate Members**, **Manage Messages**,
+     **View Audit Log** — moderation and logging
+   - **Manage Channels** — `!lock`, `!lockdown`, `!slowmode`, temporary voice, server statistics
    - **Manage Roles** — reaction roles, autoroles, verification, leveling rewards, birthday role
-   - **Move Members** — temporary voice channels
-   - **Manage Server** — invite tracker (reads the invite list) and the automod
-     push to native Discord AutoMod (creates/edits `Sylo:`-named rules)
+   - **Manage Nicknames** — AFK
+   - **Connect**, **Move Members** — temporary voice channels
+   - **Create Invite** — personal `!invites` links
+   - **Manage Webhooks** — requested, but no current module uses it
 
-   Open the generated URL to invite the bot. Tickets (modmail) need no extra
-   permission — just leave the bot able to receive DMs.
-5. Drag **Sylo's role above the roles it should manage** in *Server Settings →
-   Roles*. The bot can never kick/ban/timeout someone whose highest role sits
-   above its own, or edit a role above its own.
+   Not included: **Manage Server**. Give Sylo's role that permission by hand if
+   you use the invite tracker (it reads the community's invite list).
+5. Drag **Sylo's role above the roles it should manage** in the community's
+   role settings. The bot can never kick/ban/timeout someone whose highest role
+   sits above its own, or edit a role above its own.
+
+Tickets (modmail) and DM replies need members to allow DMs from community bots
+(*User Settings → Privacy → Friends & direct messages*).
+
+---
+
+## A self-hosted Fluxer instance
+
+Sylo talks to hosted Fluxer (fluxer.app) by default. To run it against your own
+Fluxer instance instead:
+
+1. Create the application and bot **on that instance** — a token from
+   fluxer.app doesn't work anywhere else, and vice versa.
+2. Set both origins:
+
+   ```env
+   FLUXER_API_URL=https://chat.example.com/api
+   FLUXER_WEB_URL=https://chat.example.com
+   ```
+
+3. Use `https://chat.example.com/oauth2/authorize?…` for the invite link and
+   add the dashboard's redirect URI in the application on that instance.
+
+At startup Sylo reads the instance's `/.well-known/fluxer` and takes its media,
+CDN, gateway and invite hosts from there, so avatars, emojis and invite links
+point at the instance. If that document can't be loaded, a warning is logged and
+Sylo starts with hosted Fluxer's CDN for images.
 
 ---
 
 ## Dashboard authentication
 
-By default the dashboard runs **open** (no login) — only safe on `localhost` or a
-trusted LAN. Even in open mode a same-origin check blocks cross-site form posts.
+By default the dashboard runs **open** (no login) — only safe on `localhost` or
+a trusted LAN. Even in open mode a same-origin check blocks cross-site form
+posts.
 
 To require a login:
 
-1. Developer Portal → your app → **OAuth2** → copy the **Client Secret** into
-   `DISCORD_CLIENT_SECRET`.
-2. Same page → **Redirects** → add `<DASHBOARD_URL>/auth/discord/callback`
-   (e.g. `http://192.168.1.10:3000/auth/discord/callback`, or the public HTTPS
-   URL behind a proxy).
-3. Set a long random `SESSION_SECRET`.
-4. Set `OWNER_IDS` to your own Discord user id — without it, `/health` (status,
+1. Your Fluxer application → *Secrets & tokens* → copy the **Client secret**
+   into `FLUXER_CLIENT_SECRET`.
+2. Add a **Redirect URI**: `<DASHBOARD_URL>/auth/fluxer/callback` (e.g.
+   `http://192.168.1.10:3000/auth/fluxer/callback`, or the public HTTPS URL
+   behind a proxy). It must match exactly.
+3. Set a long random `SESSION_SECRET` (`openssl rand -hex 32`).
+4. Set `OWNER_IDS` to your own Fluxer user id — without it, `/health` (status,
    error log, database backup/restore) is reachable by no one, not even you.
 
-With `DISCORD_CLIENT_SECRET` set, every page except the `/health` JSON and the
-`/metrics` scrape endpoint requires "Log in with Discord". Per-server pages
-require **Manage Server** (or Administrator / owner) in that server, or one of the
-**bot-master roles** set on that server's *Settings* page.
+With `FLUXER_CLIENT_SECRET` set, every page except the `/health` JSON and the
+`/metrics` scrape endpoint requires "Log in with Fluxer". Per-server pages
+require **Manage Server** (or Administrator / owner) in that server, or one of
+the **bot-master roles** set on that server's *Settings* page.
 
 `/health` (JSON) and `/metrics` stay unauthenticated so a monitor or Prometheus
 can reach them — keep them on your LAN, or restrict them at the reverse proxy if
@@ -157,9 +189,9 @@ count, HTTP and command rates, DB size, module adoption).
 
 Every local snapshot can also be shipped, gzipped, to a remote target — set any
 of `BACKUP_WEBDAV_URL` (+ `BACKUP_WEBDAV_USER` / `BACKUP_WEBDAV_PASS`, e.g. a
-Nextcloud folder) or `BACKUP_WEBHOOK_URL` (a Discord webhook; attachments over
-~8 MiB are skipped). Uploads are best-effort and logged; they never hold up the
-local backup. The Health page shows which targets are active.
+Nextcloud folder) or `BACKUP_WEBHOOK_URL` (a webhook that accepts file uploads;
+attachments over ~8 MiB are skipped). Uploads are best-effort and logged; they
+never hold up the local backup. The Health page shows which targets are active.
 
 ---
 
@@ -167,8 +199,8 @@ local backup. The Health page shows which targets are active.
 
 Set `DASHBOARD_URL` to the public URL and proxy to `127.0.0.1:${WEB_PORT}`. Sylo
 then trusts one proxy hop (`X-Forwarded-*`), which it needs for correct client
-IPs (rate limiting) and OAuth redirects. Make sure the OAuth **redirect** in the
-Developer Portal matches `<DASHBOARD_URL>/auth/discord/callback`.
+IPs (rate limiting) and OAuth redirects. Make sure the **Redirect URI** in your
+Fluxer application matches `<DASHBOARD_URL>/auth/fluxer/callback`.
 
 **Caddy**
 
@@ -213,16 +245,16 @@ docker compose up -d --build
 
 ### Prebuilt images
 
-CI publishes multi-arch (`linux/amd64` + `linux/arm64`) images to two registries:
+CI publishes multi-arch (`linux/amd64` + `linux/arm64`) images to GHCR:
 
-| Tag | Registry | What it is |
-| --- | --- | --- |
-| `iwgamin/sylo:latest`, `:X.Y.Z`, `:X.Y` | [Docker Hub](https://hub.docker.com/r/iwgamin/sylo) · [GHCR](https://github.com/Ferdinand99/Sylo/pkgs/container/sylo) | Stable releases. What the Unraid template pulls. |
-| `ghcr.io/ferdinand99/sylo:main`, `:sha-<short>` | GHCR only | Rolling build of `main` — every push. |
+| Tag | What it is |
+| --- | --- |
+| `ghcr.io/ferdinand99/sylo-fluxer:latest`, `:X.Y.Z`, `:X.Y` | Stable releases. What the Unraid template pulls. |
+| `ghcr.io/ferdinand99/sylo-fluxer:main`, `:sha-<short>` | Rolling build of `main` — every push. |
 
 ```bash
-docker run -d --name sylo -p 3000:3000 --env-file .env \
-  -v "$PWD/data:/app/data" --restart unless-stopped iwgamin/sylo:latest
+docker run -d --name sylo-fluxer -p 3000:3000 --env-file .env \
+  -v "$PWD/data:/app/data" --restart unless-stopped ghcr.io/ferdinand99/sylo-fluxer:latest
 ```
 
 If `better-sqlite3` ever fails to build on Alpine for your platform, change the
@@ -232,19 +264,24 @@ two `FROM node:22-alpine` lines in the `Dockerfile` to `node:22-slim`.
 
 ## Unraid
 
-Sylo is in the Unraid **Community Applications** store — search "Sylo". Template
-edits on `main` propagate automatically (via `<TemplateURL>` in
-`unraid/sylo.xml`), so no re-submission is needed for config changes.
+The template lives in
+[Ferdinand99/unraid-templates](https://github.com/Ferdinand99/unraid-templates).
+Search for **Sylo-Fluxer** in **Apps** (Community Applications); until it's
+listed there, add `https://github.com/Ferdinand99/unraid-templates` under
+**Docker → Template repositories** and pick it from **Add Container**.
 
 Manual container setup (Docker tab → Add Container):
 
 | Field | Value |
 |---|---|
-| Repository | `docker.io/iwgamin/sylo:latest` |
+| Repository | `ghcr.io/ferdinand99/sylo-fluxer:latest` |
 | Network | `bridge` |
-| Port | Container `3000` → Host `3000` |
+| Port | Container `3000` → a free host port |
 | Path | Container `/app/data` → a real local path (see the caveat below) |
-| Variable | `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `NODE_ENV=production` |
+| Variable | `FLUXER_TOKEN`, `FLUXER_CLIENT_ID`, `NODE_ENV=production` |
+
+If you also run the Discord Sylo on the same server, give Sylo-Fluxer its own
+container name, host port and data path.
 
 The image starts as root only long enough to fix ownership of the data
 directory, then runs as an unprivileged user (`sylo`, uid 100). A fresh
@@ -261,8 +298,8 @@ NFS, Unraid's `/mnt/user` (shfs / FUSE) and some Docker-Desktop bind mounts don'
 provide them reliably, and you get `SQLITE_IOERR`, `database is locked`, or
 silent corruption.
 
-- **Unraid:** use a cache-pool path such as `/mnt/cache/appdata/sylo`, or a
-  disk-share path like `/mnt/disk1/appdata/sylo` — not `/mnt/user/...`.
+- **Unraid:** use a cache-pool path such as `/mnt/cache/appdata/sylo-fluxer`, or
+  a disk-share path like `/mnt/disk1/appdata/sylo-fluxer` — not `/mnt/user/...`.
 - **NAS / remote:** run Sylo on the box that owns the disk, or use a local
   volume.
 
@@ -299,7 +336,7 @@ Per-server module config can also be exported as JSON from **General → Backup*
 **Upgrade (prebuilt image):**
 
 ```bash
-docker compose pull        # or: docker pull iwgamin/sylo:latest
+docker compose pull        # or: docker pull ghcr.io/ferdinand99/sylo-fluxer:latest
 docker compose up -d
 ```
 
@@ -314,11 +351,12 @@ npm install
 On start, Sylo applies any new schema migrations inside a transaction, taking a
 `sylo-premigrate-vN-*.db` snapshot first.
 
-**Rollback:** pull the previous image tag (`iwgamin/sylo:3.4.1`), or `git
-checkout` the previous tag, then restore the matching `sylo-premigrate-*` (or a
-dated) snapshot from `data/backups/` over `data/sylo.db`. A newer database can't
-be opened by an older build — the schema check refuses it — so always roll the
-database back together with the code.
+**Rollback:** pull the previous image tag (e.g.
+`ghcr.io/ferdinand99/sylo-fluxer:0.1.2`), or `git checkout` the previous tag,
+then restore the matching `sylo-premigrate-*` (or a dated) snapshot from
+`data/backups/` over `data/sylo.db`. A newer database can't be opened by an
+older build — the schema check refuses it — so always roll the database back
+together with the code.
 
 ---
 
@@ -326,12 +364,14 @@ database back together with the code.
 
 | Symptom | Cause / fix |
 |---|---|
-| `Used disallowed intents` on start | A privileged intent is requested but not enabled in the Developer Portal. Enable it, or set `INTENT_GUILD_MEMBERS=false` / `INTENT_MESSAGE_CONTENT=false`. |
-| Slash commands don't appear | Global registration takes up to ~1 hour. Set `DISCORD_DEV_GUILD_IDS` for instant per-server registration, or wait. `npm run register` re-syncs. |
-| "Log in with Discord" loops / `redirect_uri` mismatch | The Developer Portal **Redirect** must exactly equal `<DASHBOARD_URL>/auth/discord/callback`, scheme and port included. |
+| `Gateway authentication failed (4004)` on start | The token is wrong, or it belongs to another Fluxer instance — a fluxer.app token doesn't work against a self-hosted instance (set `FLUXER_API_URL` / `FLUXER_WEB_URL`) and vice versa. |
+| The bot doesn't answer commands | Check the prefix (`@Sylo prefix` shows it), and that the bot can **View Channel** and **Send Messages** there. Only one process may use a token at a time — a second copy makes commands run twice or not at all. |
+| "Log in with Fluxer" loops / `redirect_uri` mismatch | The application's **Redirect URI** must exactly equal `<DASHBOARD_URL>/auth/fluxer/callback`, scheme and port included. |
+| DMs from Sylo don't arrive (tickets, verification reply) | The member doesn't allow DMs from community bots (*User Settings → Privacy*). Sylo falls back to a short-lived mention in the channel where it can. |
+| Avatars or emojis broken on a self-hosted instance | Sylo couldn't load the instance's `/.well-known/fluxer` at startup (a warning is logged). Check `FLUXER_API_URL`. |
 | `SQLITE_CANTOPEN` | The data directory isn't writable by uid 100. `chown -R 100:101 <data path>`. |
 | `SQLITE_IOERR`, `database is locked`, corruption | The database is on a network share. Move it to a local disk — see [SQLite on a network mount](#sqlite-on-a-network-mount). |
-| `better-sqlite3` fails to build | Switch the `Dockerfile` base images to `node:22-slim`, or install `python3 make g++` for a from-source build. |
+| `better-sqlite3` fails to build | Switch the `Dockerfile` base images to `node:22-slim`, or install `python3 make g++` for a from-source build. On Windows, use Node 22 (prebuilt binaries) or install the Visual Studio build tools. |
 | Moderation says it can't act on a member | Sylo's highest role must sit above the target's, and it needs the relevant permission (Ban/Kick/Moderate Members). |
 | Welcome image / rank card missing | The bot lacks **Attach Files** in that channel, or `@napi-rs/canvas` didn't load on this platform (a warning is logged; the text message still sends). |
-| Dashboard shows "open mode — no auth" | `DISCORD_CLIENT_SECRET` isn't set. That's expected for LAN use; set it to require a login. |
+| Dashboard shows "open mode — no auth" | `FLUXER_CLIENT_SECRET` isn't set. That's expected for LAN use; set it to require a login. |

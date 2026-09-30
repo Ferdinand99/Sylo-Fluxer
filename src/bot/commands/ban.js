@@ -1,4 +1,4 @@
-// /ban <user> [reason] [delete_messages] — ban a member, or pre-ban a user by ID.
+// !ban <user> [reason] [delete_messages] — ban a member, or pre-ban a user by ID.
 import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';

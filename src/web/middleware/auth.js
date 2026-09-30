@@ -15,7 +15,13 @@ import { getBotMasterRoles } from '../../db/guildSettings.js';
 import { rateLimit } from './rateLimit.js';
 import { log } from '../../lib/log.js';
 import { PermissionFlagsBits } from '../../platform/index.js';
-import { API_BASE, OAUTH_AUTHORIZE_URL, OAUTH_TOKEN_URL, avatarUrl } from '../../platform/urls.js';
+import {
+  API_BASE,
+  OAUTH_AUTHORIZE_URL,
+  OAUTH_TOKEN_URL,
+  avatarUrl,
+  messageUrl,
+} from '../../platform/urls.js';
 
 const OAUTH_SCOPES = 'identify guilds';
 
@@ -335,6 +341,7 @@ export function mountAuth(app) {
     res.locals.authEnabled = config.authEnabled;
     res.locals.syloVersion = BUILD.version;
     res.locals.botInviteUrl = botInviteUrl();
+    res.locals.messageUrl = messageUrl;
     // The bot's own avatar, used as the dashboard favicon (null until ready).
     res.locals.botAvatarUrl = runtime.client?.user?.displayAvatarURL({ extension: 'png', size: 64 }) ?? null;
     res.locals.user = currentUser(req);

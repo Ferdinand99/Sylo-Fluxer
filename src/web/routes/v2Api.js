@@ -6,6 +6,7 @@
 import { createRequire } from 'node:module';
 import { Router, raw } from 'express';
 import { PermissionFlagsBits } from '../../platform/index.js';
+import { WEB_ORIGIN } from '../../platform/urls.js';
 import {
   requireGuildAdmin,
   requireOwner,
@@ -512,6 +513,8 @@ router.get(
       channels: guildTextChannels(req.guild),
       roles: assignableRoles(req.guild),
       actions: HONEYPOT_ACTIONS,
+      // The web app's origin, for "Live" links to the posted trap messages.
+      webUrl: WEB_ORIGIN,
       catches: (await recentHoneypotCatches(req.guild.id, 25)).map((c) => ({
         userTag: c.user_tag,
         kind: c.kind,

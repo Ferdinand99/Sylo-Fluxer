@@ -60,7 +60,7 @@
       <% } %>
     </select>
     <label class="checkline"><input type="checkbox" name="ownershipLock" <%= hub.ownershipLock ? 'checked' : '' %> />
-      Ownership lock — don't auto-transfer if the owner leaves (they can <code>/voice-claim</code> it back)</label>
+      Ownership lock — don't auto-transfer if the owner leaves (they can <code>!voice-claim</code> it back)</label>
   </section>
 
   <section class="card stack">
@@ -79,16 +79,16 @@
     <label class="checkline"><input type="checkbox" name="useRolesForAccess" <%= hub.useRolesForAccess ? 'checked' : '' %> />
       Also use these roles to gate access to the temporary channels</label>
 
-    <label class="small u-mt-2">Ignored roles <span class="muted">— not affected by <code>/voice-*</code></span></label>
+    <label class="small u-mt-2">Ignored roles <span class="muted">— not affected by <code>!voice-*</code></span></label>
     <%- include('partials/chip-picker', { field: 'ignoredRoles', kind: 'role', items: roles, selected: hub.ignoredRoles }) %>
 
-    <label class="small u-mt-2">Moderator roles <span class="muted">— can run <code>/voice-*</code> on any temp channel</span></label>
+    <label class="small u-mt-2">Moderator roles <span class="muted">— can run <code>!voice-*</code> on any temp channel</span></label>
     <%- include('partials/chip-picker', { field: 'moderatorRoles', kind: 'role', items: roles, selected: hub.moderatorRoles }) %>
   </section>
 
   <section class="card stack">
     <h2 class="u-m0">Owner permissions</h2>
-    <p class="muted small">What the member who created the channel can do to it in Discord directly.</p>
+    <p class="muted small">What the member who created the channel can do to it in Fluxer directly.</p>
     <label class="checkline"><input type="checkbox" name="op_manageChannels" <%= hub.ownerPerms.manageChannels ? 'checked' : '' %> /> Manage Channel (rename, user limit)</label>
     <label class="checkline"><input type="checkbox" name="op_managePermissions" <%= hub.ownerPerms.managePermissions ? 'checked' : '' %> /> Manage Permissions</label>
     <label class="checkline"><input type="checkbox" name="op_prioritySpeaker" <%= hub.ownerPerms.prioritySpeaker ? 'checked' : '' %> /> Priority Speaker</label>
@@ -99,8 +99,8 @@
     <h2 class="u-m0">Text channel</h2>
     <label class="checkline"><input type="checkbox" name="tc_enabled" <%= hub.textChannel.enabled ? 'checked' : '' %> /> Create a paired temporary text channel</label>
     <label class="checkline"><input type="checkbox" name="tc_restrict" <%= hub.textChannel.restrict ? 'checked' : '' %> /> Only connected members (and mods) can read it</label>
-    <label class="checkline"><input type="checkbox" name="tc_pinUsages" <%= hub.textChannel.pinUsages ? 'checked' : '' %> /> Pin a message listing the <code>/voice-*</code> commands</label>
-    <label class="checkline"><input type="checkbox" name="tc_restrictCommands" <%= hub.textChannel.restrictCommands ? 'checked' : '' %> /> Only allow <code>/voice-*</code> in this text channel</label>
+    <label class="checkline"><input type="checkbox" name="tc_pinUsages" <%= hub.textChannel.pinUsages ? 'checked' : '' %> /> Pin a message listing the <code>!voice-*</code> commands</label>
+    <label class="checkline"><input type="checkbox" name="tc_restrictCommands" <%= hub.textChannel.restrictCommands ? 'checked' : '' %> /> Only allow <code>!voice-*</code> in this text channel</label>
   </section>
 </form>
 

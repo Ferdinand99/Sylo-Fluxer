@@ -1,4 +1,4 @@
-// /poll — create a reaction poll in the current channel.
+// !poll — create a reaction poll in the current channel.
 import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 import { isModuleEnabled, getGuildModule } from '../../db/modules.js';

@@ -1,19 +1,23 @@
-# Contributing to Sylo
+# Contributing to Sylo-Fluxer
 
-Thanks for taking a look. Sylo is a single Node.js process (Discord bot + web
-dashboard) with SQLite persistence, run as a Docker container.
+Thanks for taking a look. Sylo-Fluxer is a single Node.js process (Fluxer bot +
+web dashboard) with SQLite persistence, run as a Docker container. It's a port of
+the Discord bot [Sylo](https://github.com/Ferdinand99/Sylo), so much of the code
+still reads like discord.js: `src/platform/compat.js` adds discord.js-style aliases
+to the Fluxer SDK, and `src/bot/framework/` turns `!commands` into slash-command-shaped
+interactions.
 
 ## Getting set up
 
 ```bash
 npm install
-cp .env.example .env      # add DISCORD_TOKEN + DISCORD_CLIENT_ID (a test bot)
+cp .env.example .env      # add FLUXER_TOKEN + FLUXER_CLIENT_ID (a test bot)
 npm start                 # or: npm run dev  (node --watch)
 ```
 
-Set `DISCORD_DEV_GUILD_IDS` to a private test server's id so slash commands
-register instantly (comma-separate for several). `npm run register` re-syncs
-without a restart. Full setup: [docs/self-hosting.md](docs/self-hosting.md).
+Commands are prefix commands (`!ping`); there is nothing to register, a restart
+picks up new ones. Only one process may use a bot token at a time, so give your
+dev copy its own test bot. Full setup: [docs/self-hosting.md](docs/self-hosting.md).
 
 ## Architecture
 
@@ -21,9 +25,10 @@ One process, no build step. Entry point `src/index.js` starts both halves:
 
 | Area | Where |
 |---|---|
-| Discord client, command loader, event wiring | `src/bot/` |
-| Slash commands (auto-discovered) | `src/bot/commands/*.js` — each exports `data` + `execute` |
-| Message-component routing | `src/bot/lib/components.js` (`registerComponent(scope, prefix, fn)`) |
+| Fluxer client, command loader, event wiring | `src/bot/` |
+| Commands (auto-discovered) | `src/bot/commands/*.js` — each exports `data` (a `SlashCommandBuilder` from `src/bot/framework/CommandBuilder.js`) + `execute` |
+| Prefix-command parsing and routing | `src/bot/framework/` (`router.js`, `parser.js`, `MessageInteraction.js`) |
+| Fluxer SDK compatibility aliases | `src/platform/` (`compat.js` — new code should use the native SDK) |
 | Feature modules | `src/modules/<id>.js` — register with `on(moduleId, event, fn)` from `dispatch.js` |
 | Module catalogue | `src/modules/registry.js` |
 | SQLite connection + forward-only migrations | `src/db/index.js` (`MIGRATIONS` array) |

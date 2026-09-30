@@ -78,7 +78,7 @@ export default function ColorPicker({ value, onChange, title }) {
         </svg>
       </summary>
       <div className="v2-colorpicker-panel">
-        <div className="v2-colorpicker-label">Discord colors</div>
+        <div className="v2-colorpicker-label">Preset colors</div>
         <div className="v2-colorpicker-row">
           {PRESETS.map((c) => (
             <button

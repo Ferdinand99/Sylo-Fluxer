@@ -4,7 +4,7 @@
         hx-post="/guilds/<%= guild.id %>/commands/<%= c.name %>" hx-target="this" hx-swap="none"
         class="cmd-override">
     <div class="cmd-override-head">
-      <code>/<%= c.name %></code>
+      <code>!<%= c.name %></code>
       <label class="switch">
         <input type="checkbox" name="enabled" <%= c.enabled ? 'checked' : '' %> />
         <span class="slider"></span>

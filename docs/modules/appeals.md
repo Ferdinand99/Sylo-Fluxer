@@ -1,6 +1,6 @@
 # Ban appeals
 
-When Sylo bans a member (via `/ban` or a warning auto-action), it DMs them a link
+When Sylo bans a member (via `!ban` or a warning auto-action), it DMs them a link
 to an appeal form. Staff read submissions and accept or deny them from the
 dashboard.
 
@@ -11,7 +11,6 @@ dashboard.
 - **Ban Members** (to lift a ban on accept).
 - A reachable `DASHBOARD_URL` — the appeal form is served at
   `<DASHBOARD_URL>/appeal/<token>`.
-- No privileged intents.
 
 ## Settings
 

@@ -1,4 +1,4 @@
-// /birthday set|remove|list — members save a birthday for the Birthdays module.
+// !birthday set|remove|list — members save a birthday for the Birthdays module.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
@@ -80,7 +80,7 @@ export async function execute(interaction) {
     }
     await setBirthday({ guildId, userId: interaction.user.id, month, day, year: year ?? null });
     return interaction.reply({
-      content: `🎂 Saved — **${MONTHS[month - 1]} ${day}**${year ? ` ${year}` : ''}. Use \`/birthday remove\` to delete it.`,
+      content: `🎂 Saved — **${MONTHS[month - 1]} ${day}**${year ? ` ${year}` : ''}. Use \`!birthday remove\` to delete it.`,
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -101,7 +101,7 @@ export async function execute(interaction) {
 
   const embed = new EmbedBuilder().setColor(INFO_COLOR).setTitle('Upcoming birthdays');
   if (rows.length === 0) {
-    embed.setDescription('Nobody has saved a birthday yet. Use `/birthday set`.');
+    embed.setDescription('Nobody has saved a birthday yet. Use `!birthday set`.');
   } else {
     embed.setDescription(
       rows

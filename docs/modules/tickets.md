@@ -8,8 +8,12 @@ from the dashboard — replies are delivered to the member as a DM from Sylo.
 
 ## Needs
 
-- No extra Discord permissions and no privileged intents — just leave the bot
-  able to receive DMs (Discord *Settings → Privacy* on the shared server).
+- No extra permissions. Members need to allow DMs from community bots
+  (Fluxer *User Settings → Privacy → Friends & direct messages*), otherwise
+  Sylo's replies can't reach them.
+
+A member who shares several servers with Sylo gets a numbered list by DM and
+replies with the number of the server the ticket is for.
 
 ## Settings
 
@@ -33,5 +37,5 @@ server. Staff reply as **Staff** from the ticket page; the member sees Sylo's DM
 **Close ticket** sends a final reply (or the default closing notice if the box is
 empty) and closes it. The member can open a new one by DMing again.
 
-`/forget` removes the member's ticket history and the messages they sent; staff
+`!forget` removes the member's ticket history and the messages they sent; staff
 replies already delivered are not clawed back.

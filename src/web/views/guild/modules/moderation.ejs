@@ -35,7 +35,7 @@
   <label class="u-mt-3">Delete inactive cases after <span class="muted small">— days; 0 = keep forever</span></label>
   <input type="number" name="infractionRetentionDays" min="0" max="3650" value="<%= Number(cfg.infractionRetentionDays) || 0 %>" />
   <p class="muted small">
-    A daily job removes cases that have been deleted (<code>/case delete</code>) or resolved (an unban / untimeout) once
+    A daily job removes cases that have been deleted (<code>!case delete</code>) or resolved (an unban / untimeout) once
     they are older than this. Active warnings and the visible history are never auto-removed.
   </p>
 

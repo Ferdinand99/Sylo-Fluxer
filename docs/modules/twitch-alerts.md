@@ -7,7 +7,6 @@ Announce in a channel when a Twitch streamer goes live.
 ## Needs
 
 - **Send Messages**, **Embed Links** in the alert channels.
-- No privileged intents. No API key — Sylo uses a public endpoint.
 
 ## Settings
 

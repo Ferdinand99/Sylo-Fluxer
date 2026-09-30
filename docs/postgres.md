@@ -134,7 +134,7 @@ underneath is different:
 | Live size shown | local file + WAL | `pg_database_size()` |
 
 Both live in the same `data/backups/` directory and go through the same
-off-site shipping (WebDAV / Discord webhook) if configured. A snapshot only
+off-site shipping (WebDAV / webhook) if configured. A snapshot only
 restores onto the driver it came from — trying to restore a `.dump` while
 running on SQLite (or vice versa) fails with a clear error instead of doing
 something destructive.

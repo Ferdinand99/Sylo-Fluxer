@@ -1,4 +1,4 @@
-// /giveaway start|end|reroll|list — run prize giveaways with an Enter button.
+// !giveaway start|end|reroll|list — run prize giveaways with an Enter button.
 import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
@@ -54,7 +54,7 @@ export const data = new SlashCommandBuilder()
       .setName('end')
       .setDescription('End a giveaway now and draw the winners.')
       .addIntegerOption((o) =>
-        o.setName('id').setDescription('Giveaway id (see /giveaway list)').setRequired(true)
+        o.setName('id').setDescription('Giveaway id (see !giveaway list)').setRequired(true)
       )
   )
   .addSubcommand((s) =>
@@ -126,7 +126,7 @@ export async function execute(interaction) {
     const id = interaction.options.getInteger('id', true);
     const g = await getGiveawayInGuild(id, interaction.guildId);
     if (!g) return eph(interaction, `No giveaway **#${id}** in this server.`);
-    if (g.ended) return eph(interaction, `Giveaway **#${id}** has already ended — use \`/giveaway reroll\`.`);
+    if (g.ended) return eph(interaction, `Giveaway **#${id}** has already ended — use \`!giveaway reroll\`.`);
     const r = await endGiveaway(id);
     return eph(
       interaction,
@@ -142,7 +142,7 @@ export async function execute(interaction) {
     const g = await getGiveawayInGuild(id, interaction.guildId);
     if (!g) return eph(interaction, `No giveaway **#${id}** in this server.`);
     if (!g.ended)
-      return eph(interaction, `Giveaway **#${id}** is still running — use \`/giveaway end\` first.`);
+      return eph(interaction, `Giveaway **#${id}** is still running — use \`!giveaway end\` first.`);
     const r = await endGiveaway(id, { rerollCount: count });
     return eph(
       interaction,
@@ -154,7 +154,7 @@ export async function execute(interaction) {
 
   // list
   const active = await activeGiveaways(interaction.guildId);
-  if (!active.length) return eph(interaction, 'No active giveaways. Start one with `/giveaway start`.');
+  if (!active.length) return eph(interaction, 'No active giveaways. Start one with `!giveaway start`.');
   const lines = await Promise.all(
     active.map(
       async (g) =>

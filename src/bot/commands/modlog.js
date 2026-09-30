@@ -1,4 +1,4 @@
-// /modlog set|disable|status — choose where moderation actions are logged.
+// !modlog set|disable|status — choose where moderation actions are logged.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, ChannelType } from '../../platform/index.js';
 import { getGuildSettings, setModlogChannel } from '../../db/guildSettings.js';
@@ -55,7 +55,7 @@ export async function execute(interaction) {
   // status
   const current = (await getGuildSettings(guildId))?.modlog_channel_id;
   await interaction.reply({
-    content: current ? `Mod-log channel: <#${current}>` : 'Mod-log is not configured. Use `/modlog set`.',
+    content: current ? `Mod-log channel: <#${current}>` : 'Mod-log is not configured. Use `!modlog set`.',
     flags: MessageFlags.Ephemeral,
   });
 }

@@ -9,7 +9,6 @@ Post a message when a followed feed publishes a new item. Handles a raw
 ## Needs
 
 - **Send Messages**, **Embed Links** in the target channels.
-- No privileged intents. No API key — Sylo fetches the feed URL directly.
 
 ## Settings
 

@@ -1,4 +1,4 @@
-// /freegames — show what's currently free to claim.
+// !freegames — show what's currently free to claim.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { MessageFlags } from '../../platform/index.js';
 import { getFreeGames, gameEmbed } from '../../modules/freeGames.js';

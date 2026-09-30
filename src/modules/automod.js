@@ -243,7 +243,7 @@ async function scan(message, config, opts) {
   const content = message.content;
 
   if (rules.invites.enabled && INVITE_RE.test(content)) {
-    return act(message, member, rules.invites, 'Discord invite', cfg);
+    return act(message, member, rules.invites, 'server invite', cfg);
   }
   if (rules.links.enabled) {
     const host = disallowedLink(content, rules.links.allowed);

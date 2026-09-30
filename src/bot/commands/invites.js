@@ -1,4 +1,4 @@
-// /invites [user] — a member's invite tally, plus a personal invite link.
+// !invites [user] — a member's invite tally, plus a personal invite link.
 import { SlashCommandBuilder } from '../framework/CommandBuilder.js';
 import { EmbedBuilder, MessageFlags, PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
@@ -38,7 +38,8 @@ async function personalLink(guild, userId) {
     return { error: 'I need the **Manage Server** permission to hand out invite links.' };
   }
   const existing = await getPersonalCode(guild.id, userId);
-  if (existing && all.has(existing)) return { url: `https://discord.gg/${existing}` };
+  // The invite's own url: fluxer.gg on hosted Fluxer, the instance's invite host otherwise.
+  if (existing && all.has(existing)) return { url: all.get(existing).url };
 
   const channel = pickInviteChannel(guild);
   if (!channel) return { error: 'I need the **Create Invite** permission in at least one channel.' };
@@ -46,7 +47,7 @@ async function personalLink(guild, userId) {
     const invite = await channel.createInvite({
       maxAge: 0,
       unique: true,
-      reason: `Personal invite link via /invites for ${userId}`,
+      reason: `Personal invite link via !invites for ${userId}`,
     });
     await setPersonalCode(guild.id, userId, invite.code);
     await primeGuild(guild); // teach the cache about the new code

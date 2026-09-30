@@ -8,7 +8,6 @@ on a leaderboard.
 ## Needs
 
 - **Manage Server** — required to read the server's invite list.
-- **Server Members** intent (`INTENT_GUILD_MEMBERS`).
 
 ## Settings
 
@@ -21,13 +20,13 @@ on a leaderboard.
 
 | Command | |
 |---|---|
-| `/invites [member]` | A member's invite count and personal invite link. |
-| `/inviter <member>` | Who invited that member. |
-| `/invites-leaderboard` | Top inviters in the server. |
+| `!invites [member]` | A member's invite count and personal invite link. |
+| `!inviter <member>` | Who invited that member. |
+| `!invites-leaderboard` | Top inviters in the server. |
 
 ## Notes
 
 - On enable, Sylo caches the current invite list so the *next* join can be
   attributed. Invites that existed before are still tracked once used.
-- `/forget` clears a member's tally and join record, and anonymises joins they
+- `!forget` clears a member's tally and join record, and anonymises joins they
   were credited with inviting.

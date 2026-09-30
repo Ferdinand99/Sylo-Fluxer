@@ -1,5 +1,5 @@
-// /lockdown start|end — lock (or unlock) every text channel at once, for raids.
-// Each channel's prior overwrite is saved individually, so `/lockdown end`
+// !lockdown start|end — lock (or unlock) every text channel at once, for raids.
+// Each channel's prior overwrite is saved individually, so `!lockdown end`
 // restores them to exactly where they were.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
@@ -26,7 +26,7 @@ export const data = new SlashCommandBuilder()
         o.setName('reason').setDescription('Shown in the audit log and mod-log').setMaxLength(400)
       )
   )
-  .addSubcommand((c) => c.setName('end').setDescription('Unlock everything /lockdown start locked.'));
+  .addSubcommand((c) => c.setName('end').setDescription('Unlock everything !lockdown start locked.'));
 
 /** @param {import('../framework/MessageInteraction.js').MessageInteraction} interaction */
 export async function execute(interaction) {

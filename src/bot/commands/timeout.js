@@ -1,4 +1,4 @@
-// /timeout <user> <duration> [reason] — temporarily mute a member (Discord timeout).
+// !timeout <user> <duration> [reason] — temporarily mute a member (Discord timeout).
 import { SlashCommandBuilder, InteractionContextType, DURATION } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags } from '../../platform/index.js';
 import { checkActable, notifyTarget, resultEmbed, NO_REASON } from '../lib/moderation.js';

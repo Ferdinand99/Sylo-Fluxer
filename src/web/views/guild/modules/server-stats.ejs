@@ -3,8 +3,8 @@
 <p class="muted small">
   Pick a <strong>voice channel</strong> (make one, lock it so nobody can join) and Sylo renames it to
   show a live count. Use <code>{count}</code> in the name, e.g. <code>Members: {count}</code>.
-  Sylo needs <strong>Manage Channels</strong> on each one. Discord rate-limits renames to about 2 per
-  10 minutes per channel, so 5 minutes is the fastest that works reliably — and a channel is only
+  Sylo needs <strong>Manage Channels</strong> on each one. Channel renames are rate-limited, so
+  5 minutes is the fastest interval Sylo allows — and a channel is only
   renamed when its number actually changes.
 </p>
 
@@ -37,7 +37,7 @@
   <label class="small u-mt-3">Refresh every (minutes)</label>
   <input class="u-w-num" type="number" name="refreshMinutes" min="5" max="60" step="1"
     value="<%= (cfg.refreshMinutes != null ? cfg.refreshMinutes : 10) %>" />
-  <span class="muted small">5–60. Lower is more current but closer to Discord's rename limit.</span>
+  <span class="muted small">5–60. Lower is more current but closer to the rename rate limit.</span>
 
   <div class="u-mt-3"><button type="submit">Save</button></div>
 </form>

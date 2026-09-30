@@ -3,7 +3,7 @@
 <form method="POST" action="/guilds/<%= guild.id %>/m/birthdays/config"
       hx-post="/guilds/<%= guild.id %>/m/birthdays/config" hx-target="#module-config" hx-swap="outerHTML"
       class="stack u-mw-lg">
-  <p class="muted small">Members save their own date with <code>/birthday set</code>. Sylo checks once a day
+  <p class="muted small">Members save their own date with <code>!birthday set</code>. Sylo checks once a day
     and posts here. Placeholders: <code>{user}</code> <code>{age}</code> (blank unless a year was given).</p>
 
   <label class="small">Announcement channel</label>

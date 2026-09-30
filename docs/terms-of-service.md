@@ -1,26 +1,25 @@
 # Terms of Service — Sylo
 
 **Effective date:** 2 September 2026
-**Last updated:** 2 September 2026
+**Last updated:** 1 October 2026
 
-These Terms of Service ("Terms") govern your use of the **Sylo** Discord
-application and its test instance **Sylo - Test** (each, and together, the
+These Terms of Service ("Terms") govern your use of the **Sylo-Fluxer**
+application for Fluxer (a port of the Discord bot Sylo) and its test instance (each, and together, the
 "Bot"), together with the Sylo web dashboard (the "Dashboard"). The Bot and
 Dashboard are operated by **Ferdinand99** (<https://github.com/Ferdinand99>) (the
 "Operator"). Sylo is open-source software licensed under the MIT License; anyone
 may run their own instance, and these Terms apply to the instances operated by
 the Operator.
 
-By adding the Bot to a Discord server, using its commands, or accessing the
+By adding the Bot to a Fluxer community, using its commands, or accessing the
 Dashboard, you agree to these Terms. If you do not agree, do not use the Bot or
 the Dashboard.
 
 ## 1. Eligibility
 
-You must meet Discord's minimum age requirement for your country (at least 13,
-or older where local law requires) and comply with the
-[Discord Terms of Service](https://discord.com/terms) and
-[Community Guidelines](https://discord.com/guidelines) at all times.
+You must meet Fluxer's minimum age requirement for your country and comply with
+the [Fluxer Terms of Service](https://fluxer.app/terms) and
+[Community Guidelines](https://fluxer.app/guidelines) at all times.
 
 ## 2. What the Bot does
 
@@ -33,7 +32,7 @@ each server's administrators turn on and configure. They include:
   banned words, and similar).
 - **Engagement** — leveling and XP with rank cards and a public leaderboard,
   reaction roles, welcome/goodbye messages, a welcome channel, starboard,
-  counting, polls, giveaways, AFK, and custom slash commands.
+  counting, polls, giveaways, AFK, and custom commands.
 - **Utility** — modmail tickets, ban appeals, invite tracking, autoresponders,
   sticky messages, reminders / scheduled posts, temporary ("join to create")
   voice channels, server-statistics channels, and member verification (optionally
@@ -52,7 +51,7 @@ or removed between versions (see section 4).
 
 You agree not to:
 
-- use the Bot to violate the Discord Terms of Service, Community Guidelines, or
+- use the Bot to violate the Fluxer Terms of Service, Community Guidelines, or
   any applicable law;
 - use moderation features to harass, target, or abuse others;
 - attempt to disrupt, overload, reverse-engineer for malicious purposes, or gain
@@ -68,12 +67,12 @@ servers, including which members are granted moderation permissions.
 
 The Bot and Dashboard are provided on a best-effort basis. The Operator may
 modify, suspend, or discontinue any part of the service at any time, with or
-without notice, and may add, change, or remove features. Slash commands,
+without notice, and may add, change, or remove features. Commands,
 data structures, and hosted URLs may change between versions.
 
 ## 5. Third-party services
 
-The Bot depends on **Discord** and, for statistics lookups, on the
+The Bot depends on **Fluxer** and, for statistics lookups, on the
 **gametools.network** API. Your use of the Bot is also subject to those
 providers' terms, and the Operator is not responsible for their availability,
 accuracy, or conduct.
@@ -83,7 +82,7 @@ accuracy, or conduct.
 The Bot stores the data its enabled modules need to function — for example
 per-server settings, warnings and appeals, leveling and invite records, and
 modmail transcripts. What is stored, how long it is kept, and how to delete it
-(the `/forget` command, and automatic deletion when the Bot leaves a server) is
+(the `!forget` command, and automatic deletion when the Bot leaves a server) is
 described in the [Privacy Policy](./privacy-policy.md), which forms part of these
 Terms.
 

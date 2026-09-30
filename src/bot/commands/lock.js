@@ -1,5 +1,5 @@
-// /lock [channel] [reason] — deny @everyone the send-message permissions on a
-// channel. /unlock restores the exact prior overwrite.
+// !lock [channel] [reason] — deny @everyone the send-message permissions on a
+// channel. !unlock restores the exact prior overwrite.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, NO_REASON } from '../lib/moderation.js';

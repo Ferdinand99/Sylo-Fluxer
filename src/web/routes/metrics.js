@@ -24,12 +24,12 @@ router.get(
     const ping = runtime.client?.ws?.ping;
     const dbBytes = (await dbFileInfo()).size;
     const blocks = [
-      gauge('sylo_up', '1 when the Discord gateway is connected, else 0', isBotReady() ? 1 : 0),
+      gauge('sylo_up', '1 when the Fluxer gateway is connected, else 0', isBotReady() ? 1 : 0),
       gauge('sylo_uptime_seconds', 'Seconds since the process started', uptimeSeconds()),
       gauge('sylo_guilds', 'Guilds the bot is currently in', guildCount()),
       gauge(
         'sylo_gateway_ping_ms',
-        'Discord gateway heartbeat latency in ms (-1 when unknown)',
+        'Fluxer gateway heartbeat latency in ms (-1 when unknown)',
         typeof ping === 'number' && ping >= 0 ? Math.round(ping) : -1
       ),
       gauge('sylo_db_bytes', 'Size of the database in bytes', dbBytes),

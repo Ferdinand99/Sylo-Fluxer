@@ -1,4 +1,4 @@
-// /voice-claim — take ownership when the current owner has left.
+// !voice-claim — take ownership when the current owner has left.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { resolveContext, ephemeral } from '../lib/tempVoiceCmd.js';
 import { transferTemp } from '../../modules/tempVoice.js';

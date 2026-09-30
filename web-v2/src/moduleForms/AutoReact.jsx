@@ -171,7 +171,7 @@ export default function AutoReact() {
                 onChange={(e) => updateRule(r.key, { targetUsersText: e.target.value })}
               />
               <p className="v2-field-hint">
-                Paste one or more Discord user IDs or @mentions, separated by spaces or commas.
+                Paste one or more Fluxer user IDs or @mentions, separated by spaces or commas.
               </p>
             </div>
 

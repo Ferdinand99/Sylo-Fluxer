@@ -1,4 +1,4 @@
-// Shared plumbing for the /voice-* temporary-channel commands.
+// Shared plumbing for the !voice-* temporary-channel commands.
 import { MessageFlags, PermissionFlagsBits } from '../../platform/index.js';
 import { isModuleEnabled } from '../../db/modules.js';
 import { getTempChannel } from '../../db/tempVoice.js';

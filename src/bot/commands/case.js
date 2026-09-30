@@ -1,4 +1,4 @@
-// /case view|reason|delete|note — inspect and manage moderation case-log rows.
+// !case view|reason|delete|note — inspect and manage moderation case-log rows.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR, INFO_COLOR } from '../lib/moderation.js';
@@ -33,7 +33,7 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName('delete')
-      .setDescription('Soft-delete a case (kept for audit, hidden from /history and the warn count).')
+      .setDescription('Soft-delete a case (kept for audit, hidden from !history and the warn count).')
       .addIntegerOption((o) =>
         o.setName('number').setDescription('Case number').setRequired(true).setMinValue(1)
       )

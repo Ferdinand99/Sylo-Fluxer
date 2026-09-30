@@ -1,4 +1,4 @@
-// /slowmode <seconds> [channel] — set per-user rate limit on a text channel.
+// !slowmode <seconds> [channel] — set per-user rate limit on a text channel.
 import { SlashCommandBuilder, InteractionContextType } from '../framework/CommandBuilder.js';
 import { PermissionFlagsBits, MessageFlags, ChannelType, EmbedBuilder } from '../../platform/index.js';
 import { MOD_COLOR } from '../lib/moderation.js';
@@ -42,7 +42,7 @@ export async function execute(interaction) {
   }
 
   await interaction.deferReply();
-  await channel.setRateLimitPerUser(seconds, `${interaction.user.tag} via /slowmode`);
+  await channel.setRateLimitPerUser(seconds, `${interaction.user.tag} via !slowmode`);
 
   const human = seconds === 0 ? 'disabled' : `${formatDuration(seconds * 1000)} between messages`;
   const embed = new EmbedBuilder()
