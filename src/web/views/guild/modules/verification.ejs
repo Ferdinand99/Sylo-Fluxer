@@ -41,9 +41,11 @@
 
   <label class="small">Message body</label>
   <textarea name="message" rows="2" maxlength="1500"><%= cfg.message || 'React with ✅ below to verify and unlock the rest of the server.' %></textarea>
+  <p class="muted small">Title and body accept <code>{server}</code>.</p>
 
   <label class="small">Reply after verifying</label>
   <input type="text" name="successMessage" maxlength="1000" value="<%= cfg.successMessage || 'You are verified — welcome!' %>" />
+  <p class="muted small">Placeholders: <code>{server}</code> <code>{user}</code> <code>{user.name}</code> <code>{user.id}</code></p>
 
   <label class="u-mt-2">Log channel <span class="muted small">— optional</span></label>
   <select name="logChannelId">

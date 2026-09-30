@@ -62,6 +62,28 @@ export function normaliseVerificationConfig(raw = {}) {
   };
 }
 
+/** Placeholders the verify texts accept. The {user…} ones only fill in the success reply. */
+export const VERIFY_PLACEHOLDERS = ['{server}', '{user}', '{user.name}', '{user.id}'];
+
+/**
+ * Fill the placeholders in a verify text. `{user}` is a mention in chat and
+ * the plain username on the web page, where a mention would show as `<@id>`.
+ * @param {string} text
+ * @param {{ name?: string } | null | undefined} guild
+ * @param {{ id: string, username: string } | null} [user]
+ * @param {{ mention?: boolean }} [opts]
+ */
+export function fillVerifyText(text, guild, user = null, { mention = true } = {}) {
+  let out = String(text ?? '').replaceAll('{server}', guild?.name ?? 'the server');
+  if (user) {
+    out = out
+      .replaceAll('{user.name}', user.username)
+      .replaceAll('{user.id}', user.id)
+      .replaceAll('{user}', mention ? `<@${user.id}>` : user.username);
+  }
+  return out;
+}
+
 /** Effective mode — captcha only when Turnstile keys are configured. */
 export function effectiveMode(cfg) {
   return cfg.mode === 'captcha' && config.turnstileEnabled ? 'captcha' : 'button';
@@ -112,20 +134,23 @@ export async function ensureVerifyMessage(guild, cfg) {
   if (cfg.messageId) {
     const existing = await channel.messages.fetch(cfg.messageId).catch(() => null);
     if (existing) {
-      await existing.edit({ embeds: [verifyEmbed(cfg)] }).catch(() => {});
+      await existing.edit({ embeds: [verifyEmbed(cfg, guild)] }).catch(() => {});
       await existing.react(VERIFY_EMOJI).catch(() => {});
       return;
     }
   }
-  const posted = await channel.send({ embeds: [verifyEmbed(cfg)] }).catch(() => null);
+  const posted = await channel.send({ embeds: [verifyEmbed(cfg, guild)] }).catch(() => null);
   if (!posted) return;
   await posted.react(VERIFY_EMOJI).catch(() => {});
   const fresh = (await getGuildModule(guild.id, 'verification')).config;
   await setGuildModule(guild.id, 'verification', { config: { ...fresh, messageId: posted.id } });
 }
 
-function verifyEmbed(cfg) {
-  return new EmbedBuilder().setColor(0x58d68d).setTitle(cfg.title).setDescription(cfg.message);
+function verifyEmbed(cfg, guild) {
+  return new EmbedBuilder()
+    .setColor(0x58d68d)
+    .setTitle(fillVerifyText(cfg.title, guild))
+    .setDescription(fillVerifyText(cfg.message, guild));
 }
 
 // --- granting the role -----------------------------------------------------
@@ -208,7 +233,7 @@ on('verification', 'reactionAdd', async ({ reaction, user }, rawConfig, guildId)
   }
 
   const result = await grantVerified(guild, user.id, cfg);
-  if (result === 'ok') return tellMember(member, channel, cfg.successMessage);
+  if (result === 'ok') return tellMember(member, channel, fillVerifyText(cfg.successMessage, guild, user));
   if (result !== 'already') {
     log.warn(
       'verification',

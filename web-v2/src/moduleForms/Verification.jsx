@@ -135,6 +135,9 @@ export default function Verification() {
             value={form.message}
             onChange={(e) => set({ message: e.target.value })}
           />
+          <p className="v2-field-hint">
+            Title and body accept <code>{'{server}'}</code>.
+          </p>
         </div>
 
         <div className="v2-field">
@@ -146,6 +149,10 @@ export default function Verification() {
             value={form.successMessage}
             onChange={(e) => set({ successMessage: e.target.value })}
           />
+          <p className="v2-field-hint">
+            Placeholders: <code>{'{server}'}</code> <code>{'{user}'}</code> <code>{'{user.name}'}</code>{' '}
+            <code>{'{user.id}'}</code>
+          </p>
         </div>
 
         <div className="v2-field">
