@@ -57,7 +57,7 @@
     <p class="muted small">How a live poll looks. Click a field to edit it; Sylo fills the greyed-out body.</p>
     <%- include('../../partials/embed-editor', Object.assign({
       hidden: 'pm_json', spec: pm, fixedBody: PM_BODY,
-      ph: { title: '📊 {question}', footer: '{ends} · {mode}' },
+      ph: { title: '📊 {question}', footer: '{mode} · {ends}' },
       vars: [
         { token: '{question}', label: 'question' },
         { token: '{choices}', label: 'choices' },

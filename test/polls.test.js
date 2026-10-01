@@ -85,6 +85,23 @@ test('buildPollPayload: default layout lists options + meta', () => {
   assert.match(e.footer.text, /One vote each · closes at 10 votes/);
 });
 
+test('buildPollPayload: a timed poll counts down in the description, not the plain-text footer', () => {
+  const endsAt = 1_790_854_874_000;
+  const poll = {
+    question: 'Q',
+    options: ['A', 'B'],
+    multiple: true,
+    max_votes: 0,
+    ends_at: endsAt,
+    created_at: 0,
+  };
+  const e = buildPollPayload(poll, {}).embeds[0].data;
+  assert.match(e.description, new RegExp(`⏳ Ends <t:${endsAt / 1000}:R>`));
+  assert.doesNotMatch(e.footer.text, /<t:/, 'footers render no markdown');
+  assert.equal(e.footer.text, 'Multiple choices allowed · Ends');
+  assert.equal(Date.parse(e.timestamp), endsAt, 'the embed timestamp is the end time');
+});
+
 test('buildPollPayload: templates substitute placeholders', () => {
   const poll = {
     question: 'Pineapple on pizza?',

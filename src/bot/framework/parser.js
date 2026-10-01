@@ -15,7 +15,9 @@
 //   5. The last free-text string option takes the rest of the text verbatim,
 //      minus trailing tokens that clearly fit later typed options
 //      (`!poll "Pick one" "A | B" 1h` → the duration is peeled off the end).
-//   6. A choice whose name has spaces may span several tokens, unquoted:
+//   6. A boolean option's own name is a flag for "yes" (`!poll … multiple`),
+//      in any position, so it's also peeled off the end of free text.
+//   7. A choice whose name has spaces may span several tokens, unquoted:
 //      `!stats Battlefield 6 PC name` picks "Battlefield 6". The longest match wins.
 import { OptionType } from './CommandBuilder.js';
 
@@ -84,6 +86,9 @@ export function tokenize(text) {
 
 const isFreeText = (opt) => opt.type === OptionType.String && !opt.choices?.length && !opt.pattern;
 
+/** A boolean option's own name works as a flag meaning yes: `!poll … multiple`. */
+const isFlag = (opt, raw) => opt.type === OptionType.Boolean && raw.toLowerCase() === opt.name.toLowerCase();
+
 /**
  * Match text to a choice by name or value (case-insensitive). A namespaced
  * value also matches by its last part, so `bf6` finds `battlefield:bf6`.
@@ -131,7 +136,7 @@ export function accepts(opt, raw, strict = false) {
       if (opt.choices?.length) return Boolean(matchChoice(opt, raw));
       return INTEGER.test(raw);
     case OptionType.Boolean:
-      return TRUE_WORDS.has(raw.toLowerCase()) || FALSE_WORDS.has(raw.toLowerCase());
+      return isFlag(opt, raw) || TRUE_WORDS.has(raw.toLowerCase()) || FALSE_WORDS.has(raw.toLowerCase());
     case OptionType.User:
       return USER_MENTION.test(raw) || SNOWFLAKE.test(raw) || (!strict && raw.length > 0);
     case OptionType.Role:
@@ -193,7 +198,7 @@ export function coerce(opt, raw) {
     }
     case OptionType.Boolean: {
       const w = raw.toLowerCase();
-      if (TRUE_WORDS.has(w)) return { value: true };
+      if (isFlag(opt, raw) || TRUE_WORDS.has(w)) return { value: true };
       if (FALSE_WORDS.has(w)) return { value: false };
       return { error: `\`${name}\` must be yes or no.` };
     }

@@ -154,7 +154,7 @@ export default function Polls() {
             onChange={(pollMessage) => setForm((f) => ({ ...f, pollMessage }))}
             {...EMBED_OPTS}
             fixedBody={<PollBodyPreview />}
-            placeholders={{ title: '📊 {question}', footer: '{ends} · {mode}' }}
+            placeholders={{ title: '📊 {question}', footer: '{mode} · {ends}' }}
             vars={toVars(d.pollPlaceholders)}
           />
         </div>

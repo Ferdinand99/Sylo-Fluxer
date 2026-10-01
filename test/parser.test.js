@@ -151,3 +151,23 @@ test('choices: quoted names and the short value still work', () => {
   const bad = parseArgs('Battlefield PC name', stats);
   assert.match(bad.errors[0], /`game` must be one of/);
 });
+
+test('a boolean option name is a yes flag, also peeled off the end of free text', () => {
+  const r = parseArgs('"Dette er en test poll" A|B|C|D  2m multiple', poll);
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.values.get('choices'), 'A|B|C|D');
+  assert.equal(r.values.get('duration'), '2m');
+  assert.equal(r.values.get('multiple'), true);
+
+  const anyOrder = parseArgs('"Q" multiple 1h A | B', poll);
+  assert.deepEqual(anyOrder.errors, []);
+  assert.equal(anyOrder.values.get('multiple'), true);
+  assert.equal(anyOrder.values.get('duration'), '1h');
+  assert.equal(anyOrder.values.get('choices'), 'A | B');
+
+  assert.equal(
+    parseArgs('"Q" A|B multiple:no', poll).values.get('multiple'),
+    false,
+    'name:value still works'
+  );
+});
