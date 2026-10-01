@@ -183,3 +183,27 @@ test('reactionAdd: missing Read Message History still bumps the count but skips 
   );
   assert.equal(editCalls.length, 0, 'no edit attempted without Read Message History');
 });
+
+test('reactionAdd: the reaction is removed from the bait, for exempt members too', async () => {
+  await setGuildModule(G, 'honeypot', {
+    enabled: true,
+    config: {
+      exemptRoles: [],
+      channels: [],
+      messages: [
+        { channelId: CHANNEL_ID, messageId: MESSAGE_ID, bait: 'x', action: 'kick', timeoutMinutes: 10 },
+      ],
+    },
+  });
+  const { guild, message } = fakeEnv();
+  const removed = [];
+  const reaction = { message, users: { remove: async (id) => removed.push(id) } };
+
+  await dispatch('reactionAdd', G, { reaction, user: { id: RAIDER_ID, bot: false } });
+  assert.deepEqual(removed, [RAIDER_ID], 'a caught member’s reaction is cleared');
+
+  const admin = await guild.members.fetch(RAIDER_ID);
+  admin.permissions = { has: () => true }; // Administrator: exempt from punishment
+  await dispatch('reactionAdd', G, { reaction, user: { id: RAIDER_ID, bot: false } });
+  assert.deepEqual(removed, [RAIDER_ID, RAIDER_ID], 'an exempt member’s reaction is cleared as well');
+});
