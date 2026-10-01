@@ -4,6 +4,25 @@ Sylo-Fluxer is a port of [Sylo](https://github.com/Ferdinand99/Sylo) (a Discord
 bot) to [Fluxer](https://fluxer.app). Its history starts at 0.1.0 — the port
 itself; Sylo's own changelog up to 3.38.0 lives in the Sylo repository.
 
+## [0.1.4](https://github.com/Ferdinand99/Sylo-Fluxer/compare/v0.1.3...v0.1.4) (2026-10-01)
+
+
+### Features
+
+* emoji picker for auto-react rules ([#34](https://github.com/Ferdinand99/Sylo-Fluxer/issues/34)) ([c39016e](https://github.com/Ferdinand99/Sylo-Fluxer/commit/c39016ee7520044c4d94aae6207aacd716a0ce53))
+
+
+### Bug Fixes
+
+* birthday greetings crashed when a birthday role is set ([#29](https://github.com/Ferdinand99/Sylo-Fluxer/issues/29)) ([203608a](https://github.com/Ferdinand99/Sylo-Fluxer/commit/203608ae3f7f4900dd88551b25ff30b6dc82837e))
+* clear reactions on the honeypot bait message ([#27](https://github.com/Ferdinand99/Sylo-Fluxer/issues/27)) ([465823a](https://github.com/Ferdinand99/Sylo-Fluxer/commit/465823a31e6faeff8ba281b03e4e1ba20c28f0ce))
+* count members already in voice in server insights ([#35](https://github.com/Ferdinand99/Sylo-Fluxer/issues/35)) ([efffd3a](https://github.com/Ferdinand99/Sylo-Fluxer/commit/efffd3a12622c965e6ca6ae77083ad7a0dc8d98f))
+* create the rejoin invite when a ban appeal is accepted ([#32](https://github.com/Ferdinand99/Sylo-Fluxer/issues/32)) ([f4bf683](https://github.com/Ferdinand99/Sylo-Fluxer/commit/f4bf683435b6ee571157e798581b6ce87a49b0fe))
+* read !poll flags and durations right and show the poll end time ([#30](https://github.com/Ferdinand99/Sylo-Fluxer/issues/30)) ([ce92291](https://github.com/Ferdinand99/Sylo-Fluxer/commit/ce9229188bac1c8fd555f9a9464181678bcdfb59))
+* send a join link instead of moving members into temp voice channels ([#36](https://github.com/Ferdinand99/Sylo-Fluxer/issues/36)) ([d640ccf](https://github.com/Ferdinand99/Sylo-Fluxer/commit/d640ccfdcaeaca1d0763c7558641d4905df734b3))
+* show ties in poll results and drop the countdown once closed ([#31](https://github.com/Ferdinand99/Sylo-Fluxer/issues/31)) ([3ea85cf](https://github.com/Ferdinand99/Sylo-Fluxer/commit/3ea85cf1b8c73b3409df29d690e91b26aefafe12))
+* welcome DMs and leave-message names ([#33](https://github.com/Ferdinand99/Sylo-Fluxer/issues/33)) ([80e7bf6](https://github.com/Ferdinand99/Sylo-Fluxer/commit/80e7bf69e9088558057347aa08397c3209ac19e9))
+
 ## [0.1.3](https://github.com/Ferdinand99/Sylo-Fluxer/compare/v0.1.2...v0.1.3) (2026-09-30)
 
 
