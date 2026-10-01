@@ -87,6 +87,9 @@ async function celebrateGuild(guildId, now) {
     const role = guild.roles.cache.get(cfg.roleId);
     const me = guild.members.me;
     if (role && me?.permissions.has('ManageRoles') && me.roles.highest.comparePositionTo(role) > 0) {
+      // role.members only sees cached members; load them all so yesterday's
+      // holders lose the role even if they haven't been active since.
+      await guild.members.fetch().catch(() => {});
       for (const member of role.members.values()) {
         if (!celebrantIds.has(member.id)) await member.roles.remove(role, 'Birthday over').catch(() => {});
       }
