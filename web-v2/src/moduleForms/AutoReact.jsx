@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
+import EmojiPicker from '../components/EmojiPicker.jsx';
 
 const MODE_LABELS = { always: 'React to every message', random: 'React at a random chance' };
 const ROLE_ACTION_LABELS = { add: 'Give them the role', remove: 'Take the role away' };
@@ -16,7 +17,7 @@ function toFormRule(r) {
     targetUsersText: (r.targetUsers || []).join(' '),
     targetRoleId: (r.targetRoles || [])[0] || '',
     channelId: r.channelId || '',
-    emojisText: (r.emojis || []).join(' '),
+    emojis: r.emojis || [],
     mode: r.mode || 'always',
     chance: r.chance || 50,
     roleId: r.roleId || '',
@@ -70,6 +71,14 @@ export default function AutoReact() {
 
   async function onSave(e) {
     e.preventDefault();
+    // The server drops rules without a target or an emoji, so say so instead of silently resetting.
+    const incomplete = form.rules.find(
+      (r) => r.emojis.length > 0 && !r.targetUsersText.trim() && !r.targetRoleId
+    );
+    if (incomplete) {
+      alert('Each rule needs a target user or a target role, otherwise it is not saved.');
+      return;
+    }
     setSaving(true);
     setSaved(false);
     try {
@@ -80,7 +89,7 @@ export default function AutoReact() {
           targetUsersText: r.targetUsersText,
           targetRoleId: r.targetRoleId,
           channelId: r.channelId,
-          emojis: r.emojisText,
+          emojis: r.emojis,
           mode: r.mode,
           chance: r.chance,
           roleId: r.roleId,
@@ -215,15 +224,13 @@ export default function AutoReact() {
 
             <div className="v2-field">
               <label>Emoji to react with</label>
-              <input
-                type="text"
-                placeholder="🧟 🔥"
-                value={r.emojisText}
-                onChange={(e) => updateRule(r.key, { emojisText: e.target.value })}
+              <EmojiPicker
+                value={r.emojis}
+                customEmojis={data.customEmojis || []}
+                onChange={(emojis) => updateRule(r.key, { emojis })}
               />
               <p className="v2-field-hint">
-                Paste one or more emoji, separated by spaces or commas — unicode (🧟) or a server custom
-                emoji.
+                Pick up to 10 emoji — standard ones or this server's custom emoji.
               </p>
             </div>
 
