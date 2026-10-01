@@ -708,6 +708,7 @@ router.get(
       config: normaliseAutoReact(cfg),
       channels: guildTextChannels(req.guild),
       roles: assignableRoles(req.guild),
+      customEmojis: [...req.guild.emojis.cache.values()].map((e) => ({ id: e.id, name: e.name, url: e.url })),
       modes: AUTO_REACT_MODES,
       roleActions: AUTO_REACT_ROLE_ACTIONS,
     });

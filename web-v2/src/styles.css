@@ -1426,6 +1426,35 @@ form textarea {
   align-items: center;
   gap: 10px;
 }
+
+/* EmojiPicker.jsx — emoji chips plus a popover picker. */
+.v2-emoji-picker {
+  position: relative;
+}
+.v2-emoji-char {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.v2-emoji-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.v2-emoji-popover {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+}
+.v2-emoji-popover emoji-picker {
+  --background: var(--bg-surface);
+  --border-color: var(--border-subtle);
+  --input-border-color: var(--border-subtle);
+  --indicator-color: var(--accent);
+  width: 340px;
+  height: 380px;
+}
 .v2-color-input {
   width: 40px;
   height: 34px;
