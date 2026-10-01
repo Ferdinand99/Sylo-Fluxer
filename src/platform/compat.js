@@ -496,6 +496,19 @@ export function installCompat() {
       return `#${(this.color ?? 0).toString(16).padStart(6, '0')}`;
     })
   );
+  // discord.js role.members: the cached members holding this role. Like there,
+  // it only covers the member cache — fetch members first for a full list.
+  define(
+    Role.prototype,
+    'members',
+    getter(function () {
+      const members = this.guild?.members;
+      if (!members) return new Collection();
+      return new Collection(
+        [...members.values()].filter((m) => m.roles.cache.has(this.id)).map((m) => [m.id, m])
+      );
+    })
+  );
   // Custom emojis: discord.js imageURL() over Fluxer's `url` getter.
   define(
     GuildEmoji.prototype,

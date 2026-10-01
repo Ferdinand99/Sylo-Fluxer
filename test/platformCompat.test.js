@@ -74,7 +74,7 @@ test('discord.js-shaped aliases exist on the SDK classes', () => {
     ],
     [GuildMember, ['nickname', 'setNickname', 'voice', 'communicationDisabledUntilTimestamp']],
     [GuildEmoji, ['imageURL']],
-    [Role, ['comparePositionTo', 'editable', 'guild', 'hexColor']],
+    [Role, ['comparePositionTo', 'editable', 'guild', 'hexColor', 'members']],
     [User, ['tag']],
     [Message, ['inGuild', 'url', 'createdTimestamp']],
     [MessageReaction, ['users', 'remove', 'partial']],
@@ -193,4 +193,17 @@ test('channel.bulkDelete takes a Collection of messages, filters old ones, retur
   const none = await channel.bulkDelete(new Collection(), true);
   assert.equal(none.size, 0);
   assert.equal(sent, null, 'nothing to delete: no request');
+});
+
+test('role.members lists the cached members holding that role', () => {
+  const member = (id, roleIds) => ({ id, roles: { cache: new Map(roleIds.map((r) => [r, {}])) } });
+  const guild = {
+    members: new Collection([
+      ['a', member('a', ['r1'])],
+      ['b', member('b', ['r2'])],
+    ]),
+  };
+  const members = getter(Role, 'members').call({ id: 'r1', guild });
+  assert.deepEqual([...members.keys()], ['a']);
+  assert.equal(getter(Role, 'members').call({ id: 'r1', guild: null }).size, 0, 'no guild: empty');
 });
