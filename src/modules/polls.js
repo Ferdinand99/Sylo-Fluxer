@@ -125,21 +125,22 @@ export function buildResultsPayload(poll, tally, config) {
       return `${LETTERS[i]}  **${opt}**\n${bar(pct)}  ${pct.toFixed(1)}% · ${count} vote${count === 1 ? '' : 's'}`;
     })
     .join('\n\n');
-  const winner = total
-    ? poll.options[tally.reduce((bi, t, i, a) => ((t?.count ?? 0) > (a[bi]?.count ?? 0) ? i : bi), 0)]
-    : '—';
+  // Every option sharing the top count wins — a tie names them all.
+  const top = Math.max(0, ...tally.map((t) => t?.count ?? 0));
+  const leaders = total ? poll.options.filter((_, i) => (tally[i]?.count ?? 0) === top) : [];
+  const winner = leaders.length ? leaders.join(' & ') : '—';
   const vars = { question: poll.question, results, total, winner, mode: modeText(poll) };
+  const defaultFooter = !total
+    ? 'No votes were cast'
+    : leaders.length > 1
+      ? 'Tie between {winner} · {total} total votes'
+      : 'Winner: {winner} · {total} total votes';
 
   const embed = new EmbedBuilder()
     .setColor(colorInt(rm.color))
     .setTitle(subst(rm.title || '📊 Results — {question}', vars).slice(0, 256))
     .setDescription(results || '*No votes were cast.*')
-    .setFooter({
-      text: subst(
-        rm.footer || (total ? 'Winner: {winner} · {total} total votes' : 'No votes were cast'),
-        vars
-      ).slice(0, 2048),
-    })
+    .setFooter({ text: subst(rm.footer || defaultFooter, vars).slice(0, 2048) })
     .setTimestamp(Date.now());
   if (rm.image) embed.setImage(rm.image);
 
@@ -203,8 +204,10 @@ export async function endPoll(messageId) {
   await channel.send(buildResultsPayload(poll, counts, config)).catch(() => {});
 
   if (message) {
-    const closed = buildPollPayload(poll, config);
-    closed.embeds[0].setFooter({ text: '🔒 Poll closed' });
+    // Drop the countdown (it would read "Ends 9 seconds ago") and stamp the
+    // actual close time, which can be early: vote cap or !poll-end.
+    const closed = buildPollPayload({ ...poll, ends_at: null }, config);
+    closed.embeds[0].setFooter({ text: '🔒 Poll closed' }).setTimestamp(Date.now());
     await message.edit({ content: closed.content ?? '', embeds: closed.embeds }).catch(() => {});
     await message.reactions.removeAll().catch(() => {});
   }

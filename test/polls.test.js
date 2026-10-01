@@ -129,6 +129,16 @@ test('buildResultsPayload: percentages, winner, and the no-votes case', () => {
   assert.match(none.footer.text, /No votes were cast/);
 });
 
+test('buildResultsPayload: a tie names every leader, not just the first', () => {
+  const poll = { question: 'Q', options: ['A', 'B', 'C', 'D'], multiple: true, max_votes: 0 };
+  const tie = buildResultsPayload(poll, [{ count: 1 }, { count: 0 }, { count: 0 }, { count: 1 }], {});
+  assert.equal(tie.embeds[0].data.footer.text, 'Tie between A & D · 2 total votes');
+  const custom = buildResultsPayload(poll, [{ count: 1 }, { count: 0 }, { count: 0 }, { count: 1 }], {
+    resultsMessage: { footer: 'Winner: {winner}' },
+  });
+  assert.equal(custom.embeds[0].data.footer.text, 'Winner: A & D', '{winner} lists all leaders');
+});
+
 test('buildResultsPayload: template placeholders', () => {
   const poll = { question: 'Q', options: ['A', 'B'], multiple: false, max_votes: 0 };
   const p = buildResultsPayload(poll, [{ count: 4 }, { count: 1 }], {
