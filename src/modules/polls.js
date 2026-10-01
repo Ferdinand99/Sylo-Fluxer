@@ -9,7 +9,7 @@
 //     resultsMessage: { content, title, color, footer, image } }
 // pollMessage placeholders:    {question} {choices} {ends} {mode}
 // resultsMessage placeholders: {question} {results} {total} {winner} {mode}
-import { EmbedBuilder } from '../platform/index.js';
+import { EmbedBuilder, ts } from '../platform/index.js';
 import { on } from './dispatch.js';
 import { runtime } from '../runtime.js';
 import { isModuleEnabled, getGuildModule } from '../db/modules.js';
@@ -89,19 +89,24 @@ function modeText(poll) {
 /** Message payload for a live poll. Honours config.pollMessage overrides. */
 export function buildPollPayload(poll, config) {
   const pm = normalisePollsConfig(config).pollMessage;
+  // Footers are plain text (no markdown, so no <t:…> timestamps), so {ends}
+  // is just a word there and the embed's own timestamp carries the end time,
+  // shown in each reader's timezone. The live countdown goes in the
+  // description, which does render markdown.
   const vars = {
     question: poll.question,
     choices: poll.options.map((o, i) => `${LETTERS[i]}  ${o}`).join('\n\n'),
-    ends: poll.ends_at ? `Ends <t:${Math.floor(poll.ends_at / 1000)}:R>` : 'No time limit',
+    ends: poll.ends_at ? 'Ends' : 'No time limit',
     mode: modeText(poll),
   };
+  const countdown = poll.ends_at ? `\n\n⏳ Ends ${ts(poll.ends_at, 'R')}` : '';
 
   const embed = new EmbedBuilder()
     .setColor(colorInt(pm.color))
     .setTitle(subst(pm.title || '📊 {question}', vars).slice(0, 256))
-    .setDescription(vars.choices)
-    .setFooter({ text: subst(pm.footer || `${vars.ends} · {mode}`, vars).slice(0, 2048) })
-    .setTimestamp(poll.created_at || Date.now());
+    .setDescription(`${vars.choices}${countdown}`)
+    .setFooter({ text: subst(pm.footer || '{mode} · {ends}', vars).slice(0, 2048) })
+    .setTimestamp(poll.ends_at || poll.created_at || Date.now());
   if (pm.image) embed.setImage(pm.image);
 
   const payload = { embeds: [embed], allowedMentions: { parse: [] } };
