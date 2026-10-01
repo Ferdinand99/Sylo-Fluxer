@@ -243,17 +243,20 @@ export async function createRejoinInvite(guild) {
     (canInvite(guild.rulesChannel) && guild.rulesChannel) ||
     (canInvite(guild.systemChannel) && guild.systemChannel) ||
     [...guild.channels.cache.values()].filter(canInvite).sort((a, b) => a.rawPosition - b.rawPosition)[0];
-  if (!target) return null;
+  if (!target) {
+    log.warn('appeals', `no channel in ${guild.id} where Sylo may create a rejoin invite`);
+    return null;
+  }
 
   try {
-    const invite = await guild.invites.create(target.id, {
+    const invite = await target.createInvite({
       maxAge: 7 * 86_400, // 7 days
       maxUses: 1,
       unique: true,
-      reason: 'Ban appeal accepted — single-use rejoin link',
     });
     return invite.url;
-  } catch {
+  } catch (err) {
+    log.warn('appeals', `rejoin invite in #${target.name ?? target.id} failed: ${err.message}`);
     return null;
   }
 }
