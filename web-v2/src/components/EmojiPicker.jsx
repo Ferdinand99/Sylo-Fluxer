@@ -33,7 +33,8 @@ export default function EmojiPicker({ value, onChange, customEmojis = [], max = 
 
   const render = (key) => {
     const custom = /^\d+$/.test(key) ? customEmojis.find((e) => e.id === key) : null;
-    if (custom) return <img className="v2-emoji-img" src={custom.url} alt={custom.name} title={custom.name} />;
+    if (custom)
+      return <img className="v2-emoji-img" src={custom.url} alt={custom.name} title={custom.name} />;
     if (/^\d+$/.test(key)) return <span className="v2-field-hint">(deleted emoji)</span>;
     return <span className="v2-emoji-char">{key}</span>;
   };
