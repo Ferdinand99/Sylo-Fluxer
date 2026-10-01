@@ -15,6 +15,7 @@ import {
 } from '../src/db/insights.js';
 import { dispatch } from '../src/modules/dispatch.js';
 import { setGuildModule } from '../src/db/modules.js';
+import { runtime } from '../src/runtime.js';
 import { _internals, flushGuild } from '../src/modules/insights.js';
 
 const G = '900000000000000001';
@@ -208,6 +209,30 @@ test('flushGuild: writes one guild on demand, no-op for an unbuffered guild', as
   assert.equal(s.messages, 0); // flushed
 
   await assert.doesNotReject(() => flushGuild('900000000000000099')); // never buffered
+});
+
+test('flushGuild: picks up members already in voice (no voiceStateUpdate since boot)', async () => {
+  _internals.buf.clear();
+  const GV = '900000000000000011';
+  await setGuildModule(GV, 'insights', { enabled: true, config: {} });
+  const voiceStates = new Map([
+    ['u1', { id: 'u1', channelId: 'v1', member: { user: { bot: false } } }],
+    ['u2', { id: 'u2', channelId: 'v1', member: { user: { bot: false } } }],
+    ['bot', { id: 'bot', channelId: 'v1', member: { user: { bot: true } } }],
+    ['u3', { id: 'u3', channelId: null, member: { user: { bot: false } } }],
+  ]);
+  const guilds = new Map([[GV, { id: GV, voiceStates: { cache: voiceStates } }]]);
+  const prev = runtime.client;
+  runtime.client = { guilds: { cache: guilds } };
+  try {
+    await flushGuild(GV);
+  } finally {
+    runtime.client = prev;
+  }
+  const s = _internals.buf.get(GV);
+  assert.deepEqual([...s.voiceStart.keys()].sort(), ['u1', 'u2']);
+  assert.equal(s.voicePeakDay, 2);
+  assert.equal(s.dayVoiceActives.size, 2);
 });
 
 test('flushSlot: a second concurrent call for the same guild is a no-op, not a double-send', async () => {
