@@ -430,6 +430,14 @@ export function installCompat() {
       return this.edit({ nick, reason });
     })
   );
+  // discord.js member.send() DMs the member; on Fluxer only User has send.
+  define(
+    GuildMember.prototype,
+    'send',
+    method(function (options) {
+      return this.user.send(options);
+    })
+  );
   define(
     GuildMember.prototype,
     'communicationDisabledUntilTimestamp',
