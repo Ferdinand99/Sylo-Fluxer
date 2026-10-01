@@ -11,6 +11,8 @@
 import { on } from './dispatch.js';
 import { accrueDaily, accrueHourly, pruneInsights, utcDay, utcHour } from '../db/insights.js';
 import { getTempChannel } from '../db/tempVoice.js';
+import { isModuleEnabled } from '../db/modules.js';
+import { runtime } from '../runtime.js';
 import { log } from '../lib/log.js';
 
 // A "join to create" spawn is deleted within minutes, so its channel id is
@@ -173,7 +175,36 @@ async function flushSlot(guildId, s) {
   }
 }
 
+/**
+ * Open a session for anyone already sitting in voice with none tracked yet.
+ * `voiceStateUpdate` only fires on a change, so members connected when the bot
+ * (re)started would otherwise never be counted.
+ */
+async function discoverVoice(guild) {
+  if (!(await isModuleEnabled(guild.id, 'insights'))) return;
+  const now = Date.now();
+  let s = null;
+  for (const vs of guild.voiceStates.cache.values()) {
+    if (!vs.channelId || vs.member?.user?.bot) continue;
+    s ??= await slot(guild.id);
+    if (!s.voiceStart.has(vs.id)) {
+      s.voiceStart.set(vs.id, { at: now, channelId: vs.channelId });
+      s.dayVoiceActives.add(vs.id);
+      s.hourVoiceActives.add(vs.id);
+    }
+  }
+  if (!s) return;
+  const inVoice = [...guild.voiceStates.cache.values()].filter(
+    (vs) => vs.channelId && vs.member?.user?.bot !== true
+  ).length;
+  s.voicePeakDay = Math.max(s.voicePeakDay, inVoice);
+  s.voicePeakFlush = Math.max(s.voicePeakFlush, inVoice);
+}
+
 async function flushAll() {
+  for (const guild of runtime.client?.isReady() ? runtime.client.guilds.cache.values() : []) {
+    await discoverVoice(guild).catch((e) => log.error('insights', `discoverVoice: ${e.message}`));
+  }
   const today = utcDay();
   for (const [guildId, s] of buf) {
     await flushSlot(guildId, s);
@@ -250,6 +281,8 @@ on('insights', 'voiceStateUpdate', async ({ old: before, new: after }) => {
 /** Write a single guild's in-memory counters to the DB now (the dashboard's
  *  "Refresh now" button). No-op when nothing has been buffered yet. */
 export async function flushGuild(guildId) {
+  const guild = runtime.client?.guilds.cache.get(guildId);
+  if (guild) await discoverVoice(guild).catch((e) => log.error('insights', `discoverVoice: ${e.message}`));
   const s = buf.get(guildId);
   if (s) await flushSlot(guildId, s);
 }
