@@ -266,6 +266,9 @@ on('honeypot', 'reactionAdd', async ({ reaction, user }, config) => {
   if (!cfg.messages.length) return;
   const entry = cfg.messages.find((m) => m.messageId === reaction.message.id);
   if (!entry) return;
+  // Clear the reaction, also from exempt members: a visible count on the bait
+  // invites the next person to click the same emoji.
+  reaction.users?.remove(user.id).catch(() => {});
 
   const guild = reaction.message.guild;
   if (!guild) return;
