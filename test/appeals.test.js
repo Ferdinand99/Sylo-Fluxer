@@ -7,6 +7,7 @@ import {
   verifyAppealToken,
   cooldownRemainingMs,
   DEFAULT_QUESTIONS,
+  createRejoinInvite,
 } from '../src/modules/appeals.js';
 import {
   createAppeal,
@@ -91,4 +92,32 @@ test('db: one open appeal per user, decide closes it', async () => {
   const id2 = await createAppeal(G, { userId: U, answers });
   assert.ok(id2 > id);
   assert.equal((await listAppeals(G, 10)).length, 2);
+});
+
+test('createRejoinInvite: a single-use, 7-day invite from the channel itself', async () => {
+  let asked;
+  const channel = {
+    id: '100000000000000201',
+    name: 'rules',
+    type: 0,
+    permissionsFor: () => ({ has: () => true }),
+    createInvite: async (opts) => {
+      asked = opts;
+      return { url: 'https://fluxer.gg/abc123' };
+    },
+  };
+  const guild = {
+    id: '100000000000000200',
+    members: { me: { permissions: { has: () => true } } },
+    rulesChannel: channel,
+    systemChannel: null,
+    channels: { cache: new Map([[channel.id, channel]]) },
+  };
+  assert.equal(await createRejoinInvite(guild), 'https://fluxer.gg/abc123');
+  assert.deepEqual(asked, { maxAge: 7 * 86_400, maxUses: 1, unique: true });
+
+  channel.createInvite = async () => {
+    throw new Error('Missing Permissions');
+  };
+  assert.equal(await createRejoinInvite(guild), null, 'a failure resolves to null');
 });
