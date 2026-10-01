@@ -72,7 +72,7 @@ test('discord.js-shaped aliases exist on the SDK classes', () => {
       GuildChannel,
       ['guild', 'permissionsFor', 'setName', 'setRateLimitPerUser', 'setUserLimit', 'members', 'rawPosition'],
     ],
-    [GuildMember, ['nickname', 'setNickname', 'voice', 'communicationDisabledUntilTimestamp']],
+    [GuildMember, ['nickname', 'setNickname', 'send', 'voice', 'communicationDisabledUntilTimestamp']],
     [GuildEmoji, ['imageURL']],
     [Role, ['comparePositionTo', 'editable', 'guild', 'hexColor', 'members']],
     [User, ['tag']],
@@ -206,4 +206,11 @@ test('role.members lists the cached members holding that role', () => {
   const members = getter(Role, 'members').call({ id: 'r1', guild });
   assert.deepEqual([...members.keys()], ['a']);
   assert.equal(getter(Role, 'members').call({ id: 'r1', guild: null }).size, 0, 'no guild: empty');
+});
+
+test('member.send DMs the member through their user', async () => {
+  let sent;
+  const member = { user: { send: async (o) => (sent = o) } };
+  await GuildMember.prototype.send.call(member, { content: 'hei' });
+  assert.deepEqual(sent, { content: 'hei' });
 });

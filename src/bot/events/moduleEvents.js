@@ -21,10 +21,23 @@ export async function withMessage(client, reaction, message) {
   return Object.create(reaction, { message: { value: msg, enumerable: true } });
 }
 
+/**
+ * A leaving member with a complete user. Fluxer's GUILD_MEMBER_REMOVE carries
+ * only the user id, so a member Sylo hadn't cached arrives with a bare user
+ * (no username) and {user.tag} in a leave message reads "undefined".
+ */
+export async function withFullUser(client, member) {
+  if (!member?.user || member.user.username) return member;
+  const user = await client.users.fetch(member.id, { force: true }).catch(() => null);
+  return user ? Object.create(member, { user: { value: user, enumerable: true } }) : member;
+}
+
 /** @param {import('@fluxerjs/core').Client} client */
 export function register(client) {
   client.on(Events.GuildMemberAdd, (member) => dispatch('guildMemberAdd', member.guild?.id, member));
-  client.on(Events.GuildMemberRemove, (member) => dispatch('guildMemberRemove', member.guild?.id, member));
+  client.on(Events.GuildMemberRemove, async (member) => {
+    dispatch('guildMemberRemove', member.guild?.id, await withFullUser(client, member));
+  });
   client.on(Events.GuildMemberUpdate, (oldM, newM) =>
     dispatch('guildMemberUpdate', newM.guild?.id, { old: oldM ?? newM, new: newM })
   );

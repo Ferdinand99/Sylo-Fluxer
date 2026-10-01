@@ -79,7 +79,7 @@ on('welcome', 'guildMemberAdd', async (member, config, guildId) => {
     );
   }
   if (config.dmMessage) {
-    await member.send({ content: fill(config.dmMessage, member) }).catch(() => {});
+    await member.user.send({ content: fill(config.dmMessage, member) }).catch(() => {});
   }
 });
 
