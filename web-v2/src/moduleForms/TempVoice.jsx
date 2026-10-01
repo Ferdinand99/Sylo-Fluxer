@@ -128,8 +128,8 @@ export default function TempVoice() {
       <h1 className="v2-section-title">Temporary voice channels</h1>
       <p className="v2-field-hint">
         A hub is a "Join to create" voice channel. When a member joins it, Sylo makes them a personal voice
-        channel, moves them in, and cleans it up after everyone leaves. Needs <strong>Manage Channels</strong>{' '}
-        and <strong>Move Members</strong>.
+        channel, sends them a DM with a link to join it, and cleans it up after everyone leaves. Needs{' '}
+        <strong>Manage Channels</strong>.
       </p>
 
       <form onSubmit={onSave}>
