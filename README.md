@@ -56,10 +56,10 @@ GitHub alerts
 
 What is known **not** to work as expected yet:
 
-- **Temporary voice channels and the server owner.** Fluxer never lets a bot
-  move the community owner between voice channels, so the owner is sent a DM
-  with a link to their new channel instead of being moved. Other members are
-  moved as normal.
+- **Temporary voice channels.** A move done by a bot drops the member's voice
+  connection on Fluxer (they end up in the call but without a registered voice
+  state), and it never works on the community owner. Sylo therefore creates the
+  channel and sends the member a DM with a link to join it, instead of moving them.
 - **Timestamps.** Relative times in bot messages use the `<t:…>` markup; whether
   every Fluxer client renders it is not confirmed. Set `FLUXER_TIMESTAMPS=text`
   for plain UTC times if they show up raw.
