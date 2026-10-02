@@ -129,15 +129,15 @@ export default function Leaderboard() {
       <div className="v2-list">
         {data.rows.length ? (
           data.rows.map((r) => (
-            <div className="v2-row" key={r.rank}>
+            <div className="v2-row v2-rank-row" key={r.rank}>
+              <span className="v2-rank-n">{r.rank}</span>
               <div className="v2-row-main">
-                <h3>
-                  #{r.rank} {r.name}
-                </h3>
-                <p>
-                  {r.level !== null ? `Level ${r.level} · ` : ''}
-                  {r.xp.toLocaleString()} XP · {r.messages.toLocaleString()} messages
-                </p>
+                <h3>{r.name}</h3>
+              </div>
+              <div className="v2-rank-stats">
+                {r.level !== null ? <span>Level {r.level}</span> : null}
+                <span>{r.xp.toLocaleString()} XP</span>
+                <span>{r.messages.toLocaleString()} messages</span>
               </div>
             </div>
           ))

@@ -12,7 +12,13 @@
   --text: #e7e9f5;
   --text-muted: #a6accd;
   --radius: 12px;
-  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Status colours: "on" and "needs attention". The brand violet stays for
+     navigation and focus; green means a module is running. */
+  --on: #3ddc97;
+  --warn: #f0b132;
+  --font:
+    'Schibsted Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 * {
@@ -26,6 +32,22 @@ body {
   font-family: var(--font);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Visible keyboard focus everywhere; mouse clicks do not show it. */
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 a {
@@ -89,10 +111,8 @@ a:hover {
   color: #fff;
 }
 .v2-beta-badge {
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: 999px;
@@ -242,11 +262,9 @@ a:hover {
   margin-bottom: 10px;
 }
 .v2-sidebar-group-title {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--text-muted);
-  opacity: 0.7;
   padding: 4px 12px;
 }
 .v2-sidebar-sublink {
@@ -343,18 +361,18 @@ a:hover {
 .v2-hero {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 .v2-hero img {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
 }
 .v2-hero-ph {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   display: grid;
@@ -364,8 +382,10 @@ a:hover {
 }
 .v2-hero h1,
 .v2-hero h2 {
-  margin: 0 0 4px;
-  font-size: 1.5rem;
+  margin: 0 0 2px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .v2-section-gap {
@@ -408,8 +428,10 @@ a:hover {
 }
 
 .v2-section-title {
-  font-size: 1.05rem;
-  margin: 0 0 14px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
   color: var(--text);
 }
 
@@ -436,9 +458,27 @@ a:hover {
   border-color: var(--accent);
   transform: translateY(-1px);
 }
+.v2-card {
+  justify-content: flex-start;
+}
+.v2-card-ph {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  font-weight: 700;
+}
 .v2-card h3 {
   margin: 0;
   font-size: 0.95rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Module list — one bordered surface per group, thin dividers between rows
@@ -467,12 +507,11 @@ a:hover {
   margin-bottom: 22px;
 }
 .v2-group-title {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin: 0 0 8px;
-  padding: 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 10px;
+  padding: 0 2px;
 }
 
 .v2-list {
@@ -535,10 +574,8 @@ a:hover {
 }
 .v2-classic-tag {
   display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--text-muted);
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
@@ -550,11 +587,9 @@ a:hover {
    two read as distinct signals at a glance. */
 .v2-beta-tag {
   display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #f0b132;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--warn);
   border: 1px solid rgba(240, 177, 50, 0.35);
   border-radius: 999px;
   padding: 1px 7px;
@@ -570,6 +605,69 @@ a:hover {
 .v2-row-arrow {
   color: var(--text-muted);
   flex: none;
+}
+
+/* Overview: the module switchboard. A running module is lit (green stripe,
+   full-strength text); a switched-off one is quiet. */
+.v2-summary {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}
+.v2-summary strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.v2-attention {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+.v2-attention a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.v2-attention a:hover {
+  text-decoration: none;
+  border-color: var(--warn);
+}
+.v2-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 8px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.v2-modules .v2-row {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px 12px 16px;
+  position: relative;
+}
+.v2-modules .v2-row:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.v2-modules .v2-row.is-on {
+  border-color: color-mix(in srgb, var(--on) 35%, var(--border-subtle));
+  box-shadow: inset 3px 0 0 var(--on);
+}
+.v2-modules .v2-row.is-off .v2-row-main h3 {
+  color: var(--text-muted);
+}
+.v2-modules .v2-row.is-off {
+  background: var(--bg-surface-2);
 }
 
 /* A repeatable, editable card — one per rule (currently Auto-react only).
@@ -767,9 +865,7 @@ a:hover {
 }
 .v2-colorpicker-label {
   font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--text-muted);
   margin: 8px 0 6px;
 }
@@ -1128,12 +1224,12 @@ button.v2-toggle:disabled {
     background 0.18s ease;
 }
 .v2-toggle.is-on {
-  background: color-mix(in srgb, var(--accent) 30%, transparent);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--on) 28%, transparent);
+  border-color: var(--on);
 }
 .v2-toggle.is-on::after {
   transform: translateX(16px);
-  background: var(--accent);
+  background: var(--on);
 }
 
 .v2-state {
@@ -1532,16 +1628,6 @@ form textarea {
   padding: 3px 10px;
   font-size: 0.72rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-.v2-status-pill.planned {
-  background: rgba(56, 189, 248, 0.16);
-  color: var(--accent-2);
-}
-.v2-status-pill.started {
-  background: rgba(251, 191, 36, 0.16);
-  color: #fbbf24;
 }
 .v2-status-pill.completed {
   background: rgba(74, 222, 128, 0.16);
@@ -1550,48 +1636,6 @@ form textarea {
 .v2-status-pill.pending {
   background: rgba(166, 172, 205, 0.16);
   color: var(--text-muted);
-}
-.v2-roadmap-vote {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 52px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
-  cursor: pointer;
-  font: inherit;
-  color: var(--text);
-}
-.v2-roadmap-vote.is-voted {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.v2-roadmap-vote:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-.v2-roadmap-vote strong {
-  font-size: 1.05rem;
-}
-.v2-roadmap-desc :first-child {
-  margin-top: 0;
-}
-.v2-roadmap-desc :last-child {
-  margin-bottom: 0;
-}
-.v2-roadmap-desc ul {
-  margin: 0 0 8px;
-  padding-left: 20px;
-}
-.v2-roadmap-desc code {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.85em;
 }
 .v2-ins-refresh {
   margin-left: auto;
@@ -1613,6 +1657,7 @@ form textarea {
   min-width: 110px;
 }
 .v2-ins-n {
+  font-variant-numeric: tabular-nums;
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -1635,8 +1680,25 @@ form textarea {
   padding: 14px 16px;
 }
 .v2-ins-chart h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0 0 10px;
   font-size: 0.85rem;
+}
+.v2-ins-peak {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.v2-ins-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
 }
 .v2-ins-chart svg {
   display: block;
@@ -1647,7 +1709,7 @@ form textarea {
   fill: var(--accent);
 }
 .v2-ins-bar-voice {
-  fill: #4ade80;
+  fill: var(--accent-2);
 }
 .v2-ins-line-grow {
   stroke: var(--accent);
@@ -1697,7 +1759,7 @@ form textarea {
   border-radius: 999px;
 }
 .v2-ins-bar-fill-voice {
-  background: #4ade80;
+  background: var(--accent-2);
 }
 .v2-ins-bar-val {
   font-size: 0.78rem;
@@ -1739,4 +1801,38 @@ form textarea {
   padding: 2px 9px;
   margin: 0 3px;
   cursor: pointer;
+}
+
+/* Leaderboard rows: rank, name, then the numbers aligned on the right. */
+.v2-rank-row {
+  gap: 14px;
+}
+.v2-rank-n {
+  flex: none;
+  min-width: 2ch;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.v2-rank-row .v2-row-main {
+  flex: 1;
+}
+.v2-rank-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 14px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.v2-list .v2-rank-row:nth-child(-n + 3) .v2-rank-n {
+  color: var(--accent);
+}
+.v2-stat strong.v2-stat-ok {
+  color: var(--on);
+}
+.v2-stat strong.v2-stat-bad {
+  color: #f87171;
 }

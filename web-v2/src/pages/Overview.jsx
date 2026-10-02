@@ -48,6 +48,17 @@ function ModuleTitle({ card, guildId }) {
   );
 }
 
+// A pill linking to something waiting for a person: open tickets, open appeals.
+function AttentionLink({ item, guildId }) {
+  const text = item.label(item.count);
+  if (!item.card) return <span>{text}</span>;
+  return hasV2Page(item.card) ? (
+    <Link to={v2Href(item.card, guildId)}>{text}</Link>
+  ) : (
+    <a href={item.card.href}>{text}</a>
+  );
+}
+
 function ModuleRow({ card, guildId, busy, onToggle }) {
   if (!card.hasToggle) {
     const rowContent = (
@@ -58,9 +69,6 @@ function ModuleRow({ card, guildId, busy, onToggle }) {
           </h3>
           <p>{card.description}</p>
         </div>
-        <span className="v2-row-arrow" aria-hidden="true">
-          →
-        </span>
       </>
     );
     return hasV2Page(card) ? (
@@ -75,7 +83,7 @@ function ModuleRow({ card, guildId, busy, onToggle }) {
   }
 
   return (
-    <div className="v2-row">
+    <div className={`v2-row ${card.enabled ? 'is-on' : 'is-off'}`}>
       <div className="v2-row-main">
         <ModuleTitle card={card} guildId={guildId} />
         <p>{card.description}</p>
@@ -149,6 +157,13 @@ export default function Overview() {
   const { guild, groups, openTickets, openAppeals } = data;
   const toggleCards = groups.flatMap((g) => g.cards).filter((c) => c.hasToggle);
   const enabledCount = toggleCards.filter((c) => c.enabled).length;
+  const allCards = groups.flatMap((g) => g.cards);
+  const attention = [
+    { id: 'tickets', count: openTickets, label: (n) => `${n} open ${n === 1 ? 'ticket' : 'tickets'}` },
+    { id: 'appeals', count: openAppeals, label: (n) => `${n} open ${n === 1 ? 'appeal' : 'appeals'}` },
+  ]
+    .filter((a) => a.count > 0)
+    .map((a) => ({ ...a, card: allCards.find((c) => c.id === a.id) }));
 
   return (
     <>
@@ -164,28 +179,20 @@ export default function Overview() {
         </div>
       </div>
 
-      <p className="v2-note">
-        <strong>V2 is in beta.</strong> Not every module has its own V2 page yet — those marked{' '}
-        <span className="v2-classic-tag">Classic</span> still open the classic dashboard when clicked.
-        Everything is fully configurable either way.
+      <p className="v2-summary">
+        <strong>
+          {enabledCount} of {toggleCards.length}
+        </strong>{' '}
+        modules are on.
       </p>
 
-      <div className="v2-stat-strip">
-        <div className="v2-stat">
-          <strong>
-            {enabledCount}/{toggleCards.length}
-          </strong>
-          <span>modules active</span>
+      {attention.length ? (
+        <div className="v2-attention">
+          {attention.map((a) => (
+            <AttentionLink key={a.id} item={a} guildId={guildId} />
+          ))}
         </div>
-        <div className="v2-stat">
-          <strong>{openTickets}</strong>
-          <span>open tickets</span>
-        </div>
-        <div className="v2-stat">
-          <strong>{openAppeals}</strong>
-          <span>open appeals</span>
-        </div>
-      </div>
+      ) : null}
 
       <input
         className="v2-search"
@@ -199,7 +206,7 @@ export default function Overview() {
       {filteredGroups.map((g) => (
         <section key={g.title} className="v2-group">
           <h2 className="v2-group-title">{g.title}</h2>
-          <div className="v2-list">
+          <div className="v2-list v2-modules">
             {g.cards.map((card) => (
               <ModuleRow
                 key={card.id}

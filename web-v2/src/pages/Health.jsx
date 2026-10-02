@@ -180,7 +180,7 @@ export default function Health() {
 
       <div className="v2-stat-strip">
         <div className="v2-stat">
-          <strong>{d.ready ? 'Online' : 'Offline'}</strong>
+          <strong className={d.ready ? 'v2-stat-ok' : 'v2-stat-bad'}>{d.ready ? 'Online' : 'Offline'}</strong>
           <span>
             {d.botTag ?? 'not connected'} · v{d.version}
           </span>

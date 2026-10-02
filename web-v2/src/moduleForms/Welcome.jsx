@@ -205,7 +205,7 @@ export default function Welcome() {
           <h3>Verify new members with a captcha</h3>
         </div>
         <a className="v2-row-arrow" href={`/guilds/${guildId}/m/verification`}>
-          {data.verificationEnabled ? 'On — configure' : 'Set up'} →
+          {data.verificationEnabled ? 'On — configure' : 'Set up'}
         </a>
       </div>
     </>
