@@ -191,3 +191,29 @@ test('a ticket from another server is not reachable', async () => {
   assert.equal((await api(`/tickets/${other.id}`)).status, 404);
   assert.equal((await api(`/tickets/${other.id}/reply`, { content: 'hi' })).status, 404);
 });
+
+// --- automod immunity roles ----------------------------------------------------
+
+test('immunity roles are saved on their own and survive saving the automod rules', async () => {
+  const get = async () => json(await api('/modules/automod/config'));
+
+  const first = await get();
+  assert.ok(
+    first.roles.some((r) => r.id === ROLE.member),
+    'roles are offered to pick from'
+  );
+  assert.deepEqual(first.config.exemptRoles, []);
+
+  const saved = await api('/modules/automod/immunity', { exemptRoles: [ROLE.member, 'junk'] });
+  assert.equal(saved.status, 200);
+  assert.deepEqual((await json(saved)).exemptRoles, [ROLE.member]);
+  assert.deepEqual((await get()).config.exemptRoles, [ROLE.member]);
+
+  // Saving the main automod form must not wipe them.
+  const rules = await api('/modules/automod/config', { timeoutMinutes: 15, exemptChannels: [], rules: {} });
+  assert.equal(rules.status, 200);
+  assert.deepEqual((await get()).config.exemptRoles, [ROLE.member]);
+
+  const cleared = await api('/modules/automod/immunity', { exemptRoles: [] });
+  assert.deepEqual((await json(cleared)).exemptRoles, []);
+});
