@@ -5,6 +5,7 @@ import ChipPicker from '../components/ChipPicker.jsx';
 import EmbedEditor from '../components/EmbedEditor.jsx';
 import { newKey } from '../components/EmbedCard.jsx';
 import { notify } from '../notify.js';
+import Meta, { plural } from '../components/Meta.jsx';
 
 function blankRow() {
   return { key: newKey('r'), emoji: '', label: '', roleId: '', btnStyle: 'secondary' };
@@ -273,9 +274,15 @@ export default function Roles() {
                   <div className="v2-row-main">
                     <h3>{title}</h3>
                     <p>
-                      #{channel ? channel.name : rm.channelId} · {(rm.pairs || []).length} role(s) · {style}
-                      {style !== 'select' ? ` · ${rm.mode || 'default'}` : ''}
-                      {rm.exclusive ? ' · exclusive' : ''}
+                      <Meta
+                        items={[
+                          `#${channel ? channel.name : rm.channelId}`,
+                          plural((rm.pairs || []).length, 'role'),
+                          style === 'reaction' ? 'reactions' : `${style} (shown as reactions)`,
+                          style !== 'select' && (rm.mode || 'default'),
+                          rm.exclusive && 'exclusive',
+                        ]}
+                      />
                     </p>
                     {editingId === rm.id ? (
                       <ReactionRoleForm

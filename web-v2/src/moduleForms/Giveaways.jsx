@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, endGiveaway, rerollGiveaway, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
+import Meta, { plural } from '../components/Meta.jsx';
 
 function rel(ms) {
   const s = Math.round((ms - Date.now()) / 1000);
@@ -146,12 +147,19 @@ export default function Giveaways() {
               <div className="v2-row" key={g.id}>
                 <div className="v2-row-main">
                   <h3>
-                    #{g.id} · {g.prize}
+                    <span className="v2-id">#{g.id}</span>
+                    {g.prize}
                   </h3>
                   <p>
-                    #{g.channel} · {g.winners} winner{g.winners === 1 ? '' : 's'} · {g.entries} entr
-                    {g.entries === 1 ? 'y' : 'ies'} · ends {rel(g.endsAt)}
-                    {g.requiredRoleId ? ' · role-gated' : ''}
+                    <Meta
+                      items={[
+                        `#${g.channel}`,
+                        plural(g.winners, 'winner'),
+                        plural(g.entries, 'entry', 'entries'),
+                        `ends ${rel(g.endsAt)}`,
+                        g.requiredRoleId && 'role-gated',
+                      ]}
+                    />
                   </p>
                 </div>
                 <div className="v2-field-row">
@@ -178,13 +186,18 @@ export default function Giveaways() {
               <div className="v2-row" key={g.id}>
                 <div className="v2-row-main">
                   <h3>
-                    #{g.id} · {g.prize}
+                    <span className="v2-id">#{g.id}</span>
+                    {g.prize}
                   </h3>
                   <p>
-                    {g.entries} entr{g.entries === 1 ? 'y' : 'ies'} ·{' '}
-                    {g.wonIds && g.wonIds.length
-                      ? `won by ${g.wonIds.map((id) => `@${id}`).join(', ')}`
-                      : 'no winner'}
+                    <Meta
+                      items={[
+                        plural(g.entries, 'entry', 'entries'),
+                        g.wonIds && g.wonIds.length
+                          ? `won by ${g.wonIds.map((id) => `@${id}`).join(', ')}`
+                          : 'no winner',
+                      ]}
+                    />
                   </p>
                 </div>
                 <div className="v2-field-row">

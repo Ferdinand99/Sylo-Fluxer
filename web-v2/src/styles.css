@@ -460,6 +460,10 @@ a:hover {
 }
 .v2-card {
   justify-content: flex-start;
+  color: var(--text);
+}
+.v2-card:hover {
+  text-decoration: none;
 }
 .v2-card-ph {
   width: 36px;
@@ -1876,4 +1880,21 @@ form textarea {
 }
 .v2-toast button:hover {
   color: var(--text);
+}
+
+/* Components/Meta.jsx: facts side by side with space between, no separator character. */
+.v2-meta-item + .v2-meta-item {
+  margin-left: 0.9em;
+}
+/* Small muted number in front of a title ("#12 Prize"). */
+.v2-id {
+  margin-right: 0.5em;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The intro line under a page title needs air before the first form field. */
+.v2-section-title + p.v2-field-hint {
+  margin-bottom: 20px;
 }

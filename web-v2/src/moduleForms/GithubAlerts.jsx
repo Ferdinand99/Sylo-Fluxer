@@ -9,6 +9,7 @@ import {
   regenGithubSecret,
   ApiError,
 } from '../api.js';
+import Meta, { plural } from '../components/Meta.jsx';
 
 const BLANK = { repo: '', channelId: '', roleId: '', changelogPath: '', events: ['push', 'release'] };
 
@@ -267,10 +268,14 @@ export default function GithubAlerts() {
                 <div className="v2-row-main">
                   <h3>{w.repo}</h3>
                   <p>
-                    #{d.channels.find((c) => c.id === w.channelId)?.name ?? w.channelId} · {w.events.length}{' '}
-                    event type{w.events.length === 1 ? '' : 's'}
-                    {w.roleId ? ` · pings @${d.roles.find((r) => r.id === w.roleId)?.name ?? w.roleId}` : ''}
-                    {w.changelogPath ? ` · watching ${w.changelogPath}` : ''}
+                    <Meta
+                      items={[
+                        `#${d.channels.find((c) => c.id === w.channelId)?.name ?? w.channelId}`,
+                        plural(w.events.length, 'event type'),
+                        w.roleId && `pings @${d.roles.find((r) => r.id === w.roleId)?.name ?? w.roleId}`,
+                        w.changelogPath && `watching ${w.changelogPath}`,
+                      ]}
+                    />
                   </p>
 
                   {editingId === w.id ? (

@@ -9,6 +9,7 @@ import {
   importBackup,
   ApiError,
 } from '../api.js';
+import Meta from '../components/Meta.jsx';
 
 function Sparkline({ history }) {
   if (!history || history.length < 2) return null;
@@ -182,7 +183,7 @@ export default function Health() {
         <div className="v2-stat">
           <strong className={d.ready ? 'v2-stat-ok' : 'v2-stat-bad'}>{d.ready ? 'Online' : 'Offline'}</strong>
           <span>
-            {d.botTag ?? 'not connected'} · v{d.version}
+            <Meta items={[d.botTag ?? 'not connected', `v${d.version}`]} />
           </span>
         </div>
         <div className="v2-stat">
@@ -322,7 +323,7 @@ export default function Health() {
                     <a href={`/health/backups/${encodeURIComponent(b.name)}`}>{b.name}</a>
                   </h3>
                   <p>
-                    {b.size} · {b.ago}
+                    <Meta items={[b.size, b.ago]} />
                   </p>
                 </div>
                 <div className="v2-field-row">

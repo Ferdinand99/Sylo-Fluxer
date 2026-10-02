@@ -4,6 +4,7 @@ import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import ChipPicker from '../components/ChipPicker.jsx';
 import { notify } from '../notify.js';
+import Meta from '../components/Meta.jsx';
 
 const ACTION_LABELS = { kick: 'Kick', timeout: 'Timeout', ban: 'Ban' };
 
@@ -132,7 +133,7 @@ export default function Honeypot() {
           <div className="v2-rule-card" key={c.key}>
             <div className="v2-rule-head">
               <span className="v2-field-hint">
-                Channel honeypot{c.triggerCount ? ` · triggered ${c.triggerCount}×` : ''}
+                <Meta items={['Channel honeypot', c.triggerCount ? `triggered ${c.triggerCount}×` : null]} />
               </span>
               <button type="button" className="v2-btn-ghost" onClick={() => removeChannelRow(c.key)}>
                 remove
@@ -199,10 +200,14 @@ export default function Honeypot() {
           <div className="v2-rule-card" key={m.key}>
             <div className="v2-rule-head">
               <span className="v2-field-hint">
-                Message honeypot
-                {m.triggerCount
-                  ? ` · ${ACTION_LABELS[m.action].toLowerCase()}s so far: ${m.triggerCount}`
-                  : ''}
+                <Meta
+                  items={[
+                    'Message honeypot',
+                    m.triggerCount
+                      ? `${ACTION_LABELS[m.action].toLowerCase()}s so far: ${m.triggerCount}`
+                      : null,
+                  ]}
+                />
               </span>
               <button type="button" className="v2-btn-ghost" onClick={() => removeMessageRow(m.key)}>
                 remove
@@ -308,7 +313,9 @@ export default function Honeypot() {
               <div className="v2-row-main">
                 <h3>{c.userTag}</h3>
                 <p>
-                  #{c.channelName} ({c.kind}) · {ACTION_LABELS[c.action] || c.action} · {c.ago}
+                  <Meta
+                    items={[`#${c.channelName} (${c.kind})`, ACTION_LABELS[c.action] || c.action, c.ago]}
+                  />
                 </p>
               </div>
             </div>

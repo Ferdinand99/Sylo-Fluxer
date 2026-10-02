@@ -4,6 +4,7 @@ import { getModuleConfig, saveModuleConfig, apiFetch, ApiError } from '../api.js
 import { useApiData } from '../useApiData.js';
 import ChipPicker from '../components/ChipPicker.jsx';
 import { notify } from '../notify.js';
+import Meta from '../components/Meta.jsx';
 
 function newKey() {
   return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
@@ -435,12 +436,18 @@ export default function Leveling() {
               <div className="v2-row" key={r.rank}>
                 <div className="v2-row-main">
                   <h3>
-                    #{r.rank} {r.name}
+                    <span className="v2-id">#{r.rank}</span>
+                    {r.name}
                   </h3>
                   <p>
-                    Level {r.level} · {r.xp} XP
-                    {r.voiceXp ? ` · ${r.voiceXp} voice XP (${r.voiceMinutes} min)` : ''} · {r.messages}{' '}
-                    messages
+                    <Meta
+                      items={[
+                        `Level ${r.level}`,
+                        `${r.xp} XP`,
+                        r.voiceXp ? `${r.voiceXp} voice XP (${r.voiceMinutes} min)` : null,
+                        `${r.messages} messages`,
+                      ]}
+                    />
                   </p>
                 </div>
               </div>

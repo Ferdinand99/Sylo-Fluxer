@@ -13,7 +13,11 @@ export default function Toasts() {
     () =>
       subscribe(({ message, kind }) => {
         const id = nextId.current++;
-        setItems((list) => [...list.slice(-3), { id, message, kind }]);
+        setItems((list) => {
+          // The same message twice (a second failed save) stays one toast.
+          if (list.some((t) => t.message === message && t.kind === kind)) return list;
+          return [...list.slice(-3), { id, message, kind }];
+        });
         setTimeout(() => setItems((list) => list.filter((t) => t.id !== id)), LIFETIME_MS[kind] ?? 8000);
       }),
     []

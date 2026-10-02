@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getComposedMessages, unpublishComposedMessage, deleteComposedMessage, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
+import Meta from '../components/Meta.jsx';
 
 export default function Messages() {
   const { guildId } = useParams();
@@ -72,7 +73,7 @@ export default function Messages() {
                   <h3>{it.name}</h3>
                 </Link>
                 <p>
-                  #{it.channel} · edited {it.when}
+                  <Meta items={[`#${it.channel}`, `edited ${it.when}`]} />
                 </p>
               </div>
               <div className="v2-field-row">

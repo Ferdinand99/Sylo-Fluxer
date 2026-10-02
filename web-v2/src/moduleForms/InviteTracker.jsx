@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, setInviteBonus, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
+import Meta, { plural } from '../components/Meta.jsx';
 
 export default function InviteTracker() {
   const { guildId } = useParams();
@@ -145,11 +146,18 @@ export default function InviteTracker() {
             <div className="v2-row" key={r.userId}>
               <div className="v2-row-main">
                 <h3>
-                  #{r.rank} · {r.name}
+                  <span className="v2-id">#{r.rank}</span>
+                  {r.name}
                 </h3>
                 <p>
-                  {r.net} invite{r.net === 1 ? '' : 's'} · {r.regular} joined · {r.leaves} left · {r.bonus}{' '}
-                  bonus
+                  <Meta
+                    items={[
+                      plural(r.net, 'invite'),
+                      `${r.regular} joined`,
+                      `${r.leaves} left`,
+                      `${r.bonus} bonus`,
+                    ]}
+                  />
                 </p>
               </div>
             </div>

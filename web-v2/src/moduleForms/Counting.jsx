@@ -10,6 +10,7 @@ import {
 } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
+import Meta from '../components/Meta.jsx';
 
 export default function Counting() {
   const { guildId } = useParams();
@@ -200,10 +201,16 @@ export default function Counting() {
                 <div className="v2-row-main">
                   <h3>{p.label}</h3>
                   <p>
-                    {p.roleName} · back at{' '}
-                    {Number.isFinite(p.restoreAt)
-                      ? new Date(p.restoreAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
-                      : '—'}
+                    <Meta
+                      items={[
+                        p.roleName,
+                        `back at ${
+                          Number.isFinite(p.restoreAt)
+                            ? new Date(p.restoreAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+                            : '—'
+                        }`,
+                      ]}
+                    />
                   </p>
                 </div>
                 <div className="v2-field-row">
@@ -224,13 +231,21 @@ export default function Counting() {
 
       <h2 className="v2-group-title v2-section-gap">Current game</h2>
       <p className="v2-field-hint">
-        Count is at <strong>{data.state.current}</strong> · best streak <strong>{data.state.record}</strong>
-        {data.state.lastUserId ? (
-          <>
-            {' '}
-            · last number by <code>&lt;@{data.state.lastUserId}&gt;</code>
-          </>
-        ) : null}
+        <Meta
+          items={[
+            <>
+              Count is at <strong>{data.state.current}</strong>
+            </>,
+            <>
+              best streak <strong>{data.state.record}</strong>
+            </>,
+            data.state.lastUserId && (
+              <>
+                last number by <code>&lt;@{data.state.lastUserId}&gt;</code>
+              </>
+            ),
+          ]}
+        />
       </p>
       <div className="v2-field">
         <label htmlFor="countInput">Set the count to</label>
