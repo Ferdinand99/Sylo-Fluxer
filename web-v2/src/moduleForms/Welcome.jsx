@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import ToggleSection from '../components/ToggleSection.jsx';
@@ -205,9 +205,9 @@ export default function Welcome() {
         <div className="v2-row-main">
           <h3>Verify new members with a captcha</h3>
         </div>
-        <a className="v2-row-arrow" href={`/guilds/${guildId}/m/verification`}>
+        <Link className="v2-btn-ghost" to={`/guilds/${guildId}/m/verification`}>
           {data.verificationEnabled ? 'On — configure' : 'Set up'}
-        </a>
+        </Link>
       </div>
     </>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
@@ -92,8 +92,9 @@ export default function Moderation() {
       <h1 className="v2-section-title">Moderation</h1>
       <p className="v2-field-hint">
         Warning thresholds apply an action automatically once a member reaches a given warning count — the{' '}
-        <strong>strictest</strong> matching rule wins. Warnings and bans themselves are managed on the{' '}
-        <a href={`/guilds/${guildId}/moderation`}>Moderation</a> page, not here.
+        <strong>strictest</strong> matching rule wins. Members with an immunity role are skipped (set those on
+        the <Link to={`/guilds/${guildId}/moderation/automod`}>Auto-moderation tab</Link>). Warnings and bans
+        themselves are on the <Link to={`/guilds/${guildId}/moderation`}>Infractions tab</Link>.
       </p>
 
       <form onSubmit={onSave}>

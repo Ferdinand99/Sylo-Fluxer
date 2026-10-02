@@ -35,5 +35,6 @@ Each rule is toggled independently:
 - Fluxer has no built-in AutoMod, so every rule runs in Sylo's own scanner and
   only while Sylo is online. (The Discord version of Sylo could mirror some
   rules to Discord's native AutoMod; that option doesn't exist here.)
-- Immunity roles are configured on the Moderator page's **Admin** tab and are
-  shared with the warning auto-actions.
+- Immunity roles are shared with the warning auto-actions. Set them under
+  **Immunity roles** at the bottom of the Auto-moderation page in the V2
+  dashboard, or on the Moderator page's **Admin** tab in the classic one.

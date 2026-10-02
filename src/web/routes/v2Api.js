@@ -158,6 +158,7 @@ import { log } from '../../lib/log.js';
 import { sendDevLogTest } from '../../lib/devLog.js';
 import { fetchGuildChannel } from '../../platform/channels.js';
 import { parseUserId } from '../../platform/mentions.js';
+import { ticketsRouter, staffRouter } from './v2Staff.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../../package.json');
@@ -239,7 +240,12 @@ function loadGuildJson(req, res, next) {
 // pages, not JSON (it's shared, unmodified V1 code) — the web-v2 fetch
 // wrapper checks response.ok/content-type before parsing JSON and falls
 // back to a plain "log in" / "no access" state rather than crashing on it.
+// Tickets go before the admin guard: members with a configured staff role may use
+// them without being server admins (ticketsRouter does its own access check).
+router.use('/guilds/:guildId/tickets', ticketsRouter);
 router.use('/guilds/:guildId', loadGuildJson, requireGuildAdmin);
+// Appeals review, command limits and the moderation hub (v2Staff.js).
+router.use('/guilds/:guildId', staffRouter);
 
 router.get(
   '/guilds/:guildId/overview',
@@ -766,10 +772,30 @@ router.get(
     res.json({
       config: normaliseAutomodConfig(cfg),
       channels: guildTextChannels(req.guild),
+      roles: assignableRoles(req.guild),
       automodRules: AUTOMOD_RULES,
       automodActions: AUTOMOD_ACTIONS,
       modlogChannelId: settings?.modlog_channel_id || '',
     });
+  })
+);
+
+// Immunity roles: members with one of these are never touched by auto-moderation
+// or the warning auto-actions. Patches only automod's exemptRoles, like V1's
+// Moderator -> Admin tab.
+router.post(
+  '/guilds/:guildId/modules/automod/immunity',
+  asyncHandler(async (req, res) => {
+    const prev = (await getGuildModule(req.guild.id, 'automod')).config;
+    const exemptRoles = [].concat(req.body.exemptRoles ?? []).filter((r) => /^\d{17,20}$/.test(r));
+    const config = normaliseAutomodConfig({ ...prev, exemptRoles });
+    await setGuildModule(req.guild.id, 'automod', { config });
+    await recordAudit(req.guild.id, {
+      actor: moderatorDisplayName(req),
+      action: 'module:automod',
+      detail: `immunity roles (${config.exemptRoles.length})`,
+    });
+    res.json({ exemptRoles: config.exemptRoles });
   })
 );
 

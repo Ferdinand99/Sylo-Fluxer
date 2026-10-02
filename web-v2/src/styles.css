@@ -1444,7 +1444,14 @@ form input[type='number'],
 form input[type='time'],
 form input[type='datetime-local'],
 form select,
-form textarea {
+form textarea,
+.v2-field input[type='text'],
+.v2-field input[type='url'],
+.v2-field input[type='number'],
+.v2-field input[type='time'],
+.v2-field input[type='datetime-local'],
+.v2-field select,
+.v2-field textarea {
   width: 100%;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -1905,4 +1912,129 @@ form textarea {
 /* The intro line under a page title needs air before the first form field. */
 .v2-section-title + p.v2-field-hint {
   margin-bottom: 20px;
+}
+
+/* Staff pages: commands, appeals, tickets, moderation. */
+.v2-cmd-list {
+  align-items: start;
+}
+.v2-cmd-row {
+  align-items: flex-start;
+}
+.v2-cmd-row .v2-row-main {
+  flex: 1;
+}
+.v2-cmd-limits {
+  margin-top: 12px;
+}
+.v2-cmd-open {
+  margin-top: 8px;
+}
+.v2-appeal-user {
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+.v2-appeal-answers {
+  margin: 12px 0;
+}
+.v2-appeal-answers dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.v2-appeal-answers dd {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+}
+.v2-unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: var(--accent-2);
+}
+.v2-ticket-row.is-unread h3 {
+  color: var(--text);
+}
+.v2-ticket-user {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.7em;
+}
+.v2-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding: 14px;
+  margin-bottom: 18px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+.v2-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  align-self: flex-start;
+}
+.v2-bubble.is-staff {
+  align-self: flex-end;
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-surface));
+}
+.v2-bubble.is-system {
+  align-self: center;
+  max-width: 90%;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.v2-bubble-meta {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+.v2-bubble-body {
+  margin-top: 2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.v2-bubble-att {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+.v2-case-row.is-deleted {
+  opacity: 0.55;
+}
+.v2-case-action {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.v2-case-reason {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Pages shown inside another page (the Moderation tabs): their own title is the tab. */
+.v2-embedded > .v2-section-title {
+  display: none;
+}
+.v2-hub-tabs {
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.v2-tab-off {
+  color: var(--text-muted);
+  font-weight: 400;
 }

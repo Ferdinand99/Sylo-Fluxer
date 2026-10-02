@@ -46,16 +46,26 @@ the module reference itself.
 
 ## Module coverage
 
-Not every module has its own V2 page yet. One that doesn't is marked
-**Classic** (with a tooltip explaining why) wherever it's linked from — on the
-Dashboard/Overview grid and in the sidebar — and clicking it opens that
-module's classic-dashboard config page instead. It's still fully
-configurable, just not on a V2-native page yet.
+Every module has its own V2 settings page, and so do the staff pages that
+used to exist only in the classic dashboard:
 
-Modules with a real V2 page today: AFK, Welcome & leave, Birthdays,
-Verification, Free games, Counting, Auto-react. This list grows over time —
-the **Classic** tag is the accurate, live answer for any module not listed
-here.
+- **Moderation** — one page with tabs, like the classic Moderator page:
+  **Infractions** (cases with edit, delete and restore; warning a member; the
+  ban list with unban; scheduled unbans; server lockdown), **Auto-moderation**
+  (the rules, exempt channels and immunity roles), **Warning actions**
+  (warning thresholds), **Server logging** and **Commands** (turn a command
+  off, or limit it to certain channels and roles). A tab for a module that is
+  switched off says "(off)"; the on/off switch is on the Dashboard page. The
+  old addresses for these settings still work and open the right tab.
+- **Tickets** — the inbox, a live conversation view with reply and close, and
+  the transcript download. Members with a configured ticket staff role can use
+  it without being server admins, same as in the classic dashboard.
+- **Ban appeals** — review open appeals and accept or deny them.
+
+A few things are still classic-only: **Member data** (export or erase one
+member's data), the per-module **Send test** buttons (V2 has one for
+Reminders), and the member-facing pages the bot links to (the appeal form, the
+verification captcha and the public leaderboard).
 
 ## Beta status
 
