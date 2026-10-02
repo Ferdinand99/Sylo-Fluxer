@@ -2025,3 +2025,16 @@ form textarea,
   overflow: visible;
   text-overflow: clip;
 }
+
+/* Pages shown inside another page (the Moderation tabs): their own title is the tab. */
+.v2-embedded > .v2-section-title {
+  display: none;
+}
+.v2-hub-tabs {
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.v2-tab-off {
+  color: var(--text-muted);
+  font-weight: 400;
+}

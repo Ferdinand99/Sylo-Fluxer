@@ -85,7 +85,11 @@ export const SPECIAL_V2_PATHS = {
   messages: (guildId) => `/guilds/${guildId}/messages`,
   general: (guildId) => `/guilds/${guildId}/settings`,
   insights: (guildId) => `/guilds/${guildId}/insights`,
-  commands: (guildId) => `/guilds/${guildId}/commands`,
+  // These live as tabs on the Moderation page.
+  automod: (guildId) => `/guilds/${guildId}/moderation/automod`,
+  moderation: (guildId) => `/guilds/${guildId}/moderation/actions`,
+  logging: (guildId) => `/guilds/${guildId}/moderation/logging`,
+  commands: (guildId) => `/guilds/${guildId}/moderation/commands`,
 };
 
 export function hasV2Page(card) {

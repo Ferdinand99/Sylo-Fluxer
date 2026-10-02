@@ -49,13 +49,18 @@ the module reference itself.
 Every module has its own V2 settings page, and so do the staff pages that
 used to exist only in the classic dashboard:
 
-- **Moderation** — cases (edit a reason, delete or restore one), warning a
-  member, the ban list with unban, scheduled unbans, and server lockdown.
+- **Moderation** — one page with tabs, like the classic Moderator page:
+  **Infractions** (cases with edit, delete and restore; warning a member; the
+  ban list with unban; scheduled unbans; server lockdown), **Auto-moderation**
+  (the rules, exempt channels and immunity roles), **Warning actions**
+  (warning thresholds), **Server logging** and **Commands** (turn a command
+  off, or limit it to certain channels and roles). A tab for a module that is
+  switched off says "(off)"; the on/off switch is on the Dashboard page. The
+  old addresses for these settings still work and open the right tab.
 - **Tickets** — the inbox, a live conversation view with reply and close, and
   the transcript download. Members with a configured ticket staff role can use
   it without being server admins, same as in the classic dashboard.
 - **Ban appeals** — review open appeals and accept or deny them.
-- **Commands** — turn a command off, or limit it to certain channels and roles.
 
 A few things are still classic-only: **Member data** (export or erase one
 member's data), the per-module **Send test** buttons (V2 has one for

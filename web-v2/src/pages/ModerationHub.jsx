@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   getModeration,
   unbanMember,
@@ -14,9 +14,14 @@ import {
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
 import LoadError from '../components/LoadError.jsx';
+import { useOverview } from '../OverviewContext.jsx';
+import Automod from '../moduleForms/Automod.jsx';
+import ModerationSettings from '../moduleForms/Moderation.jsx';
+import Logging from '../moduleForms/Logging.jsx';
+import Commands from './Commands.jsx';
 import Meta, { plural } from '../components/Meta.jsx';
 
-const TABS = [
+const SUB_TABS = [
   ['cases', 'Cases'],
   ['bans', 'Bans'],
   ['locks', 'Lockdown'],
@@ -170,7 +175,7 @@ function CaseRow({ c, guildId, run, busy }) {
   );
 }
 
-export default function ModerationHub() {
+function InfractionsTab() {
   const { guildId } = useParams();
   const { data, loading, error, setData } = useApiData(() => getModeration(guildId), [guildId]);
   const [tab, setTab] = useState('cases');
@@ -182,16 +187,10 @@ export default function ModerationHub() {
 
   return (
     <>
-      <h1 className="v2-section-title">Moderation</h1>
-      <p className="v2-field-hint">
-        Cases, bans and lockdown for this server. Warning thresholds, the mod-log and auto-moderation are in
-        the <Link to={`/guilds/${guildId}/m/moderation`}>moderation settings</Link>.
-      </p>
-
       <WarnPanel guildId={guildId} run={run} busy={busy} />
 
       <div className="v2-tabs" role="tablist">
-        {TABS.map(([key, label]) => (
+        {SUB_TABS.map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -346,6 +345,58 @@ export default function ModerationHub() {
           )}
         </>
       ) : null}
+    </>
+  );
+}
+
+// The Moderation page: infractions first, then the settings that decide how the
+// bot acts, each on its own tab (the address carries the tab, so it can be
+// linked and bookmarked). A tab for a module that is switched off says so.
+const TABS = [
+  ['infractions', 'Infractions', null],
+  ['automod', 'Auto-moderation', 'automod'],
+  ['actions', 'Warning actions', 'moderation'],
+  ['logging', 'Server logging', 'logging'],
+  ['commands', 'Commands', null],
+];
+const TAB_CONTENT = {
+  infractions: InfractionsTab,
+  automod: Automod,
+  actions: ModerationSettings,
+  logging: Logging,
+  commands: Commands,
+};
+
+export default function ModerationHub() {
+  const { guildId, tab } = useParams();
+  const navigate = useNavigate();
+  const overview = useOverview();
+  const active = TAB_CONTENT[tab] ? tab : 'infractions';
+  const Content = TAB_CONTENT[active];
+  const cards = (overview?.data?.groups ?? []).flatMap((g) => g.cards);
+  const isOff = (moduleId) => moduleId && cards.find((c) => c.id === moduleId)?.enabled === false;
+
+  return (
+    <>
+      <h1 className="v2-section-title">Moderation</h1>
+      <div className="v2-tabs v2-hub-tabs" role="tablist">
+        {TABS.map(([key, label, moduleId]) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={active === key}
+            className={`v2-tab${active === key ? ' is-active' : ''}`}
+            onClick={() => navigate(`/guilds/${guildId}/moderation/${key}`)}
+          >
+            {label}
+            {isOff(moduleId) ? <span className="v2-tab-off"> (off)</span> : null}
+          </button>
+        ))}
+      </div>
+      <div className="v2-embedded">
+        <Content />
+      </div>
     </>
   );
 }
