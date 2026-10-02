@@ -17,7 +17,8 @@ comes from a chosen user or role.
   Each rule has:
   - **Target users** and/or **target role** — at least one of the two.
   - **Channel** — optional; leave as "all channels" or lock the rule to one.
-  - **Emoji** — one or more, unicode or a server custom emoji.
+  - **Emoji** — up to 10, picked from the emoji picker: standard emoji or the
+    server's own custom emoji.
   - **When to react** — every matching message, or a random % chance.
   - **Also change a role** — optionally give or take away a role on the same
     trigger (e.g. to track a status like "infected").

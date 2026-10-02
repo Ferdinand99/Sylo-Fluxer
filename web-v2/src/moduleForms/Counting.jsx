@@ -9,6 +9,8 @@ import {
   ApiError,
 } from '../api.js';
 import { useApiData } from '../useApiData.js';
+import { notify } from '../notify.js';
+import Meta from '../components/Meta.jsx';
 
 export default function Counting() {
   const { guildId } = useParams();
@@ -55,7 +57,7 @@ export default function Counting() {
       setForm(config);
       setSaved(true);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSaving(false);
     }
@@ -63,13 +65,13 @@ export default function Counting() {
 
   async function onSetCount() {
     const n = Number(countInput);
-    if (!Number.isInteger(n) || n < 0) return alert('Enter a whole number, 0 or higher.');
+    if (!Number.isInteger(n) || n < 0) return notify('Enter a whole number, 0 or higher.');
     setCountBusy(true);
     try {
       const { state } = await setCountingCount(guildId, n);
       setData((d) => ({ ...d, state }));
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setCountBusy(false);
     }
@@ -83,7 +85,7 @@ export default function Counting() {
       setData((d) => ({ ...d, state }));
       setCountInput('0');
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setCountBusy(false);
     }
@@ -95,7 +97,7 @@ export default function Counting() {
       await releaseCountingPenalty(guildId, userId);
       setData((d) => ({ ...d, penalties: d.penalties.filter((p) => p.userId !== userId) }));
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setReleasing(null);
     }
@@ -199,10 +201,16 @@ export default function Counting() {
                 <div className="v2-row-main">
                   <h3>{p.label}</h3>
                   <p>
-                    {p.roleName} · back at{' '}
-                    {Number.isFinite(p.restoreAt)
-                      ? new Date(p.restoreAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
-                      : '—'}
+                    <Meta
+                      items={[
+                        p.roleName,
+                        `back at ${
+                          Number.isFinite(p.restoreAt)
+                            ? new Date(p.restoreAt).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+                            : '—'
+                        }`,
+                      ]}
+                    />
                   </p>
                 </div>
                 <div className="v2-field-row">
@@ -223,19 +231,28 @@ export default function Counting() {
 
       <h2 className="v2-group-title v2-section-gap">Current game</h2>
       <p className="v2-field-hint">
-        Count is at <strong>{data.state.current}</strong> · best streak <strong>{data.state.record}</strong>
-        {data.state.lastUserId ? (
-          <>
-            {' '}
-            · last number by <code>&lt;@{data.state.lastUserId}&gt;</code>
-          </>
-        ) : null}
+        <Meta
+          items={[
+            <>
+              Count is at <strong>{data.state.current}</strong>
+            </>,
+            <>
+              best streak <strong>{data.state.record}</strong>
+            </>,
+            data.state.lastUserId && (
+              <>
+                last number by <code>&lt;@{data.state.lastUserId}&gt;</code>
+              </>
+            ),
+          ]}
+        />
       </p>
       <div className="v2-field">
         <label htmlFor="countInput">Set the count to</label>
         <div className="v2-field-row">
           <input
             id="countInput"
+            className="v2-inline-input"
             type="number"
             min={0}
             value={countInput}

@@ -28,7 +28,7 @@ function scheduleLabel(r, schedulePresets, weekdays) {
   const days =
     r.days.length === 7
       ? ''
-      : ` · ${r.days
+      : ` on ${r.days
           .slice()
           .sort((a, b) => a - b)
           .map((n) => names.get(n))

@@ -4,6 +4,7 @@ import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import ToggleSection from '../components/ToggleSection.jsx';
 import ChipPicker from '../components/ChipPicker.jsx';
+import { notify } from '../notify.js';
 
 export default function Welcome() {
   const { guildId } = useParams();
@@ -44,7 +45,7 @@ export default function Welcome() {
       setForm(config);
       setSaved(true);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSaving(false);
     }
@@ -205,7 +206,7 @@ export default function Welcome() {
           <h3>Verify new members with a captcha</h3>
         </div>
         <a className="v2-row-arrow" href={`/guilds/${guildId}/m/verification`}>
-          {data.verificationEnabled ? 'On — configure' : 'Set up'} →
+          {data.verificationEnabled ? 'On — configure' : 'Set up'}
         </a>
       </div>
     </>

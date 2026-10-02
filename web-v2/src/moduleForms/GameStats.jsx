@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { getModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
+import Meta from '../components/Meta.jsx';
 
 // Read-only — this module has nothing to configure beyond the shared
 // enable/disable toggle every module already has from Overview. Matches
@@ -57,7 +58,7 @@ export default function GameStats() {
                   {r.game} — {r.title}
                 </h3>
                 <p>
-                  {r.username} · {r.platform} · {r.ago}
+                  <Meta items={[r.username, r.platform, r.ago]} />
                 </p>
               </div>
             </div>

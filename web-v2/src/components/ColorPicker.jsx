@@ -120,6 +120,7 @@ export default function ColorPicker({ value, onChange, title }) {
           />
           <input
             type="text"
+            aria-label="Colour (hex)"
             className="v2-colorpicker-hex"
             value={hexDraft}
             maxLength={7}
@@ -128,6 +129,7 @@ export default function ColorPicker({ value, onChange, title }) {
           <input
             ref={nativeRef}
             type="color"
+            aria-label="Pick a colour"
             className="v2-colorpicker-native"
             value={HEX_RE.test(value) ? value : '#5865f2'}
             onChange={(e) => pick(e.target.value, false)}

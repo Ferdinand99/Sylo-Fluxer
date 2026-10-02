@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getInsights, refreshInsights, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
+import { notify } from '../notify.js';
 
 // Same hand-rolled SVG bar/line chart math as V1's insights.ejs, ported
 // 1:1 rather than pulling in a charting library for six small sparkline-
@@ -64,6 +65,29 @@ function fmtDuration(minsRaw) {
   return `${h.toLocaleString('en')} h${mins % 60 ? ` ${mins % 60} m` : ''}`;
 }
 
+// Series labels are UTC: 'YYYY-MM-DD' per day or 'YYYY-MM-DDTHH' per hour.
+function axisLabel(label) {
+  if (!label) return '';
+  if (label.includes('T')) return `${label.slice(11, 13)}:00`;
+  return new Date(`${label}T00:00:00Z`).toLocaleDateString('en', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
+}
+
+function Axis({ series }) {
+  if (series.length < 2) return null;
+  return (
+    <div className="v2-ins-axis" aria-hidden="true">
+      <span>{axisLabel(series[0].label)}</span>
+      <span>{axisLabel(series[series.length - 1].label)}</span>
+    </div>
+  );
+}
+
+const peakOf = (series, ...keys) => Math.max(0, ...series.map((d) => Math.max(...keys.map((k) => d[k]))));
+
 const RANGES = [
   ['24', 'Last 24 hours'],
   ['48', 'Last 48 hours'],
@@ -104,7 +128,7 @@ export default function Insights() {
       const fresh = await getInsights(guildId, range);
       setData(fresh);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setRefreshing(false);
     }
@@ -127,6 +151,7 @@ export default function Insights() {
             key={value}
             type="button"
             className={`v2-pill${range === value ? ' is-on' : ''}`}
+            aria-pressed={range === value}
             onClick={() => setRange(value)}
           >
             {label}
@@ -178,7 +203,10 @@ export default function Insights() {
 
       <div className="v2-ins-grid">
         <section className="v2-ins-chart">
-          <h3>Messages {perLabel}</h3>
+          <h3>
+            Messages {perLabel}
+            <span className="v2-ins-peak">most {peakOf(series, 'messages').toLocaleString('en')}</span>
+          </h3>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             preserveAspectRatio="none"
@@ -197,10 +225,14 @@ export default function Insights() {
               />
             ))}
           </svg>
+          <Axis series={series} />
         </section>
 
         <section className="v2-ins-chart">
-          <h3>Voice minutes {perLabel}</h3>
+          <h3>
+            Voice minutes {perLabel}
+            <span className="v2-ins-peak">most {peakOf(series, 'voiceMinutes').toLocaleString('en')}</span>
+          </h3>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             preserveAspectRatio="none"
@@ -219,6 +251,7 @@ export default function Insights() {
               />
             ))}
           </svg>
+          <Axis series={series} />
         </section>
 
         <section className="v2-ins-chart">
@@ -237,10 +270,14 @@ export default function Insights() {
           >
             <polyline className="v2-ins-line-grow" fill="none" points={g.pts} />
           </svg>
+          <Axis series={series} />
         </section>
 
         <section className="v2-ins-chart">
-          <h3>Joins vs leaves</h3>
+          <h3>
+            Joins vs leaves
+            <span className="v2-ins-peak">most {peakOf(series, 'joins', 'leaves')}</span>
+          </h3>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             preserveAspectRatio="none"
@@ -258,6 +295,7 @@ export default function Insights() {
               points={line(series, 'leaves', ['joins', 'leaves'])}
             />
           </svg>
+          <Axis series={series} />
           <p className="v2-field-hint">
             <span className="v2-ins-key v2-ins-ok">▮</span> joins{' '}
             <span className="v2-ins-key v2-ins-bad">▮</span> leaves

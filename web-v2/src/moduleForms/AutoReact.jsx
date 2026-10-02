@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import EmojiPicker from '../components/EmojiPicker.jsx';
+import { notify } from '../notify.js';
 
 const MODE_LABELS = { always: 'React to every message', random: 'React at a random chance' };
 const ROLE_ACTION_LABELS = { add: 'Give them the role', remove: 'Take the role away' };
@@ -76,7 +77,7 @@ export default function AutoReact() {
       (r) => r.emojis.length > 0 && !r.targetUsersText.trim() && !r.targetRoleId
     );
     if (incomplete) {
-      alert('Each rule needs a target user or a target role, otherwise it is not saved.');
+      notify('Each rule needs a target user or a target role, otherwise it is not saved.');
       return;
     }
     setSaving(true);
@@ -104,7 +105,7 @@ export default function AutoReact() {
       });
       setSaved(true);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSaving(false);
     }

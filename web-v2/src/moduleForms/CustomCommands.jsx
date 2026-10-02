@@ -4,6 +4,7 @@ import { getCustomCommands, saveCustomCommand, deleteCustomCommand, ApiError } f
 import ChipPicker from '../components/ChipPicker.jsx';
 import EmbedEditor from '../components/EmbedEditor.jsx';
 import { newKey } from '../components/EmbedCard.jsx';
+import Meta, { plural } from '../components/Meta.jsx';
 
 const ACTION_TYPES = [
   ['reply', 'Bot responds with a message in the current channel'],
@@ -427,9 +428,14 @@ export default function CustomCommands() {
                 <div className="v2-row-main">
                   <h3>!{c.name}</h3>
                   <p>
-                    {c.description || 'No description'} · {c.actions.length} action(s)
-                    {c.allowedRoles.length || c.allowedChannels.length ? ' · restricted' : ''}
-                    {c.cooldownSeconds ? ` · ${c.cooldownSeconds}s cooldown` : ''}
+                    <Meta
+                      items={[
+                        c.description || 'No description',
+                        plural(c.actions.length, 'action'),
+                        (c.allowedRoles.length || c.allowedChannels.length) && 'restricted',
+                        c.cooldownSeconds ? `${c.cooldownSeconds}s cooldown` : null,
+                      ]}
+                    />
                   </p>
                   {editingId === c.id ? (
                     <CommandForm

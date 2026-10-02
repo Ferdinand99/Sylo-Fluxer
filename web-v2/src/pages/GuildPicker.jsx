@@ -35,8 +35,12 @@ export default function GuildPicker() {
       <div className="v2-card-grid">
         {guilds.map((g) => (
           <Link key={g.id} to={`/guilds/${g.id}`} className="v2-card">
+            {g.icon ? (
+              <img src={g.icon} alt="" width={36} height={36} style={{ borderRadius: 10 }} />
+            ) : (
+              <span className="v2-card-ph">{g.name.charAt(0)}</span>
+            )}
             <h3>{g.name}</h3>
-            {g.icon ? <img src={g.icon} alt="" width={32} height={32} style={{ borderRadius: 8 }} /> : null}
           </Link>
         ))}
       </div>

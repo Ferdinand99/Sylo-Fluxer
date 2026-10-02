@@ -68,7 +68,7 @@ const lastPreviewStmt = prepare(
 // date string (it's not ISO-8601) and throws "Invalid time value" wherever a
 // timestamp is later formatted (fmtTs in modules/tickets.js). Coerce every
 // BIGINT column back to a number right where rows leave this file, the same
-// pattern src/db/roadmap.js uses for its own timestamp/count columns.
+// pattern the other driver-backed db files use for their timestamp/count columns.
 function toTicket(row) {
   if (!row) return row;
   return {

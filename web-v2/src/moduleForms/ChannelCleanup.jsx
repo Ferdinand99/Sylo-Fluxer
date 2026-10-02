@@ -8,6 +8,7 @@ import {
   toggleCleanupSchedule,
   ApiError,
 } from '../api.js';
+import Meta from '../components/Meta.jsx';
 
 function dayLabel(days, weekdays) {
   if (days.length === 7) return 'every day';
@@ -230,9 +231,14 @@ export default function ChannelCleanup() {
                   <div className="v2-row-main">
                     <h3>#{channel ? channel.name : s.channelId}</h3>
                     <p>
-                      {dayLabel(s.days, d.weekdays)} at {s.timeHhmm} · older than {ageLabel(s.maxAgeHours)}
-                      {s.lastRunDate ? ` · last ran ${s.lastRunDate}` : ''}
-                      {s.lastRunCount ? ` (${s.lastRunCount} deleted)` : ''}
+                      <Meta
+                        items={[
+                          `${dayLabel(s.days, d.weekdays)} at ${s.timeHhmm}`,
+                          `older than ${ageLabel(s.maxAgeHours)}`,
+                          s.lastRunDate &&
+                            `last ran ${s.lastRunDate}${s.lastRunCount ? ` (${s.lastRunCount} deleted)` : ''}`,
+                        ]}
+                      />
                     </p>
                     {editingId === s.id ? (
                       <ScheduleForm

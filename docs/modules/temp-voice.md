@@ -2,14 +2,16 @@
 
 Join-to-create voice hubs: a member joins a **hub** channel and Sylo spawns a
 personal voice channel (and optional text channel) they own and control with
-`!voice-*` commands. Empty channels are cleaned up.
+`!voice-*` commands, then sends them a DM with a link to join it. Empty channels
+are cleaned up.
 
 **Dashboard:** `/guilds/<id>/m/temp-voice`.
 
 ## Needs
 
-- **Manage Channels**, **Move Members**, and **Manage Roles** if you use
-  role-based access.
+- **Manage Channels**, and **Manage Roles** if you use role-based access.
+- **Move Members** only for `!voice-kick` and `!voice-ban`, which disconnect
+  someone from a temp channel.
 
 ## Settings (per hub)
 
@@ -28,3 +30,9 @@ left), `!voice-owner`. `!voice-clean` deletes all empty temp channels.
 ## Notes
 
 - Up to 25 hubs per server.
+- Sylo does not move members into their new channel. On Fluxer a move done by a
+  bot drops the member's voice connection (they end up in the call without a
+  registered voice state), so the member joins from the DM link instead. They
+  be able to receive DMs from the bot; if they join the hub again while their
+  channel exists, they get a link to the existing one. A channel nobody joins
+  within two minutes is cleaned up like any other empty temp channel.

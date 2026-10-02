@@ -116,7 +116,7 @@ read members or message content.
    - **Manage Channels** — `!lock`, `!lockdown`, `!slowmode`, temporary voice, server statistics
    - **Manage Roles** — reaction roles, autoroles, verification, leveling rewards, birthday role
    - **Manage Nicknames** — AFK
-   - **Connect**, **Move Members** — temporary voice channels
+   - **Connect** — temporary voice channels; **Move Members** — `!voice-kick` and `!voice-ban` in them (Sylo does not move members into their new channel)
    - **Create Invite** — personal `!invites` links
    - **Manage Webhooks** — requested, but no current module uses it
 

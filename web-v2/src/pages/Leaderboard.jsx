@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getLeaderboard, setLeaderboardPublic, setLeaderboardVanity, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
+import { notify } from '../notify.js';
 
 const PERIODS = [
   { key: 'all', label: 'All time' },
@@ -61,7 +62,7 @@ export default function Leaderboard() {
       const { vanitySlug } = await setLeaderboardVanity(guildId, slugInput);
       setData((d) => ({ ...d, vanitySlug }));
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSaving(false);
     }
@@ -102,6 +103,7 @@ export default function Leaderboard() {
               </div>
               <input
                 className="v2-inline-input"
+                aria-label="Vanity URL"
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value)}
                 placeholder="my-server"
@@ -129,15 +131,15 @@ export default function Leaderboard() {
       <div className="v2-list">
         {data.rows.length ? (
           data.rows.map((r) => (
-            <div className="v2-row" key={r.rank}>
+            <div className="v2-row v2-rank-row" key={r.rank}>
+              <span className="v2-rank-n">{r.rank}</span>
               <div className="v2-row-main">
-                <h3>
-                  #{r.rank} {r.name}
-                </h3>
-                <p>
-                  {r.level !== null ? `Level ${r.level} · ` : ''}
-                  {r.xp.toLocaleString()} XP · {r.messages.toLocaleString()} messages
-                </p>
+                <h3>{r.name}</h3>
+              </div>
+              <div className="v2-rank-stats">
+                {r.level !== null ? <span>Level {r.level}</span> : null}
+                <span>{r.xp.toLocaleString()} XP</span>
+                <span>{r.messages.toLocaleString()} messages</span>
               </div>
             </div>
           ))
