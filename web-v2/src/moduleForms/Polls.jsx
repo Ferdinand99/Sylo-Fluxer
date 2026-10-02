@@ -129,6 +129,7 @@ export default function Polls() {
           <h2 className="v2-group-title">Who can vote</h2>
           <div className="v2-field">
             <select
+              aria-label="Who can vote"
               value={form.voteRoleMode}
               onChange={(e) => setForm((f) => ({ ...f, voteRoleMode: e.target.value }))}
             >

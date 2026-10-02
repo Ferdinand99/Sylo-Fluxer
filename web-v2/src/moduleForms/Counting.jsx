@@ -252,6 +252,7 @@ export default function Counting() {
         <div className="v2-field-row">
           <input
             id="countInput"
+            className="v2-inline-input"
             type="number"
             min={0}
             value={countInput}

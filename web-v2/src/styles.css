@@ -1413,6 +1413,10 @@ button.v2-toggle:disabled {
   justify-content: space-between;
   gap: 16px;
 }
+.v2-am-rule-main select {
+  flex: 0 0 min(240px, 45%);
+  width: auto;
+}
 .v2-am-params {
   margin-top: 10px;
 }
@@ -1456,6 +1460,9 @@ form textarea {
 .v2-field textarea:focus {
   outline: none;
   border-color: var(--accent);
+}
+.v2-group-title.v2-section-gap {
+  margin-top: 32px;
 }
 .v2-field-hint {
   color: var(--text-muted);
@@ -1523,6 +1530,7 @@ form textarea {
 }
 .v2-field-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }

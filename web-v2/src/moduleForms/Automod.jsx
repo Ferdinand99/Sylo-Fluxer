@@ -162,6 +162,7 @@ export default function Automod() {
                       <span className="v2-field-hint">At least</span>
                       <input
                         type="number"
+                        aria-label="Minimum letters"
                         min={4}
                         max={200}
                         value={form.rules.caps.minLength}
@@ -170,6 +171,7 @@ export default function Automod() {
                       <span className="v2-field-hint">letters,</span>
                       <input
                         type="number"
+                        aria-label="Percent uppercase"
                         min={50}
                         max={100}
                         value={form.rules.caps.percent}

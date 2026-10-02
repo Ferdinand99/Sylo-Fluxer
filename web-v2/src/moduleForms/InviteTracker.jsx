@@ -180,6 +180,7 @@ export default function InviteTracker() {
           />
           <input
             type="number"
+            aria-label="Bonus invites"
             className="v2-input-sm"
             value={bonusValue}
             onChange={(e) => setBonusValue(e.target.value)}

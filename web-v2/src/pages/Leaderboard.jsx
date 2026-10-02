@@ -103,6 +103,7 @@ export default function Leaderboard() {
               </div>
               <input
                 className="v2-inline-input"
+                aria-label="Vanity URL"
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value)}
                 placeholder="my-server"

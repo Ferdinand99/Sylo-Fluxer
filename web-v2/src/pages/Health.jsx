@@ -299,6 +299,7 @@ export default function Health() {
             <input
               ref={fileInputRef}
               type="file"
+              aria-label="Backup file"
               accept=".db,.sqlite,.sqlite3,.dump,application/octet-stream"
               className="v2-field-hint"
             />
