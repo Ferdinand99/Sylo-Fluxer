@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import ChipPicker from '../components/ChipPicker.jsx';
@@ -55,7 +55,7 @@ export default function Tickets() {
       <h1 className="v2-section-title">Tickets (modmail)</h1>
       <p className="v2-field-hint">
         Members open a ticket by sending the bot a direct message. Staff read and reply from the{' '}
-        <a href={`/guilds/${guildId}/tickets`}>Tickets</a> page — replies reach the member as an anonymous
+        <Link to={`/guilds/${guildId}/tickets`}>Tickets</Link> page — replies reach the member as an anonymous
         "Staff" DM.
       </p>
 

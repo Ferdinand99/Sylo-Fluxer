@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
@@ -93,7 +93,7 @@ export default function Moderation() {
       <p className="v2-field-hint">
         Warning thresholds apply an action automatically once a member reaches a given warning count — the{' '}
         <strong>strictest</strong> matching rule wins. Warnings and bans themselves are managed on the{' '}
-        <a href={`/guilds/${guildId}/moderation`}>Moderation</a> page, not here.
+        <Link to={`/guilds/${guildId}/moderation`}>Moderation</Link> page, not here.
       </p>
 
       <form onSubmit={onSave}>

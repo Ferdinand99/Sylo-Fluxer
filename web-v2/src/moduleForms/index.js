@@ -85,6 +85,7 @@ export const SPECIAL_V2_PATHS = {
   messages: (guildId) => `/guilds/${guildId}/messages`,
   general: (guildId) => `/guilds/${guildId}/settings`,
   insights: (guildId) => `/guilds/${guildId}/insights`,
+  commands: (guildId) => `/guilds/${guildId}/commands`,
 };
 
 export function hasV2Page(card) {

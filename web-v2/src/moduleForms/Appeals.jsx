@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import { notify } from '../notify.js';
@@ -64,8 +64,8 @@ export default function Appeals() {
       <h1 className="v2-section-title">Ban appeals</h1>
       <p className="v2-field-hint">
         When a member is banned, Sylo DMs them a private link to an appeal form on this dashboard. Their
-        answers show up on the <a href={`/guilds/${guildId}/appeals`}>Appeals tab</a>. The decision (and, on
-        accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Fluxer
+        answers show up on the <Link to={`/guilds/${guildId}/appeals`}>Appeals tab</Link>. The decision (and,
+        on accept, a single-use rejoin invite) is always shown on that same link when they reopen it — Fluxer
         won't let a bot DM someone it no longer shares a server with, so the page is the reliable channel.
         {!data.dashboardUrlSet ? (
           <>

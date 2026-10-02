@@ -158,6 +158,7 @@ import { log } from '../../lib/log.js';
 import { sendDevLogTest } from '../../lib/devLog.js';
 import { fetchGuildChannel } from '../../platform/channels.js';
 import { parseUserId } from '../../platform/mentions.js';
+import { ticketsRouter, staffRouter } from './v2Staff.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../../package.json');
@@ -239,7 +240,12 @@ function loadGuildJson(req, res, next) {
 // pages, not JSON (it's shared, unmodified V1 code) — the web-v2 fetch
 // wrapper checks response.ok/content-type before parsing JSON and falls
 // back to a plain "log in" / "no access" state rather than crashing on it.
+// Tickets go before the admin guard: members with a configured staff role may use
+// them without being server admins (ticketsRouter does its own access check).
+router.use('/guilds/:guildId/tickets', ticketsRouter);
 router.use('/guilds/:guildId', loadGuildJson, requireGuildAdmin);
+// Appeals review, command limits and the moderation hub (v2Staff.js).
+router.use('/guilds/:guildId', staffRouter);
 
 router.get(
   '/guilds/:guildId/overview',

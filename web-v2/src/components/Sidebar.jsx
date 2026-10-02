@@ -33,6 +33,14 @@ const ICONS = {
     </>
   ),
   pulse: <path d="M3 12h4l3 8 4-16 3 8h4" />,
+  shield: <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />,
+  inbox: (
+    <>
+      <path d="M3 13 6 4h12l3 9v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <path d="M3 13h5l1 3h6l1-3h5" />
+    </>
+  ),
+  flag: <path d="M5 21V4M5 4h12l-2 4 2 4H5" />,
 };
 
 function Icon({ name }) {
@@ -76,6 +84,27 @@ export default function Sidebar({ activeGuildId, open, onClose }) {
       icon: 'trophy',
       href: activeGuildId ? `/guilds/${activeGuildId}/leaderboard` : '/',
     },
+    {
+      key: 'moderation',
+      label: 'Moderation',
+      icon: 'shield',
+      href: activeGuildId ? `/guilds/${activeGuildId}/moderation` : '/',
+      prefix: true,
+    },
+    {
+      key: 'tickets',
+      label: 'Tickets',
+      icon: 'inbox',
+      href: activeGuildId ? `/guilds/${activeGuildId}/tickets` : '/',
+      prefix: true,
+    },
+    {
+      key: 'appeals',
+      label: 'Appeals',
+      icon: 'flag',
+      href: activeGuildId ? `/guilds/${activeGuildId}/appeals` : '/',
+      prefix: true,
+    },
     { key: 'personalizer', label: 'Bot Personalizer', icon: 'id', href: '/settings' },
     {
       key: 'settings',
@@ -101,7 +130,7 @@ export default function Sidebar({ activeGuildId, open, onClose }) {
           <Link
             key={it.key}
             to={it.href}
-            className={`v2-sidebar-link${pathname === it.href ? ' is-active' : ''}`}
+            className={`v2-sidebar-link${pathname === it.href || (it.prefix && activeGuildId && pathname.startsWith(`${it.href}/`)) ? ' is-active' : ''}`}
             onClick={onClose}
           >
             <Icon name={it.icon} />

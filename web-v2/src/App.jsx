@@ -10,6 +10,11 @@ import ModulePage from './pages/ModulePage.jsx';
 import Messages from './pages/Messages.jsx';
 import MessageBuilder from './pages/MessageBuilder.jsx';
 import Insights from './pages/Insights.jsx';
+import Commands from './pages/Commands.jsx';
+import AppealsReview from './pages/AppealsReview.jsx';
+import TicketsInbox from './pages/TicketsInbox.jsx';
+import TicketView from './pages/TicketView.jsx';
+import ModerationHub from './pages/ModerationHub.jsx';
 
 export default function App() {
   return (
@@ -24,6 +29,11 @@ export default function App() {
           <Route path="guilds/:guildId/messages" element={<Messages />} />
           <Route path="guilds/:guildId/messages/:id" element={<MessageBuilder />} />
           <Route path="guilds/:guildId/insights" element={<Insights />} />
+          <Route path="guilds/:guildId/commands" element={<Commands />} />
+          <Route path="guilds/:guildId/appeals" element={<AppealsReview />} />
+          <Route path="guilds/:guildId/tickets" element={<TicketsInbox />} />
+          <Route path="guilds/:guildId/tickets/:ticketId" element={<TicketView />} />
+          <Route path="guilds/:guildId/moderation" element={<ModerationHub />} />
           <Route path="settings" element={<Personalizer />} />
           <Route path="health" element={<Health />} />
         </Route>
