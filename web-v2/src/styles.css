@@ -1836,3 +1836,44 @@ form textarea {
 .v2-stat strong.v2-stat-bad {
   color: #f87171;
 }
+
+/* Toasts (components/Toasts.jsx) — messages that replace window.alert(). */
+.v2-toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, calc(100vw - 32px));
+}
+.v2-toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-2);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.v2-toast.is-error {
+  border-left-color: #f87171;
+}
+.v2-toast button {
+  flex: none;
+  background: none;
+  border: 0;
+  padding: 0 2px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.v2-toast button:hover {
+  color: var(--text);
+}

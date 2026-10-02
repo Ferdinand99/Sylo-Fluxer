@@ -4,34 +4,28 @@ import { getRoles, saveAutoroles, saveReactionRole, deleteReactionRole, ApiError
 import ChipPicker from '../components/ChipPicker.jsx';
 import EmbedEditor from '../components/EmbedEditor.jsx';
 import { newKey } from '../components/EmbedCard.jsx';
-
-const BTN_STYLES = ['secondary', 'primary', 'success', 'danger'];
-const STYLES = [
-  ['reaction', 'Reactions', 'Members react with an emoji. Needs Add Reactions permission.'],
-  ['buttons', 'Buttons', 'Members click a button. Up to 25, no reaction permission needed.'],
-  ['select', 'Dropdown', 'Members pick from a select menu. Best for long lists.'],
-];
+import { notify } from '../notify.js';
 
 function blankRow() {
   return { key: newKey('r'), emoji: '', label: '', roleId: '', btnStyle: 'secondary' };
 }
 
+// Fluxer has no buttons or select menus, so every set publishes as reactions.
+// Sets saved with an older style keep it (their rows may have no emoji and get a
+// numbered keycap), but the form no longer offers a choice.
 function rowsMeta(style) {
-  if (style === 'reaction') return { max: 20, title: 'Reactions & roles', addLabel: '+ Add reaction' };
-  if (style === 'buttons') return { max: 25, title: 'Buttons & roles', addLabel: '+ Add button' };
-  return { max: 25, title: 'Menu options', addLabel: '+ Add option' };
+  return style === 'reaction' ? { max: 20 } : { max: 25 };
 }
 
 function ReactionRoleForm({ initial, channels, roles, onSave, onCancel, saving }) {
-  const [style, setStyle] = useState(initial.style || 'reaction');
+  const style = initial.style || 'reaction';
   const [channelId, setChannelId] = useState(initial.channelId || '');
   const [message, setMessage] = useState(initial.message || '');
   const [embedSpec, setEmbedSpec] = useState(initial.embed || {});
   const [exclusive, setExclusive] = useState(Boolean(initial.exclusive));
   const [mode, setMode] = useState(initial.mode === 'reverse' ? 'reverse' : 'default');
-  const [placeholder, setPlaceholder] = useState(initial.placeholder || '');
-  const [selMin, setSelMin] = useState(initial.selMin || 0);
-  const [selMax, setSelMax] = useState(initial.selMax || 0);
+  // Not editable any more (Fluxer has no select menus); passed through so saving keeps them.
+  const { placeholder = '', selMin = 0, selMax = 0 } = initial;
   const [rows, setRows] = useState(() => {
     const pairs = Array.isArray(initial.pairs) && initial.pairs.length ? initial.pairs : [{}];
     return pairs.map((p) => ({
@@ -77,22 +71,13 @@ function ReactionRoleForm({ initial, channels, roles, onSave, onCancel, saving }
 
   return (
     <form onSubmit={submit} className="v2-section-gap">
-      <div className="v2-field">
-        <label>Style</label>
-        <div className="v2-tabs">
-          {STYLES.map(([val, label]) => (
-            <button
-              type="button"
-              key={val}
-              className={`v2-tab${style === val ? ' is-active' : ''}`}
-              onClick={() => setStyle(val)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <p className="v2-field-hint">{STYLES.find(([val]) => val === style)[2]}</p>
-      </div>
+      {style !== 'reaction' ? (
+        <p className="v2-note">
+          This set was made with the old {style === 'select' ? 'dropdown' : 'button'} style. Fluxer has no{' '}
+          {style === 'select' ? 'select menus' : 'buttons'}, so it is published as reactions; rows without an
+          emoji get a numbered one.
+        </p>
+      ) : null}
 
       <div className="v2-field">
         <label>Channel</label>
@@ -127,48 +112,9 @@ function ReactionRoleForm({ initial, channels, roles, onSave, onCancel, saving }
         </label>
       </div>
 
-      {style === 'select' ? (
-        <div className="v2-field-row">
-          <div className="v2-field">
-            <label>Dropdown placeholder</label>
-            <input
-              type="text"
-              maxLength={150}
-              placeholder="Pick your roles"
-              value={placeholder}
-              onChange={(e) => setPlaceholder(e.target.value)}
-            />
-          </div>
-          <div className="v2-field">
-            <label>Min picks</label>
-            <input
-              type="number"
-              min={0}
-              max={25}
-              style={{ maxWidth: '90px' }}
-              value={selMin}
-              onChange={(e) => setSelMin(Number(e.target.value))}
-            />
-          </div>
-          <div className="v2-field">
-            <label>
-              Max picks <span className="v2-field-hint">— 0 = no limit</span>
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={25}
-              style={{ maxWidth: '90px' }}
-              value={selMax}
-              onChange={(e) => setSelMax(Number(e.target.value))}
-            />
-          </div>
-        </div>
-      ) : null}
-
       <div className="v2-field">
         <label>
-          {meta.title}{' '}
+          Reactions and roles{' '}
           <span className="v2-field-hint">
             ({rows.length} / {meta.max})
           </span>
@@ -177,20 +123,11 @@ function ReactionRoleForm({ initial, channels, roles, onSave, onCancel, saving }
           <div className="v2-field-row" key={row.key}>
             <input
               type="text"
-              placeholder={style === 'reaction' ? '👋 (required)' : '👋 (optional)'}
+              placeholder={style === 'reaction' ? 'Emoji (required)' : 'Emoji (optional)'}
               value={row.emoji}
               onChange={(e) => updateRow(row.key, { emoji: e.target.value })}
               style={{ maxWidth: '110px' }}
             />
-            {style !== 'reaction' ? (
-              <input
-                type="text"
-                placeholder="Button label (optional)"
-                maxLength={80}
-                value={row.label}
-                onChange={(e) => updateRow(row.key, { label: e.target.value })}
-              />
-            ) : null}
             <select value={row.roleId} onChange={(e) => updateRow(row.key, { roleId: e.target.value })}>
               <option value="">— select a role —</option>
               {roles.map((r) => (
@@ -199,38 +136,27 @@ function ReactionRoleForm({ initial, channels, roles, onSave, onCancel, saving }
                 </option>
               ))}
             </select>
-            {style === 'buttons' ? (
-              <select value={row.btnStyle} onChange={(e) => updateRow(row.key, { btnStyle: e.target.value })}>
-                {BTN_STYLES.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-            ) : null}
             <button type="button" className="v2-embed-x" onClick={() => removeRow(row.key)} title="Remove">
               ×
             </button>
           </div>
         ))}
         <button type="button" className="v2-btn-ghost" disabled={rows.length >= meta.max} onClick={addRow}>
-          {meta.addLabel}
+          + Add reaction
         </button>
       </div>
 
-      {style !== 'select' ? (
-        <div className="v2-field">
-          <label>Reaction mode</label>
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
-            <option value="default">
-              Default — the interaction adds the role; undoing it takes it away.
-            </option>
-            <option value="reverse">
-              Reverse — the interaction removes the role (opt-out); undoing it gives it back.
-            </option>
-          </select>
-        </div>
-      ) : null}
+      <div className="v2-field">
+        <label>Reaction mode</label>
+        <select value={mode} onChange={(e) => setMode(e.target.value)}>
+          <option value="default">
+            Default: reacting adds the role, removing the reaction takes it away.
+          </option>
+          <option value="reverse">
+            Reverse: reacting removes the role (opt-out), removing the reaction gives it back.
+          </option>
+        </select>
+      </div>
 
       <div className="v2-field-row">
         <button type="submit" className="v2-btn-primary" disabled={saving}>
@@ -294,7 +220,7 @@ export default function Roles() {
       await saveAutoroles(guildId, autoroles);
       setAutorolesSaved(true);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSavingAutoroles(false);
     }

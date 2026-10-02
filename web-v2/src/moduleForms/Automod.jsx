@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getModuleConfig, saveModuleConfig, ApiError } from '../api.js';
 import { useApiData } from '../useApiData.js';
 import ChipPicker from '../components/ChipPicker.jsx';
+import { notify } from '../notify.js';
 
 const MODE_LABELS = {
   off: 'Disabled',
@@ -74,7 +75,7 @@ export default function Automod() {
       setForm(toFormConfig(result.config));
       setSaved(true);
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setSaving(false);
     }

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { setModuleEnabled, ApiError } from '../api.js';
 import { useOverview } from '../OverviewContext.jsx';
 import { hasV2Page, v2Href } from '../moduleForms/index.js';
+import { notify } from '../notify.js';
 
 // A module without a V2 page yet gets this tag next to its name, wherever
 // its title is shown — the click still works (falls back to `card.href`,
@@ -148,7 +149,7 @@ export default function Overview() {
         })),
       }));
     } catch (err) {
-      alert(err.message);
+      notify(err.message);
     } finally {
       setTogglingId(null);
     }
